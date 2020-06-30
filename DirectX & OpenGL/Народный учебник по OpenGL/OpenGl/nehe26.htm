@@ -1,0 +1,876 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 26. Реалистичное отражение с использование буфера шаблона и отсечения.</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe26.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 26. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 26. Реалистичное отражение с использование буфера шаблона и отсечения.</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=26" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Clipping & Reflections Using The Stencil Buffer</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Добро пожаловать в следующий урок № 26, довольно интересный 
+  урок. Код для него написал <b>Banu Cosmin</b>. Автором, конечно же, являюсь 
+  я (<b>NeHe</b>). Здесь вы научитесь создавать исключительно реалистичные отражения 
+  безо всяких подделок. Отражаемые объекты не будут выглядеть как бы под полом 
+  или по другую сторону стены, нет. Отражение будет настоящим!</p>
+<p class=textword>&nbsp;</p>
+<p class=textword>Очень важное замечание по теме этого занятия: поскольку <b>Voodoo1</b>, 
+  <b>2</b> и некоторые другие видеокарты не поддерживают буфер шаблона (<b>stencil 
+  </b><b>buffer</b>, или буфер трафарета или стенсильный буфер), программа на 
+  них не заработает. Код, приведенный здесь, работает ТОЛЬКО на картах, поддерживающих 
+  буфер шаблона. Если вы не уверены, что ваша видеосистема его поддерживает, скачайте 
+  пример и попробуйте его запустить. Для программы не требуется мощный процессор 
+  и видеокарта. Даже на моем <b>GeForce1</b> лишь временами я замечал некоторое 
+  замедление. Данная демонстрационная программа лучше всего работает в 32-битном 
+  цветовом режиме.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Поскольку видеокарты становятся все лучше, процессоры - быстрее, 
+  с моей точки зрения, поддержка буфера шаблона становится все более распространенной. 
+  Итак, если оборудование позволяет и вы готовы к отражению, приступим к занятию!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Первая часть программы довольно стандартна. Мы включаем необходимые 
+  заголовочные файлы, готовим наш контекст устройства (<b>Device Context</b>), 
+  контекст рендеринга (<b>Rendering Context</b>) и т.д.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>#include &lt;windows.h&gt;   // заголовочный файл для Windows</p>
+<p class=textpreword>#include &lt;math.h&gt;      // заголовочный файл для математической 
+  библиотеки Windows(добавлено)</p>
+<p class=textpreword>#include &lt;stdio.h&gt;     // заголовочный файл для стандартного 
+  ввода/вывода(добавлено)</p>
+<p class=textpreword>#include &lt;stdarg.h&gt;    // заголовочный файл для манипуляций 
+  с переменными аргументами(добавлено)</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;     // заголовочный файл для библиотеки 
+  OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;    // заголовочный файл для библиотеки 
+  GLu32</p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt;  // заголовочный файл для библиотеки 
+  GLaux</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>HDC    hDC=NULL;     // Частный контекст устройства GDI</p>
+<p class=textpreword>HGLRC    hRC=NULL;   // Контекст текущей визуализации</p>
+<p class=textpreword>HWND    hWnd=NULL;   // Дескриптор нашего окна</p>
+<p class=textpreword>HINSTANCE hInstance; // Копия нашего приложения</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Далее идут стандартные переменные: <b>keys[]</b> – массив для 
+  работы с последовательностями нажатий клавиш, <b>active</b> – показывает, активна 
+  программа или нет, и индикатор полноэкранного режима – <b>fullscreen</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool           keys[256];        // Массив для работы с клавиатурой</p>
+<p class=textpreword>bool           active=TRUE;      // Флаг активности окна, 
+  TRUE по умолчанию</p>
+<p class=textpreword>bool           fullscreen=TRUE;  // Флаг полноэкранного режима, 
+  TRUE по умолчанию</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Далее мы настроим параметры нашего освещения. В <b>LightAmb[]</b> 
+  поместим настройки окружающего освещения. Возьмем его составляющие в пропорции 
+  70% красного, 70% синего и 70% зеленого цвета, что даст нам белый свет с яркостью 
+  в 70%. <b>LightDif[]</b>-массив с настройками рассеянного освещения (это составляющая 
+  света, равномерно отражаемая поверхностью нашего объекта). В данном случае нам 
+  потребуется освещение максимальной интенсивности для наилучшего отражения. И 
+  массив <b>LightPos[]</b> используется для размещения источника освещения. Сместим 
+  его на 4 единицы вправо, 4 единицы вверх и на 6 единиц к наблюдателю. Для более 
+  актуального освещения источник размещается на переднем плане правого верхнего 
+  угла экрана.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>//Параметры освещения</p>
+<p class=textpreword>static Glfloat LightAmb[]={0.7f, 0.7f, 0.7f};  //Окружающий 
+  свет</p>
+<p class=textpreword>static Glfloat LightDif[]={1.0f, 1.0f, 1.0f};  //Рассеянный 
+  свет</p>
+<p class=textpreword>//Позиция источника освещения</p>
+<p class=textpreword>static Glfloat LightPos[]={4.0f, 4.0f, 6.0f, 1.0f};</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Настроим переменную <b>q</b> для нашего квадратичного объекта 
+  (квадратичным объект, по-видимому, называется по той причине, что его полигонами 
+  являются прямоугольники – <i>прим.перев</i>), <b>xrot</b> и <b>yrot</b> – для 
+  осуществления вращения. <b>xrotspeed</b> и <b>yrotspeed</b> – для управления 
+  скоростью вращения. Переменная <b>zoom</b> используется для приближения и отдаления 
+  нашей сцены (начальное значение = -7,  при котором мы увидим полную сцену), 
+  и переменная <b>height</b> содержит значение высоты мяча над полом. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Затем выделим массив для трех текстур и определим WndProc().</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>GLUquadricObj  *q;     // Квадратичный объект для рисования 
+  сферы мяча</p>
+<p class=textpreword>GLfloat xrot = 0.0f;   // Вращение по Х</p>
+<p class=textpreword>GLfloat yrot = 0.0f;   // Вращение по Y </p>
+<p class=textpreword>GLfloat xrotspeed = 0.0f;// Скорость вращения по X</p>
+<p class=textpreword>GLfloat yrotspeed = 0.0f;// Скорость вращения по Y</p>
+<p class=textpreword>GLfloat zoom = -7.0f;  // Глубина сцены в экране</p>
+<p class=textpreword>GLfloat height = 2.0f; // Высота мяча над полом</p>
+<p class=textpreword>GLuint  texture[3];    // 3 Текстуры</p>
+<p class=textpreword>      // Объявление WndProc</p>
+<p class=textpreword>LRESULT  CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);      
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Функции ReSizeGLScene() и LoadBMP() не меняются, так что я их 
+  обе пропускаю.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Функция изменения размера и инициализации OpenGL-окна</p>
+<p class=textpreword>GLvoid ReSizeGLScene(GLsizei width, GLsizei height)</p>
+<p class=textpreword>// Функция загрузки растрового рисунка</p>
+<p class=textpreword>AUX_RGBImageRec *LoadBMP(char *Filename)</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Код, загружающий текстуру довольно стандартный. Вы могли пользоваться 
+  им не раз при изучении предыдущих статей. Мы создали массив для трех текстур, 
+  затем мы загружаем три рисунка и создаем три текстуры с линеарной фильтрацией 
+  из данных рисунков. Файлы с растровыми рисунками мы ищем в каталоге <b>DATA</b>.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>int LoadGLTextures()    // Загрузка рисунков и создание текстур</p>
+<p class=textpreword>{</p>
+<p class=textpreword>    int Status=FALSE;                        // Индикатор 
+  статуса</p>
+<p class=textpreword>    AUX_RGBImageRec *TextureImage[3];        // массив для 
+  текстур</p>
+<p class=textpreword>    memset(TextureImage,0,sizeof(void *)*3); // Обнуление</p>
+<p class=textpreword>    if ((TextureImage[0]=LoadBMP(&quot;Data/EnvWall.bmp&quot;)) 
+  &amp;&amp; // Текстура пола              </p>
+<p class=textpreword>    (TextureImage[1]=LoadBMP(&quot;Data/Ball.bmp&quot;)) 
+  &amp;&amp;        // Текстура света</p>
+<p class=textpreword>    (TextureImage[2]=LoadBMP(&quot;Data/EnvRoll.bmp&quot;)))       
+  // Текстура стены</p>
+<p class=textpreword>    {   </p>
+<p class=textpreword>      Status=TRUE;                      // Статус положительный</p>
+<p class=textpreword>      glGenTextures(3, &amp;texture[0]);    // Создание текстуры</p>
+<p class=textpreword>      for (int loop=0; loop&lt;3; loop++)  // Цикл для 3 
+  текстур</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        glBindTexture(GL_TEXTURE_2D, texture[loop]);</p>
+<p class=textpreword>        glTexImage2D(GL_TEXTURE_2D, 0, 3, TextureImage[loop]-&gt;sizeX,</p>
+<p class=textpreword>          TextureImage[loop]-&gt;sizeY, 0, GL_RGB, GL_UNSIGNED_BYTE,</p>
+<p class=textpreword>          TextureImage[loop]-&gt;data);</p>
+<p class=textpreword>        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+<p class=textpreword>        glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>      for (loop=0; loop&lt;3; loop++)      // Цикл для 3 
+  рисунков</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        if (TextureImage[loop])         // Если текстура 
+  существует</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          if (TextureImage[loop]-&gt;data) // Если рисунок 
+  есть</p>
+<p class=textpreword>          {</p>
+<p class=textpreword>            free(TextureImage[loop]-&gt;data);</p>
+<p class=textpreword>          }</p>
+<p class=textpreword>          free(TextureImage[loop]);     // Очистить память 
+  из-под него</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    return Status;                      // Вернуть статус</p>
+<p class=textpreword>}</p>
+<p class=textword>В функции инициализации представлена новая команда OpenGL – 
+  <b>glClearStencil</b>. Значение параметра = 0 для этой команды говорит о том, 
+  что очищать буфер шаблона не надо. С остальной частью функции вы уже, должно 
+  быть, знакомы. Мы загружаем наши текстуры и включаем плавное закрашивание. Цвет 
+  очистки экрана - синий, значение очистки буфера глубины = 1.0f. Значение очистки 
+  буфера шаблона = 0. Мы включаем проверку глубины и устанавливаем значение проверки 
+  глубины меньше или равной установленному значению. Коррекция перспективы выбрана 
+  наилучшего качества и включается 2D-текстурирование.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>int InitGL(GLvoid)        // Инициализация OpenGL</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  if (!LoadGLTextures())  // Если текстуры не загружены, 
+  выход</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return FALSE;            </p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  glShadeModel(GL_SMOOTH);//Включаем плавное закрашивание</p>
+<p class=textpreword>  glClearColor(0.2f, 0.5f, 1.0f, 1.0f);// Фон</p>
+<p class=textpreword>  glClearDepth(1.0f);    // Значение для буфера глубины</p>
+<p class=textpreword>  glClearStencil(0);     // Очистка буфера шаблона 0</p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST);//Включить проверку глубины</p>
+<p class=textpreword>  glDepthFunc(GL_LEQUAL); // Тип проверки глубины</p>
+<p class=textpreword>  // Наилучшая коррекция перспективы</p>
+<p class=textpreword>  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D);//Включить рисование 2D-текстур</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь пора настроить источник света <b>GL_LIGHT0</b>. Первая 
+  нижеприведенная строка говорит OpenGL использовать массив <b>LightAmp</b> для 
+  окружающего света. Если вы помните начало программы, RGB-компоненты в этом массиве 
+  были все равны 0.7f , что означает 70% интенсивности белого света. Затем мы 
+  при помощи массива <b>LightDif</b> настраиваем рассеянный свет, и местоположение 
+  источника света – значениями x,y,z из массива <b>LightPos</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После настройки света мы включаем его командой <b>glEnable(GL_LIGHT0)</b>. 
+  Хотя источник включен, вы его не увидите, пока не включите освещение командой 
+  <b>glEnable(GL_LIGHT</b><b>ING)</b>.</p>
+<p class=textword><b> &nbsp; </b></p>
+<p class=textword><b>Примечание</b>: если вы хотите отключить все источники света 
+  в сцене, примените команду <b>glDisable(GL_LIGHT</b><b>ING)</b>. Для отключения 
+  определенного источника света надо использовать команду <b>glEnable(GL_LIGHT{0-7})</b>. 
+  Эти команды позволяют нам контролировать освещение в целом, а также источники 
+  по отдельности. Еще раз запомните, пока не отработает команда <b>glEnable(GL_LIGHT</b><b>ING)</b>, 
+  ничего вы на своей 3D-сцене не увидите.</p>
+<p class=textword>&nbsp; 
+   </p>
+<p class=textpreword>  // Фоновое освещение для источника LIGHT0</p>
+<p class=textpreword>  glLightfv(GL_LIGHT0, GL_AMBIENT, LightAmb);</p>
+<p class=textpreword>  // Рассеянное освещение для источника LIGHT0</p>
+<p class=textpreword>  glLightfv(GL_LIGHT0, GL_DIFFUSE, LightDif);</p>
+<p class=textpreword>  // Положение источника LIGHT0</p>
+<p class=textpreword>  glLightfv(GL_LIGHT0, GL_POSITION, LightPos);      </p>
+<p class=textpreword>  // Включить Light0</p>
+<p class=textpreword>  glEnable(GL_LIGHT0);            </p>
+<p class=textpreword>  // Включить освещение</p>
+<p class=textpreword>  glEnable(GL_LIGHTING);            </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>В первой строке мы создаем новый квадратичный объект. Затем 
+  мы говорим OpenGL о типе генерируемых нормалей для нашего квадратичного объекта 
+  - нормали сглаживания. Третья строка включает генерацию координат текстуры для 
+  квадратичного объекта. Без этих строк – второй и третьей закрашивание объекта 
+  будет плоским и невозможно будет наложить на него текстуру.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Четвертая и пятая строки говорят OpenGL использовать алгоритм 
+  сферического наложения (Sphere Mapping) для генерации координат для текстуры. 
+  Это дает нам доступ к сферической поверхности квадратичного объекта.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  q = gluNewQuadric();  // Создать квадратичный объект</p>
+<p class=textpreword>  // тип генерируемых нормалей для него – «сглаженные»</p>
+<p class=textpreword>  gluQuadricNormals(q, GL_SMOOTH);</p>
+<p class=textpreword>  // Включить текстурные координаты для объекта</p>
+<p class=textpreword>  gluQuadricTexture(q, GL_TRUE); </p>
+<p class=textpreword>  // Настройка сферического наложения</p>
+<p class=textpreword>  glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);</p>
+<p class=textpreword>  // Настройка отображения сферы</p>
+<p class=textpreword>  glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);</p>
+<p class=textpreword>  return TRUE;  // Инициализация прошла успешно</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Нижеприведенная функция рисует наш объект (в самом деле, неплохо 
+  смотрящийся пляжный мяч). </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Устанавливаем цвет с максимальной интенсивностью белого и подключаем 
+  текстуру мяча (состоящую из последовательности красной, белой и синей полос).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После этого мы рисуем квадратичную сферу (Quadratic Sphere) 
+  с радиусом в 0.35f, 32 срезами (разбиениями вокруг оси Z) и 16 полосами (разбиениями 
+  вдоль оси Z) (вверх и вниз).</p>
+<p class=textword>&nbsp; 
+   </p>
+<p class=textpreword>void DrawObject()  // Рисование мяча</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  glColor3f(1.0f, 1.0f, 1.0f);// Цвет - белый</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[1]);// Выбор текстуры 
+  2 (1)</p>
+<p class=textpreword>  gluSphere(q, 0.35f, 32, 16);// Рисование первого мяча</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Нарисовав первый мяч, выбираем новую текстуру (<b>EnvRoll</b>), 
+  устанавливаем значение прозрачности в 40% и разрешаем смешивание цветов, основанное 
+  на значении альфа (прозрачности). Команды <b>glEnable(</b><b>GL_</b><b>TEXTURE_</b><b>GEN_</b><b>S)</b> 
+  и <b>glEnable(</b><b>GL_</b><b>TEXTURE_</b><b>GEN_</b><b>T)</b> разрешают сферическое 
+  наложение.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После всего этого мы перерисовываем сферу, отключаем сферическое 
+  наложение  и отключаем смешивание.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Конечный результат – это отражение, которое выглядит как блики 
+  на пляжном мяче. Так как мы включили сферическое наложение, текстура всегда 
+  повернута к зрителю, даже если мяч вращается. Поэтому мы применили смешивание, 
+  так что новая текстура не замещает старую (одна из форм мультитекстурирования).</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[2]);// Выбор текстуры 
+  3 (2)</p>
+<p class=textpreword>  glColor4f(1.0f, 1.0f, 1.0f, 0.4f);// Белый цвет с 40%-й 
+  прозрачностью</p>
+<p class=textpreword>  glEnable(GL_BLEND);               // Включить смешивание</p>
+<p class=textpreword>  // Режим смешивания</p>
+<p class=textpreword>  glBlendFunc(GL_SRC_ALPHA, GL_ONE);</p>
+<p class=textpreword>  // Разрешить сферическое наложение</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_GEN_S);          </p>
+<p class=textpreword>  // Разрешить сферическое наложение</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_GEN_T);      </p>
+<p class=textpreword>  // Нарисовать новую сферу при помощи новой текстуры</p>
+<p class=textpreword>  gluSphere(q, 0.35f, 32, 16);</p>
+<p class=textpreword>  // Текстура будет смешена с созданной для эффекта мультитекстурирования 
+  (Отражение)</p>
+<p class=textpreword>  glDisable(GL_TEXTURE_GEN_S);      // Запретить сферическое 
+  наложение</p>
+<p class=textpreword>  glDisable(GL_TEXTURE_GEN_T);      // Запретить сферическое 
+  наложение</p>
+<p class=textpreword>  glDisable(GL_BLEND);              // Запретить смешивание</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Следующая функция рисует пол, над которым парит наш мяч. Мы 
+  выбираем текстуру пола (<b>EnvWall</b>), и рисуем один текстурированный прямоугольник, 
+  расположенный вдоль оси <b>Z</b>.</p>
+<p class=textword>&nbsp; 
+   </p>
+<p class=textpreword>void DrawFloor()    // Рисование пола</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[0]);// текстура 1 
+  (0)</p>
+<p class=textpreword>  glBegin(GL_QUADS);           // Начало рисования</p>
+<p class=textpreword>    glNormal3f(0.0, 1.0, 0.0); // «Верхняя» нормаль</p>
+<p class=textpreword>    glTexCoord2f(0.0f, 1.0f);  // Нижняя левая сторона текстуры</p>
+<p class=textpreword>    glVertex3f(-2.0, 0.0, 2.0);//Нижний левый угол пола</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    glTexCoord2f(0.0f, 0.0f);  //Верхняя левая сторона текстуры</p>
+<p class=textpreword>    glVertex3f(-2.0, 0.0,-2.0);//Верхний левый угол пола</p>
+<p class=textpreword>      </p>
+<p class=textpreword>    glTexCoord2f(1.0f, 0.0f);  //Верхняя правая сторона текстуры</p>
+<p class=textpreword>    glVertex3f( 2.0, 0.0,-2.0);//Верхний правый угол пола</p>
+<p class=textpreword>      </p>
+<p class=textpreword>    glTexCoord2f(1.0f, 1.0f);  //Нижняя правая сторона текстуры</p>
+<p class=textpreword>    glVertex3f( 2.0, 0.0, 2.0);//Нижний правый угол пола</p>
+<p class=textpreword>  glEnd();                     // конец рисования</p>
+<p class=textpreword>}</p>
+<p class=textword>Теперь одна забавная вещь. Здесь мы скомбинируем все наши объекты 
+  и изображения для создания сцены с отражениями.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Начинаем мы с того, что очищаем экран<b> (GL_COLOR_BUFFER_BIT) 
+  </b>синим цветом (задан ранее в программе). Также очищаются буфер глубины <b>(GL_DEPTH_BUFFER_BIT)</b> 
+  и буфер шаблона <b>(GL_STENCIL_BUFFER_BIT)</b>. Убедитесь в том, что вы включили 
+  команду очистки буфера шаблона, так как это новая команда для вас и ее легко 
+  пропустить. Важно отметить, что при очистке буфера шаблона мы заполняем его 
+  нулевыми значениями.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После очистки экрана и буферов мы определяем наше уравнение 
+  для плоскости отсечения. Плоскость отсечения нужна для отсечения отражаемого 
+  изображения.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Выражение <b>eqr[]={0.0f,-1.0f, 0.0f, 0.0f}</b> будет использовано, 
+  когда мы будем рисовать отраженное изображение. Как вы можете видеть, Y-компонента 
+  имеет отрицательное значение. Это значит, что мы увидим пиксели рисунка, если 
+  они появятся ниже пола, то есть с отрицательным значением по Y-оси. Любой другой 
+  графический вывод выше пола не будет отображаться, пока действует это уравнение.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Больше об отсечении будет позже… читайте дальше.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>int DrawGLScene(GLvoid)// Рисование сцены</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  // Очистка экрана, буфера глубины и буфера шаблона</p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);</p>
+<p class=textpreword>  // Уравнение плоскости отсечения для отсечения отраженных 
+  объектов</p>
+<p class=textpreword>  double eqr[] = {0.0f,-1.0f, 0.0f, 0.0f};      </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Итак, мы очистили экран и определили плоскости отсечения. Теперь 
+  перейдем к изюминке нашего руководства!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Сначала сбросим матрицу модели. После чего все процессы рисования 
+  будут начинаться из центра экрана. Затем мы перемещаемся вниз на 0.6f единиц 
+  (для наклонной перспективы пола) и в экран на значение <b>zoom</b>. Для лучшего 
+  понимания, для чего мы перемещаемся вниз на 6.0f единиц, я приведу вам простой 
+  пример. Если вы смотрите на лист бумаги на уровне своих глаз, вы его едва видите 
+  – так он скорее похож на тонкую полоску. Если вы переместите лист немного вниз, 
+  он перестанет быть похожим на линию. Вы увидите большую площадь бумаги, так 
+  как ваши глаза будут обращены вниз на лист вместо прямого взгляда на его ребро.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glLoadIdentity();// Сброс матрицы модели</p>
+<p class=textpreword>  // Отдаление и подъем камеры над полом (на 0.6 единиц)</p>
+<p class=textpreword>  glTranslatef(0.0f, -0.6f, zoom);        </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Далее мы настроим маску цвета – новую вещь в этом руководстве. 
+  Маска представлена 4 значениями : красный, зеленый, синий и альфа-значение(прозрачность). 
+  По умолчанию все значения устанавливаются в <b>GL_</b><b>TRUE</b>. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Если бы значение красной компоненты в команде <b>glColorMask({red},{green},{blue},{alpha})</b> 
+  было установлено в <b>GL_</b><b>TRUE</b> и в то же самое время все другие значения 
+  были равны 0 (<b>GL_</b><b>FALSE</b>), единственный цвет, который бы мы увидели 
+  на экране, это красный. Соответственно, если бы ситуация была обратной (красная 
+  компонента равна <b>GL_</b><b>FALSE</b>, а все остальные равны <b>GL_</b><b>TRUE</b>), 
+  то на экране мы бы увидели все цвета за исключением красного.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Нам не нужно что-либо выводить на экран в данный момент, поэтому 
+  установим все четыре значения в 0.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glColorMask(0,0,0,0);    // Установить маску цвета</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Именно сейчас пойдет речь об изюминке урока… Настроим буфер 
+  шаблона и проверку шаблона.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Сначала включается проверка шаблона. После того, как была включена 
+  проверка шаблона, мы можем изменять буфер шаблона.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Немного сложно объяснить работу команд, приводимых ниже, так 
+  что, пожалуйста, потерпите, а если у вас есть лучшее объяснение, пожалуйста, 
+  дайте мне знать. Строка <b>glStencilFunc(</b><b>GL_</b><b>ALWAYS, 1, 1)</b> 
+  сообщает OpenGL тип проверки, производимой для каждого пикселя выводимого на 
+  экран объекта (если пиксель не выводиться, то нет и проверки - <i>прим.перев.</i>).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Слово <b>GL_</b><b>ALWAYS</b> говорит OpenGL, что тест работает 
+  все время. Второй параметр – это значение ссылки, которое мы проверяем в третьей 
+  строке, и третий параметр – это маска. Маска – это значение, поразрядно умножаемое 
+  операцией AND (логическое умножение из булевой алгебры – <i>прим.перев.</i>) 
+  на значение ссылки и сохраняемое в буфере шаблона в конце обработки. Значение 
+  маски равно 1, и значение ссылки тоже равно 1. Так что, если мы передадим OpenGL 
+  эти параметры, и тест пройдет успешно, то в буфере шаблона сохранится единица 
+  (так как 1(ссылка)&amp;1(маска)=1).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Небольшое разъяснение: тест шаблона – это попиксельная проверка 
+  изображения объектов, выводимых на экран во время работы теста. Значение ссылки, 
+  обработанное операцией логического умножения AND на значение маски, сравнивается 
+  с текущим значением в буфере шаблона в соответствующем пикселе, также обработанным 
+  операцией AND на значение маски.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Третья строка проверяет три различных состояния, основываясь 
+  на функции проверки шаблона, которую мы решили использовать. Первые два параметра 
+  – <b>GL_KEEP</b>, а третий -<b>GL_REPLACE</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Первый параметр говорит OpenGL что делать в случае если тест 
+  не прошел. Так как этот параметр у нас установлен в <b>GL_KEEP</b>, в случае 
+  неудачного завершения теста (что не может случится, так как у нас вид функции 
+  установлен в <b>GL_ALWAYS</b>), мы оставим состояние буфера в том виде, в котором 
+  оно было на это время.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Второй параметр сообщает OpenGL о том, что делать, если тест 
+  шаблона прошел успешно, а тест глубины – нет. Далее в программе мы так и так 
+  отключаем тест глубины, поэтому этот параметр может быть игнорирован.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>И, наиболее важный, третий параметр. Он сообщает OpenGL о том, 
+  что надо делать в случае, если весь тест пройден успешно. В приведенном ниже 
+  участке программы мы говорим OpenGL, что надо заместить (<b>GL_REPLACE</b>) 
+  значение в буфере шаблона. Значение, которое мы помещаем в буфер шаблона, является 
+  результатом логического умножения (операция AND) нашего значения ссылки и маски, 
+  значение которой равно 1.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Следующее, что нам надо сделать после указания типа теста, это 
+  отключить тест глубины и перейти к рисованию пола.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>А теперь расскажу обо всем этом попроще.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Мы указываем OpenGL, что не надо ничего не отображать на экране. 
+  Значит, во время рисования пола мы ничего не должны видеть на экране. При этом 
+  любая точка на экране в том месте, где должен нарисоваться наш объект (пол) 
+  будет проверена выбранным нами тестом шаблона. Сначала буфер шаблона пуст (нулевые 
+  значения). Нам требуется, чтобы в том, месте, где должен был бы появиться наш 
+  объект (пол), значение шаблона было равной единице. При этом нам незачем самим 
+  заботиться о проверке. В том месте, где пиксель должен был бы нарисоваться, 
+  буфер шаблона помечается единицей. Значение <b>GL_ALWAYS</b> это обеспечивает. 
+  Это также гарантируют значения ссылки и маски, установленные в 1. Во время данного 
+  процесса рисования на экран ничего не выводится, а функция шаблона проверяет 
+  каждый пиксель и устанавливает в нужном месте 1 вместо 0.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>        // Использовать буфер шаблона для «пометки» пола</p>
+<p class=textpreword>  glEnable(GL_STENCIL_TEST);</p>
+<p class=textpreword>  // Всегда проходит, 1 битовая плоскость, маска = 1</p>
+<p class=textpreword>  glStencilFunc(GL_ALWAYS, 1, 1); // 1, где рисуется хоть 
+  какой-нибудь полигон</p>
+<p class=textpreword>  glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);</p>
+<p class=textpreword>  glDisable(GL_DEPTH_TEST);// Отключить проверку глубины</p>
+<p class=textpreword>  DrawFloor();// Рисование пола (только в буфере шаблона)</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь у нас есть невидимая шаблонная маска пола. Пока действует 
+  проверка шаблона, пиксели будут появляться, только в тех местах, где в буфере 
+  шаблона будет установлена 1. И он у нас устанавливается в 1 в том месте, где 
+  выводился невидимый пол. Это значит, что мы увидим рисунок лишь в том месте, 
+  где невидимый пол установил 1 в буфер шаблона. Этот трюк заставляет появиться 
+  отражение лишь на полу и нигде более!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Итак, теперь мы уверены, что отражение мяча нарисуется только 
+  на полу. Значит, пора рисовать само отражение! Включаем проверку глубины и отображение 
+  всех трех составляющих цвета.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Взамен использования значения <b>GL_ALWAYS</b> в выборе шаблонной 
+  функции мы станем использовать значение <b>GL_EQUAL</b>. Значение ссылки и маски 
+  оставим равными 1. Для всех операций с шаблоном установим все параметры в <b>GL_KEEP</b>. 
+  Проще говоря, теперь любой объект может быть отображен на экране (поскольку 
+  цветовая маска установлена в истину для каждого цвета). Во время работы проверки 
+  шаблона, выводимые пиксели будут отображаться лишь в том месте, где буфер шаблона 
+  установлен в 1 (значение ссылки AND значение маски (1&amp;1) равно 1, что эквивалентно 
+  (<b>GL_EQUAL</b>) значению буфера шаблона AND значение маски, что также равно 
+  1). Если в том месте, где рисуется пиксель, буфер шаблона не равен 1, пиксель 
+  не отобразится. Значение<b> GL_KEEP</b> запрещает модифицировать буфер шаблона 
+  вне зависимости от результата проверки шаблона.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST); // Включить проверку глубины</p>
+<p class=textpreword>  glColorMask(1,1,1,1); // Маска цвета = TRUE, TRUE, TRUE, 
+  TRUE</p>
+<p class=textpreword>  glStencilFunc(GL_EQUAL, 1, 1); // Рисуем по шаблону (где 
+  шаблон=1)</p>
+<p class=textpreword>  // (то есть в том месте, где был нарисован пол)</p>
+<p class=textpreword>  // Не изменять буфер шаблона</p>
+<p class=textpreword>  glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь подключим плоскость отсечения для отражения. Эта плоскость 
+  задается массивом <b>eqr</b>, и разрешает рисовать только те объекты, которые 
+  выводятся в пространстве от центра экрана (где находится наш пол) и ниже. Это 
+  способ для того, чтобы не дать отражению мяча появиться выше центра пола. Будет 
+  некрасиво, если он это сделает. Если вы еще не поняли, что я имею ввиду, уберите 
+  первую строку в приведенном ниже коде и переместите клавишами исходный мяч (не 
+  отраженный) через пол.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После подключения плоскости отсечения <b>plane0</b>(обычно применяют 
+  от 0 до 5 плоскостей отсечения), мы определяем ее, передав параметры из массива 
+  <b>eqr</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Сохраняем матрицу (относительно ее позиционируются все объекты 
+  на экране) и применяем команду <b>glScalef(1.0f,-1.0f,1.0f)</b> для поворота 
+  всех вещей сверху вниз (придавая отражению реальный вид). Негативное значение 
+  для Y-параметра в этой команде заставляет OpenGL рисовать все в положении с 
+  обратной координатой Y (то есть, «вниз головой» - <i>прим.перев.</i>). Это похоже 
+  на переворачивание картинки сверху вниз. Объект с положительным значением по 
+  оси Y появляется внизу экрана, а не вверху. Если вы поворачиваете объект к себе, 
+  он поворачивается от вас (словом, представьте себя Алисой – <i>прим.перев.</i>). 
+  Любая вещь будет перевернута, пока не будет восстановлена матрица или не отработает 
+  та же команда с положительным значением Y-параметра (1) (<b>glScalef({x},1.0</b><b>f,{z}</b>).</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glEnable(GL_CLIP_PLANE0);// Включить плоскость отсечения 
+  для удаления</p>
+<p class=textpreword>  // артефактов(когда объект пересекает пол)</p>
+<p class=textpreword>  glClipPlane(GL_CLIP_PLANE0, eqr);// Уравнение для отраженных 
+  объектов</p>
+<p class=textpreword>  glPushMatrix();  // Сохранить матрицу в стеке</p>
+<p class=textpreword>  glScalef(1.0f, -1.0f, 1.0f);  // Перевернуть ось Y</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Первая нижеприведенная строка перемещает наш источник света 
+  в позицию, заданную в массиве <b>LightPos</b>. Источник света должен освещать 
+  правую нижнюю часть отраженного мяча, имитируя почти реальный источник света. 
+  Позиция источника света также перевернута. При рисовании «настоящего» мяча (мяч 
+  над полом) свет освещает правую верхнюю часть экрана и создает блик на правой 
+  верхней стороне этого мяча. При рисовании отраженного мяча источник света будет 
+  расположен в правой нижней стороне экрана.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Затем мы перемещаемся вниз или вверх по оси Y на значение, определенное 
+  переменной <b>height</b>. Перемещение также переворачивается, так что если значение 
+  <b>height</b> =0.5f, позиция перемещения превратится в -5.0f. Мяч появится под 
+  полом вместо того, чтобы появиться над полом!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После перемещения нашего отраженного мяча, нам нужно повернуть 
+  его по осям X и Y на значения <b>xrot</b> и <b>yrot</b> соответственно. Запомните, 
+  что любые вращения по оси X также переворачиваются. Так, если верхний мяч поворачивается 
+  к вам по оси X, то отраженный мяч поворачивается от вас.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После перемещения и вращения мяча нарисуем его функцией <b>DrawObject()</b>, 
+  и восстановим матрицу из стека матриц, для восстановления ее состояния на момент 
+  до рисования мяча. Восстановленная матрица прекратит отражения по оси Y.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Затем отключаем плоскость отсечения (<b>plan0</b>), так как 
+  нам больше не надо ограничивать рисование нижней половиной экрана, и отключаем 
+  шаблонную проверку, так что теперь мы можем рисовать не только в тех точках 
+  экрана, где должен быть пол. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Заметьте, что мы рисуем отраженный мяч раньше пола.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    // Настройка источника света Light0</p>
+<p class=textpreword>    glLightfv(GL_LIGHT0, GL_POSITION, LightPos);  </p>
+<p class=textpreword>    glTranslatef(0.0f, height, 0.0f);// Перемещение объекта</p>
+<p class=textpreword>    // Вращение локальной координатной системы по X-оси</p>
+<p class=textpreword>    glRotatef(xrot, 1.0f, 0.0f, 0.0f);</p>
+<p class=textpreword>    // Вращение локальной координатной системы по Y-оси</p>
+<p class=textpreword>    glRotatef(yrot, 0.0f, 1.0f, 0.0f);    </p>
+<p class=textpreword>    DrawObject();// Рисование мяча (для отражения)</p>
+<p class=textpreword>  glPopMatrix();    // Восстановить матрицу</p>
+<p class=textpreword>  glDisable(GL_CLIP_PLANE0);// Отключить плоскость отсечения</p>
+<p class=textpreword>  // Отключение проверки шаблона</p>
+<p class=textpreword>  glDisable(GL_STENCIL_TEST);</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Начнем эту секцию с позиционирования источника света. Так как 
+  ось Y больше не перевернута, свет будет освещать верхнюю часть экрана, а не 
+  нижнюю.</p>
+<p class=textword>Включаем смешивание цветов, отключаем освещение и устанавливаем 
+  компоненту прозрачности в 80% в команде <b>glColor4f(1.0f,1.0f,1.0f,0.8f)</b>. 
+  Режим смешивания настраивается командой <b>glBlendFunc()</b>, и полупрозрачный 
+  пол рисуется поверх отраженного мяча. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Если бы мы сначала нарисовали пол, а затем – мяч (как нам подсказывает 
+  логика – <i>прим.перев.</i>), результат выглядел бы не очень хорошо. Нарисовав 
+  мяч, а затем – пол, вы увидите небольшой участок пола, смешанный с рисунком 
+  мяча. Когда я посмотрю в синее зеркало, я предположу, что отражение будет немного 
+  синим.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Нарисовав сначала пол, последующим отображением пола мы придадим 
+  отраженному изображению мяча легкую окраску пола.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glLightfv(GL_LIGHT0, GL_POSITION, LightPos);// Положение 
+  источника</p>
+<p class=textpreword>  // Включить смешивание (иначе не отразится мяч)</p>
+<p class=textpreword>  glEnable(GL_BLEND);</p>
+<p class=textpreword>  // В течение использования смешивания отключаем освещение</p>
+<p class=textpreword>  glDisable(GL_LIGHTING);</p>
+<p class=textpreword>  // Цвет белый, 80% прозрачности</p>
+<p class=textpreword>  glColor4f(1.0f, 1.0f, 1.0f, 0.8f);</p>
+<p class=textpreword>  // Смешивание, основанное на «Source Alpha And 1 Minus 
+  Dest Alpha»</p>
+<p class=textpreword>  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);</p>
+<p class=textpreword>  DrawFloor();// Нарисовать пол</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь нарисуем «настоящий» мяч (парящий над полом). При рисовании 
+  пола освещение было отключено, но теперь мы опять его включим.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Так как смешивание нам более не потребуется, мы его отключаем. 
+  Если мы этого не сделаем, изображение мяча смешается с изображением пола. Нам 
+  не нужно, чтобы мяч выглядел, как его отражение, поэтому мы и отключаем смешивание 
+  цветов.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Мы не будем отсекать «настоящий» мяч. Если мяч будет проходить 
+  через пол, мы должны видеть его выходящим из пола снизу. Если мы будем использовать 
+  отсечение, мяч снизу пола не появится. При возникновении необходимости запретить 
+  мячу появляться снизу пола вы можете применить значение плоскости отсечения, 
+  где будет указано положительное значение Y-координаты. При этом мяч будет виден, 
+  только когда он будет рисоваться в верхней части экрана, до той Y-координаты, 
+  которую вы укажете в выражении плоскости отсечения. В данном демонстрационном 
+  примере у нас нет необходимости этого делать, поэтому мяч будет виден по обе 
+  стороны пола.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Затем мы перемещаемся на позицию вывода, заданную в переменной 
+  <b>heght</b>. Только теперь ось Y не перевернута, поэтому мяч двигается в направлении, 
+  противоположном направлению движения отраженного мяча.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Мяч вращается, и, опять же, поскольку ось Y на данный момент 
+  не перевернута, мяч будет вращаться в направлении, обратном направлению вращения 
+  отраженного мяча. Если отраженный мяч вращается к вам, «реальный» мяч вращается 
+  от вас. Это дополняет иллюзию отражения.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>После перемещения и поворота мы рисуем мяч.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glEnable(GL_LIGHTING);// Включить освещение</p>
+<p class=textpreword>  glDisable(GL_BLEND);  // Отключить смешивание</p>
+<p class=textpreword>  glTranslatef(0.0f, height, 0.0f);// Перемещение мяча</p>
+<p class=textpreword>  glRotatef(xrot, 1.0f, 0.0f, 0.0f);// Поворот по оси X</p>
+<p class=textpreword>  glRotatef(yrot, 0.0f, 1.0f, 0.0f);// Поворот по оси Y</p>
+<p class=textpreword>  DrawObject();         // Рисование объекта</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Следующий код служит для поворота мяча по осям X и Y. Для поворота 
+  по оси X увеличивается переменная <b>xrot</b> на значение переменной <b>xrotspeed</b>. 
+  Для поворота по оси Y увеличивается переменная <b>yrot</b> на значение переменной 
+  <b>yrotspeed</b>. Если <b>xrotspeed</b> имеет слишком большое позитивное или 
+  негативное значение, мяч будет крутиться быстрее, чем, если бы <b>xrotspeed</b> 
+  было близко к нулю. То же касается и <b>yrotspeed</b>. Чем больше y<b>rotspeed</b>, 
+  тем быстрее мяч крутится по оси Y.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Перед тем, как вернуть TRUE, выполняется команда <b>glFlush()</b>. 
+  Эта команда указывает OpenGL выполнить все команды, переданные ему в конвейер, 
+  что помогает предотвратить мерцание на медленных видеокартах.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  xrot += xrotspeed; // Обновить угол вращения по X</p>
+<p class=textpreword>  yrot += yrotspeed; // Обновить угол вращения по Y</p>
+<p class=textpreword>  glFlush();   // Сброс конвейера OpenGL</p>
+<p class=textpreword>  return TRUE; // Нормальное завершение</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Следующий код обрабатывает нажатия клавиш. Первые 4 строки проверяют 
+  нажатие вами 4 клавиш (для вращения мяча вправо, влево, вниз, вверх).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Следующие 2 строки проверяют нажатие вами клавиш ‘A’ или ‘Z’. 
+  Клавиша  ‘A’ предназначена для приближения сцены, клавиша  ‘Z’ – для отдаления.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Клавиши ‘PAGE UP’ и ’ PAGE UP’ предназначены для вертикального 
+  перемещения мяча.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>void ProcessKeyboard()  // Обработка клавиатуры</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  if (keys[VK_RIGHT])  yrotspeed += 0.08f;// Вправо</p>
+<p class=textpreword>  if (keys[VK_LEFT])  yrotspeed -= 0.08f; // Влево</p>
+<p class=textpreword>  if (keys[VK_DOWN])  xrotspeed += 0.08f; // Вверх</p>
+<p class=textpreword>  if (keys[VK_UP])  xrotspeed -= 0.08f;   // Вниз</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (keys['A'])    zoom +=0.05f; // Приближение</p>
+<p class=textpreword>  if (keys['Z'])    zoom -=0.05f; // Отдаление</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (keys[VK_PRIOR])  height +=0.03f; // Подъем</p>
+<p class=textpreword>  if (keys[VK_NEXT])  height -=0.03f;  // Спуск</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Функция <b>KillGLWindow()</b> не меняется, поэтому пропущена.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>GLvoid KillGLWindow(GLvoid)// Удаление окна</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Также можно оставить и следующую функцию -<b> CreateGLWindow()</b>. 
+  Для большей уверенности я включил ее полностью, даже если поменялась всего одна 
+  строка в этой структуре:</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  static  PIXELFORMATDESCRIPTOR pfd=</p>
+<p class=textpreword>  // pfd говорит Windows о наших запросах для формата пикселя</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    sizeof(PIXELFORMATDESCRIPTOR),  // Размер структуры</p>
+<p class=textpreword>    1,                    // Номер версии</p>
+<p class=textpreword>    PFD_DRAW_TO_WINDOW |  // Формат должен поддерживать Window</p>
+<p class=textpreword>    PFD_SUPPORT_OPENGL |  // Формат должен поддерживать OpenGL</p>
+<p class=textpreword>    PFD_DOUBLEBUFFER,     // Нужна двойная буферизация</p>
+<p class=textpreword>    PFD_TYPE_RGBA,        // Формат данных- RGBA</p>
+<p class=textpreword>    bits,                 // Глубина цвета</p>
+<p class=textpreword>    0, 0, 0, 0, 0, 0,     // Игнорируются биты цвета</p>
+<p class=textpreword>    0,                    // Нет альфа-буфера</p>
+<p class=textpreword>    0,                    // Игнорируется смещение бит</p>
+<p class=textpreword>    0,                    // Нет аккумулирующего буфера</p>
+<p class=textpreword>    0, 0, 0, 0,           // Игнорируются биты аккумуляции</p>
+<p class=textpreword>    16,                   // 16-битный Z-буфер (глубины)</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Только одно изменение в этой функции – в приведенной ниже строке. 
+  <b>ОЧЕНЬ ВАЖНО</b>: вы меняете значение с 0 на 1 или любое другое ненулевое 
+  значение. Во всех предыдущих уроках значение в строке ниже было равным 0. Для 
+  использования буфера шаблона это значение должно быть больше либо равным 1. 
+  Оно обозначает количество битовых планов буфера шаблона.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>    1,                    // Использовать буфер шаблона (* 
+  ВАЖНО *)</p>
+<p class=textpreword>    0,                    // Нет вспомогательного буфера</p>
+<p class=textpreword>    PFD_MAIN_PLANE,       // Основной уровень рисования</p>
+<p class=textpreword>    0,                    // Не используются</p>
+<p class=textpreword>    0, 0, 0  ,            // Нет маски уровня</p>
+<p class=textpreword>  };</p>
+<p class=textpreword>  </p>
+<p class=textword>WndProc() не изменилась, поэтому здесь не приводится.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Здесь тоже ничего нового. Типичный запуск WinMain().</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Меняется только заголовок окна, в котором содержится информация 
+  о названии урока и его авторах. Обратите внимание, что вместо обычных параметров 
+  экрана 640, 480, 16 в команду создания окна передаются переменные <b>resx</b>, 
+  <b>resy</b> и <b>resbpp</b> соответственно.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  // Создание окна в Windows</p>
+<p class=textpreword>  if (!CreateGLWindow(&quot;Banu Octavian &amp; NeHe's Stencil 
+  &amp; Reflection Tutorial&quot;,</p>
+<p class=textpreword>       resx, resy, resbpp, fullscreen))</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return 0;// Выход, если не создалось</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  while(!done)// Цикл, пока done=FALSE</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    // Выборка сообщений</p>
+<p class=textpreword>    if (PeekMessage(&amp;msg,NULL,0,0,PM_REMOVE))</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      if (msg.message==WM_QUIT) // Выход?</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        done=TRUE;// Если да</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>      else  // Если нет, обработка сообщения</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        TranslateMessage(&amp;msg); // Транслировать сообщение</p>
+<p class=textpreword>        DispatchMessage(&amp;msg);</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    else  // Если нет сообщений</p>
+<p class=textpreword>    {  // Отрисовка сцены.  Ожидание клавиши ESC или</p>
+<p class=textpreword>      // сообщения о выходе от DrawGLScene()</p>
+<p class=textpreword>      if (active)  // Программа активна?</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        if (keys[VK_ESCAPE])// ESC нажата?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          done=TRUE;// Если да, выход</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>        else// Иначе - рисование</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          DrawGLScene();// Рисование сцены</p>
+<p class=textpreword>          SwapBuffers(hDC);//Переключить буфера</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Вместо проверки нажатия клавиш в WinMain(), мы переходим к нашей 
+  функции обработки клавиатуры <b>ProcessKeyboard()</b>. Запомните, что эта функция 
+  вызывается, только если программа активна!</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>          ProcessKeyboard();// Обработка нажатий клавиш</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }    // Конец работы</p>
+<p class=textpreword>  KillGLWindow();  // Удалить окно</p>
+<p class=textpreword>  return (msg.wParam);// Выход из программы</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Я надеюсь, что вам понравилось это руководство. Понимаю, что 
+  оно задаст вам немного работы. Это было одно из самых трудных руководств, написанных 
+  мною. Оно несложно для моего понимания того, что оно делает, и какие команды 
+  используются для создания эффектов, но когда вы попытаетесь объяснить это, понимая, 
+  что большинство программистов даже не слышали о буфере шаблона, это трудно.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Если вам что-то показалось лишним в программе или если вы обнаружили 
+  какие-либо ошибки в руководстве или программе, пожалуйста, дайте мне знать. 
+  Как обычно, я пытался сделать данное руководство наилучшим, насколько смог, 
+  и ваши отзывы будут наиболее ценны.</p>
+<p class=textword>&nbsp; </p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Banu Cosmin (Choko) - программа (<a href="mailto:boct@romwest.ro">boct@romwest.ro</a>)</b></font><br>
+<font color="#0000A0"><b> © Jeff Molofee (NeHe) - HTML/изменения</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;29 июля 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:lake@tut.by"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Александр Попович</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

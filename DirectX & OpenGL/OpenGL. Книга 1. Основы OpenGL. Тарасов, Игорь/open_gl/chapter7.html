@@ -1,0 +1,1211 @@
+<html>
+<head>
+<title>Глава 7</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+      <p> 
+      <p> 
+      <h1><a name=tth_chAp7>Chapter 7 </a><br>
+        Инициализация или как написать приложение с нуля</h1>
+      <h2><a name=tth_sEc7.1>7.1</a>&nbsp;&nbsp;Общие положения</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      В этой главе вы познакомитесь с самой главной частью программного кода - начальной 
+      инициализацией. На мой взгляд, это очень сложная тема. Я решил оставить 
+      ее на конец книги, когда вы уже будете знакомы с OpenGL. В противном случае, 
+      если бы я поместил эту главу в самом начале, я боюсь вы многого не поняли 
+      бы. Да и вообще, может не стали бы читать эту книжку. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Сначала, я расскажу в общих чертах, что нужно для инициализации библиотеки 
+OpenGL. 
+        Далее мы рассмотрим несколько частных реализаций в среде Windows, Linux 
+        и межплатформенный вариант для Java. 
+      Для программирования графики в OpenGL вы должны иметь контекст воспроизведения. 
+        Это что-то типа контекста устройства в Windows или же магического адреса 
+        0xA000 для графического или же 0xB800 для текстого режима MSDOS. Первое, 
+        что вы должны сделать, это подобрать и установить нужные вам параметры 
+        контекста воспроизведения. Потом создать сам контекст воспроизведения. 
+        И последнее, вы должны сделать его активным. Вообще говоря, вы можете иметь 
+        несколько контекстов воспроизведения, но активным может быть только один. 
+        Теперь вы можете уже что-нибудь рисовать. Но, возможно, вам не подходят 
+        настройки по умолчанию, которые предлагает OpenGL. Так что, придется 
+        еще немного потрудиться. Нужно сделать две вещи. Первое - это разрешить 
+        нужные вам опции с помощью glEnable и, здесь же, настроить параметры ламп, 
+        если вы используете освещение. Второе - надо обрабатывать сообщение об 
+        изменениях размера вашего окна. Тут вы указываете ту часть окна, где 
+        у вас будет располагаться контекст OpenGL. До этой главы у нас во всех 
+        примерах размер нашего окна и окна OpenGL совпадали, но, вообще говоря, 
+        это необязательно. Вывод OpenGL может занимать только часть окна, а в 
+        остальной части вы можете разместить свои компоненты: кнопки, поля ввода 
+        и т.п. Далее, вы должны указать тип проекции: перпективная или параллельная. 
+        В перспективной проекции две параллельных прямых будут сходиться вдалеке. 
+        В параллельной же проекции они всегда будут оставаться параллельными. 
+        И последнее, вы устанавливаете точку, где находится ваш глаз; точку, 
+        куда вы смотрите, и вектор, который принимается за направление вверх. У 
+        меня этот вектор во всех примерах - (0,1,0), т.е. ось Y направлена вверх.     
+      <br> <br>
+      <h2><a name=tth_sEc7.2>7.2</a>&nbsp;&nbsp;Консольное приложение - Win32 
+        Console Application</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Достоинством приложений данного типа является переносимость на другие 
+        платформы при условии, что вы не пользовались другими платформенно зависимыми 
+        библиотеками. Реализация OpenGL Auxilary Library существует для большинства 
+        платформ. Также здесь значительно упрощена начальная инициализация, т.е. 
+        вы быстро можете начать программировать. Идеально подходит для начинающих. 
+        Именно поэтому, все примеры в этой книге я привязал к этому варианту приложения 
+        OpenGL. Хотя вы можете вставлять приводимый код в 
+        WinAPI-приложение и MFC-приложение, и все будет работать точно так же. Для 
+        Java-приложения вам придется добавить префиксы к функциям. Недостатком 
+        является урезанная функциональность. Вы не можете обрабатывать все сообщения, 
+        которые приходят вашему окну. Такой тип приложения идеально подходит для 
+        написания небольших портабельных утилит, размером до 25Kb. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Здесь, как я уже говорил, начальная инициализация самая простая. Библиотека 
+        сделает за вас большинство действий. От вас потребуется совсем немного 
+        по сравнению с другими типами приложений. Итак, давайте для начала создадим 
+        проект. Общепризнанно, что тремя наилучшими компиляторами считаются GNU 
+        C, Microsoft C и Watcom C. Inprise(Borland) отпадает. Компиляторами других 
+        фирм я не пользовался. Все мои задачи решались вышеуказанными четырьмя 
+        компиляторами. Правда, должен заметить, что с 1997 года я практически прекратил 
+        пользоваться компилятором фирмы Borland. Лишь изредка, когда нужно было 
+        перекомпилировать старые утилиты, написанные еще для MSDOS. Эта книга 
+        для начинающих, и я хочу сделать ее понятной большинсву читателей. Поэтому 
+        я не буду рассматривать проекты для GNU C или Watcom C. Не хочу здесь 
+        городить непонятные многим начинающим makefile'ы. Однако, в конце данной 
+        главы будет разобрано приложение для UNIX, там уже от makefile'ов никуда 
+        не деться. Теперь вернемся к нашим баранам. 
+      <p> 
+      <ol type=1>
+        <li>Запустите MSVisualC++6.0 
+        <li>Щелкните меню File-&gt;New-&gt;Win32 Console Application. 
+        <li>Выберете каталог и имя проекта задайте glaux, щелкните OK. 
+        <li>Выберете An Empty Project, щелкните Finish. 
+        <li>Создайте новый текстовый файл и сохраните его с именем glaux.c. 
+        <li>Присоедините его к проекту. Project-&gt;Add To Project-&gt;Files 
+        <li>Щелкните Build-&gt;Set Active Configuration и установите тип проекта 
+          glaux - Win32 Release 
+        <li>Далее щелкаете Project-&gt;Settings-&gt;Link-&gt;Object/library modules: 
+          и добавьте туда opengl32.lib, glu32.lib и glaux.lib </li>
+      </ol>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Проект у нас теперь есть, давайте писать glaux.c. Файл, в котором находится 
+        исходный код программы, желательно начинать с комментария. Это необязательно, 
+        но этого требует хороший стиль. В комментариях можно указать имя автора, 
+        способ связи - обычно, адрес электронной почты. Далее, можно кратко описать, 
+        что находится в этом файле. Неплохо вести некоторый дневник здесь же: что 
+        и когда вы добавили. У меня эти комментарии выгядят так: 
+      <pre>/*
+ * (c) Copyright 1995-1999, Igor Tarasov
+ * FidoNet: 2:5020/370.2 620.20 1103.5
+ * Inet: itarasov@rtuis.miem.edu.ru
+ * Phone: (095)916-89-51 916-89-63
+ */
+</pre>
+      <p>Теперь надо включить заголовочные файлы: 
+      <p>
+      <pre>#include &lt;windows.h&gt;
+
+#include &lt;GL/gl.h&gt;
+#include &lt;GL/glu.h&gt;
+#include &lt;GL/glaux.h&gt;
+</pre>
+      <p>Давайте напишем функцию main(). Я посчитал, что наиболее правильно и 
+        понятно будет дать код и прокомментировать его подробно. У меня функция 
+        main() выглядит так: 
+      <p><a name=auxInitPosition72></a><a name=auxInitDisplayMode72></a><a 
+name=auxInitWindow72></a><a name=auxIdleFunc72></a><a 
+name=auxReshapeFunc72></a><a name=auxMainLoop72></a>
+      <pre>void main()
+{
+        float pos[4] = {3,3,3,1};
+        float dir[3] = {-1,-1,-1};
+        
+    // указываем координаты окна на экране 
+    // верхний левый угол (50,10)
+    // ширина и высота - 400    
+    auxInitPosition( 50, 10, 400, 400); 
+    
+    // устанавливаем параметры контекста OpenGL
+    // 
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    
+    // создаем окно на экране
+    auxInitWindow( "Glaux Template" );
+    
+    // наше окно будет получать сообщения
+    // от клавиатуры, мыши, таймера или любые другие
+    // когда никаких сообщений нет
+    // будет вызываться функция display
+    // так мы получаем анимацию
+    // если вам нужна статическая картинка,
+    // то закомментируйте следующую строку
+    auxIdleFunc(display);
+    
+    // при изменении размеров окна
+    // придет соответсвующее сообщение
+    // в Windows - это WM_SIZE
+    // мы устанавливаем функцию resize,
+    // которая будет вызвана
+    // при изменении размеров окна
+    auxReshapeFunc(resize);
+
+
+    // далее, я устанавливаю ряд тестов и параметров
+    
+    // тест прозрачности, т.е. будет учитываться  
+    // четвертый параметр в glColor
+    glEnable(GL_ALPHA_TEST);
+    
+    // тест глубины
+    glEnable(GL_DEPTH_TEST);
+    
+    // glColor будет устанавливать
+    // свойства материала
+    // вам не надо дополнительно
+    // вызывать glMaterialfv
+    glEnable(GL_COLOR_MATERIAL);
+    
+    // разрешаем освещение
+    glEnable(GL_LIGHTING);
+    
+    // включаем нулевую лампу
+    glEnable(GL_LIGHT0);
+    
+    // разрешаем смешение цветов
+    // подробнее смотри главу "Полезные мелочи", 
+    // далее в секции "прозрачность"
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // устанавливаем положение нулевой лампы 
+    // смотри главу "Освещение"
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+   // и последнее, устанавливаем
+   // функцию display отрисовки окна
+   // эта функция будет вызываться всякий раз,
+   // когда потребуется перерисовать окно
+   // например, когда вы развернете окно на весь экран
+
+  
+   // в windows - это обработчик сообщения WM_PAINT
+    auxMainLoop(display);
+}
+</pre>
+      <p>Вот и все с функцией main(). Осталось написать код функции resize и функции 
+        display. Вставьте следующий код перед функцией main(). 
+      <p><a name=glViewport72></a><a name=glMatrixMode72></a><a name=glOrtho72></a><a 
+name=glFrustum72></a><a name=glLoadIndentity72></a><a name=gluLookAt72></a>
+      <pre>void CALLBACK resize(int width,int height)
+{
+
+   // Здесь вы указываете ту чать окна,
+   // куда осуществляется вывод OpenGL.
+   glViewport(0,0,width,height);
+   
+   
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+   
+   // Устанавливаем тип проекции.
+   // glOrtho - параллельная
+   // glFrustum - перспективная
+   // Параметры у этих функций одинаковые.
+   // Они определяют объем, который вы видите.
+   // левая стенка - пять единиц влево
+   // правая - пять единиц вправо
+   // далее, нижняя стенка и верхняя
+   // и наконец, передняя и задняя
+   // см. ниже картинку
+   glOrtho(-5,5, -5,5, 2,12);   
+   
+   // Устанавливаем точку, в которой 
+   // находится наш глаз ---(0,0,5)
+   // направление, куда смотрим --- (0,0,0)
+   // вектор, принимаемый за направление вверх --- (0,1,0)
+   // этим вектором является ось Y
+   gluLookAt( 0,0,5, 0,0,0, 0,1,0 );
+   
+   glMatrixMode( GL_MODELVIEW );
+}    
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Здесь нужно сделать пояснения по поводу glMatrixMode. Функции glOrtho 
+        и glFrustum работают с матрицей, отвечающей за тип проекции. Они просто 
+        загружают соответствующую матрицу. Вы можете установить свой тип проекции, 
+        если вам это понадобится. Сначала вы говорите, что будете изменять матрицу 
+        проекции - glMatrixMode с параметром GL_PROJECTION. Потом, с помощью glLoadMatrix 
+        загружаете соответсвующую матрицу. Функции glTranslate/glRotate работают 
+        с матрицей вида. Ее мы загружаем последней строкой - glMatrixMode( GL_MODELVIEW 
+        ). <a name=GL\_PROJECTION72></a><a name=GL\_MODELVIEW72></a> 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      В параметрах контекста воспроизведения мы установили AUX_DOUBLE. Это 
+        значит, что рисоваться все будет сначала в буфер. Для того, что бы скопировать 
+        содержимое буфера на экран, вызывается функция auxSwapBuffers(). Если вы 
+        программировали анимацию для MSDOS или Windows, то наверняка использовали 
+        такой прием, чтобы избавиться от мерцания на экране. В функции display 
+        мы сначала очищаем буфер. Цвет, которым заполняется буфер при очищении, 
+        можно установить в функции main() вызовом glClearColor(r,g,b). 
+      <pre>void CALLBACK display(void)
+{
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+        /* remove next tree lines
+         * and enter your code here
+         */
+        glTranslated(0.01,0,0);
+            glColor3d(1,0,0);
+        auxSolidSphere( 1 );
+
+  
+  auxSwapBuffers();
+
+}
+</pre>
+      <p>Вот и все. 
+      <p> 
+<center><img src="templates/glaux/release/glaux.jpg"><br>
+Исходный файл смотрите <a href="templates/glaux/glaux.c">здесь</a>.
+Исполняемый файл <a href="templates/glaux/release/glaux.exe">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc7.3>7.3</a>&nbsp;&nbsp;Windows-приложение - Win32 Application</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Достоинством является непосредственное взаимодействие с WinAPI. Начальная 
+        инициализация несколько усложняется, но зато вы имеете полноценное windows-приложение. 
+        Такой тип приложения подходит для написания серьезных больших программ. 
+        Кто-нибудь, конечно, скажет, что приложение непереносимо.  
+        Вам нужно написать работающее 
+        приложение для windows, а не неработающее, но переносимое приложение. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      По поводу переносимости, хочу заметить следующее. В стандарте по языку 
+        Си сказано, что код на языке Си может быть платформенно независимым и 
+        платформенно зависимым. Из этого следует, что для обеспечения переносимости 
+        большой программы, вам придется делать несколько вариантов и затачивать 
+        ее под конкретные платформы. Код, относящийся к OpenGL, практически переносим. 
+        Непереносима только начальная инициализация. Конечно, вы можете попробовать 
+        Java-приложение, но тут возникают свои сложности. Так что, выбор за вами. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Создайте проект Win32 Application. Инструкции смотри в предыдущем разделе. 
+        Только имена дайте win и win.c. Теперь будем писать файл win.c. Внесите 
+        комментарии, заголовочные файлы и функции display и resize, см. предыдущий 
+        раздел. Из функций display и resize уберите слово CALLBACK. А в функции 
+        display замениете auxSwapBuffers() на 
+      <pre>glFinish();  
+SwapBuffers(wglGetCurrentDC());
+</pre>
+      <p>После включения заголовочных файлов объявите следующие глобальные переменные. 
+      <pre>HWND hWnd;
+HGLRC hGLRC;
+HDC hDC;
+</pre>
+      <p>Теперь вставьте код функции, которая устанавливает параметры контекста 
+        воспроизведения OpenGL. 
+      <p>
+      <pre>int SetWindowPixelFormat()
+{
+    int m_GLPixelIndex;
+    PIXELFORMATDESCRIPTOR pfd;
+
+
+    pfd.nSize       = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd.nVersion    = 1;
+
+    pfd.dwFlags   = PFD_DRAW_TO_WINDOW | 
+                    PFD_SUPPORT_OPENGL | 
+                    PFD_DOUBLEBUFFER;
+
+    pfd.iPixelType     = PFD_TYPE_RGBA;
+    pfd.cColorBits     = 32;
+    pfd.cRedBits       = 8;
+    pfd.cRedShift      = 16;
+    pfd.cGreenBits     = 8;
+    pfd.cGreenShift    = 8;
+    pfd.cBlueBits      = 8;
+    pfd.cBlueShift     = 0;
+    pfd.cAlphaBits     = 0;
+    pfd.cAlphaShift    = 0;
+    pfd.cAccumBits     = 64;    
+    pfd.cAccumRedBits  = 16;
+    pfd.cAccumGreenBits   = 16;
+    pfd.cAccumBlueBits    = 16;
+    pfd.cAccumAlphaBits   = 0;
+    pfd.cDepthBits        = 32;
+    pfd.cStencilBits      = 8;
+    pfd.cAuxBuffers       = 0;
+    pfd.iLayerType        = PFD_MAIN_PLANE;
+    pfd.bReserved         = 0;
+    pfd.dwLayerMask       = 0;
+    pfd.dwVisibleMask     = 0;
+    pfd.dwDamageMask      = 0;
+
+
+
+    m_GLPixelIndex = ChoosePixelFormat( hDC, &amp;pfd);
+    if(m_GLPixelIndex==0) // Let's choose a default index.
+    {
+     m_GLPixelIndex = 1;    
+     if(DescribePixelFormat(hDC,m_GLPixelIndex,sizeof(PIXELFORMATDESCRIPTOR),&amp;pfd)==0)
+       return 0;
+    }
+
+
+    if (SetPixelFormat( hDC, m_GLPixelIndex, &amp;pfd)==FALSE)
+        return 0;
+
+
+    return 1;
+}
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Информацию о структуре PIXELFORMATDESCRIPTOR смотрите в справочнике. 
+        Я пользуюсь MSDN. Сейчас MSDN входит в MS Developer Studio. Редактировать 
+        параметры этой структуры вам вряд ли придется. А если придется, 
+        то я не смогу тут описать все. Перевести справочник я, конечно, могу, 
+        но это вам вряд ли поможет. Книга не предназначена для этого. Здесь рассматриваются 
+        конкретные примеры и упражнения. 
+      <p>Теперь напишем функцию обработки сообщений нашего окна. 
+      <p>
+      <pre>LRESULT CALLBACK WindowFunc(HWND hWnd,UINT msg,WPARAM wParam,LPARAM lParam)
+{
+float pos[4] = {3,3,3,1};
+float dir[3] = {-1,-1,-1};
+PAINTSTRUCT ps;
+
+switch(msg)
+ {
+   // сообщение WM_CREATE приходит 
+   // один раз при создании окна
+   case WM_CREATE: 
+        
+   // получаем контекст устройства нашего окна              
+   hDC = GetDC(hWnd); 
+   
+   // устанавливаем параметры контекста воспроизведения OpenGL
+   SetWindowPixelFormat(); 
+   
+   // создаем контекст воспроизведения OpenGL
+   hGLRC = wglCreateContext(hDC);
+   
+   // делаем его текущим
+   wglMakeCurrent(hDC, hGLRC);
+
+  // далее см. предыдущий раздел
+    glEnable(GL_ALPHA_TEST);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+        break; 
+
+   // это сообщение приходит при уничтожении окна    
+   case WM_DESTROY:
+   
+        // удаляем созданный выше
+        // контекст воспроизведения OpenGL
+        if (hGLRC) 
+        {
+            wglMakeCurrent(NULL, NULL);
+            wglDeleteContext(hGLRC);
+        }
+        
+        // освобождаем контекст устройства нашего окна
+        ReleaseDC(hWnd, hDC);
+        PostQuitMessage(0);
+        break;
+
+        
+   // это сообщение приходит всякий раз,
+   // когда нужно перерисовать окно    
+   case WM_PAINT:
+        BeginPaint(hWnd, &amp;ps);
+        display();
+        EndPaint(hWnd, &amp;ps);
+        break;
+        
+
+    
+  case WM_SIZE:
+     resize( LOWORD(lParam), HIWORD(lParam) );
+     break;  
+
+
+       default:
+        return DefWindowProc(hWnd,msg,wParam,lParam);
+        }
+
+return 0;
+}
+</pre>
+      <p>И последнее, осталось написать функцию WinMain. 
+      <p>
+      <pre>int WINAPI WinMain(HINSTANCE hThisInst,
+                                   HINSTANCE hPrevInst,
+                                   LPSTR str,int nWinMode)
+{
+MSG msg;
+WNDCLASS wcl;
+
+
+wcl.hInstance=hThisInst;
+wcl.lpszClassName = "OpenGLWinClass";
+wcl.lpfnWndProc = WindowFunc;
+wcl.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+
+wcl.hIcon = NULL;
+wcl.hCursor = LoadCursor(NULL,IDC_ARROW);
+wcl.lpszMenuName = NULL;
+
+wcl.cbClsExtra = 0;
+wcl.cbWndExtra = 0;
+
+wcl.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
+RegisterClass(&amp;wcl);
+
+
+hWnd = CreateWindow(
+  "OpenGLWinClass", 
+  "Win API Template", 
+  WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS,
+  200,
+  150,
+  400,
+  420,
+  HWND_DESKTOP, NULL,
+  hThisInst, NULL);
+
+
+ShowWindow(hWnd,nWinMode);
+UpdateWindow(hWnd);
+
+
+while(1)
+{
+  while( PeekMessage(&amp;msg,NULL,0,0,PM_NOREMOVE) ) 
+    if(GetMessage(&amp;msg,NULL,0,0))
+     { 
+      TranslateMessage(&amp;msg);
+      DispatchMessage(&amp;msg);
+     }
+    else
+      return 0;
+
+  display();
+} 
+
+
+return 0;
+}
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      OpenGL требует свойства WS_CLIPCHILDREN и WS_CLIPSIBLINGS для окна в Windows. 
+        Поэтому были добавлены эти свойства при создании окна в функцию Createwindow. 
+        Также обратите внимание, что функция display вызывается в бесконечном 
+        цикле. Она вызывается, когда в очереди сообщений окна нет ничего. Эта 
+        же функция вызывается, когда нужно отрисовать окно заново - обработчик 
+        WM_PAINT. 
+      <p> 
+<center><img src="templates/win/release/win.jpg"><br>
+Исходный файл смотрите <a href="templates/win/win.c">здесь</a>.
+Исполняемый файл <a href="templates/win/release/win.exe">здесь</a>.
+</center><br>    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td>
+
+      <h2><a name=tth_sEc7.4>7.4</a>&nbsp;&nbsp;MFC-приложение - MFC AppWizard</h2>
+   <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Этот тип приложения обладаетя всеми достоинствами и недостаками WinAPI-приложения, 
+        рассмотренного выше, так как MFC - это библиотека классов С++, т.е. надстройка 
+        над WinAPI. Кто-нибудь, конечно, скажет, что приложение на плюсах немеренно 
+        большое, работает медленно и MFC для ленивых. В общем, тут у каждого свое 
+        мнение. Каждый по-своему прав. Тем не менее, я считаю, 
+        что для каждой задачи требуется свой инструмент. Где-то лучше использовать 
+        MFC, где-то WinAPI. Кричать, что первое или второе является незаменимым 
+        средством на все случаи жизни было бы неверным. У MFC есть свои особенности, 
+        отнести которые к достоинствам или недостаткам однозначно нельзя. В зависимости от 
+        решаемой задачи они идут в плюс или минус. Согласитесь,что глупо забивать 
+        сапожный гвоздь кувалдой или же скобу сапожным молотком. 
+      <p>Создаем проект: 
+      <p> 
+      <ol type=1>
+        <li>Запустите MSVisualC++6.0 
+        <li>Щелкните меню File-&gt;New-&gt;MFC AppWizard(exe). 
+        <li>Выберете каталог и имя проекта задайте mfc, щелкните OK. 
+        <li>Step1: Поставьте переключатель на Single document, далее OK. 
+        <li>Step3: Уберите флажок ActiveX Controls, далее OK. 
+        <li>Щелкните Finish. 
+        <li>Щелкните Build-&gt;Set Active Configuration и установите тип проекта 
+          MFC - Win32 Release 
+        <li>Далее щелкаете Project-&gt;Settings-&gt;Link-&gt;Object/library modules: 
+          и добавьте туда opengl32.lib, glu32.lib и glaux.lib </li>
+      </ol>
+      <p>В CMFCView объявите закрытую(private) переменную hGLRC типа HGLRC. Там 
+        же объявите функцию int SetWindowPixelFormat(HDC) и открытую(public) 
+        функцию display. Вот, что должно получиться: 
+      <pre> 
+ class CMFCView : public CView
+{
+private:
+CClientDC *pdc;
+HGLRC hGLRC;
+int SetWindowPixelFormat(HDC);
+
+public:
+        void display();
+...
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Вставьте код этой функции в файл MFCView.cpp. Код возьмите из предыдущего 
+        раздела. Отредактируйте функцию CMFCView::PreCretaeWindow следующим образом: 
+      <pre>BOOL CMFCView::PreCreateWindow(CREATESTRUCT&amp; cs)
+{
+        // TODO: Modify the Window class or styles here by modifying
+        //  the CREATESTRUCT cs
+    cs.style |= (WS_CLIPCHILDREN | WS_CLIPSIBLINGS); 
+        return CView::PreCreateWindow(cs);
+}
+</pre>
+      Добавьте также функцию display сюда: 
+      <pre>void CMFCView::display()
+{
+  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+        glTranslated(0.01,0,0); 
+        glColor3d(1,0,0);
+        auxSolidSphere( 1 );
+
+
+  glFinish();
+  SwapBuffers(wglGetCurrentDC());
+}
+</pre>
+      Теперь запустите View-&gt;Class Wizard и добавьте обработчик WM_CREATE,WM_DESTROY 
+      и WM_SIZE в класс CMFCView. Отредактируйте их следующим образом: 
+      <pre>int CMFCView::OnCreate(LPCREATESTRUCT lpCreateStruct) 
+{
+        if (CView::OnCreate(lpCreateStruct) == -1)
+                return -1;
+        
+        pdc = new CClientDC(this);
+
+        if(SetWindowPixelFormat(pdc-&gt;m_hDC)==FALSE)
+        return -1;
+
+
+         hGLRC = wglCreateContext(pdc-&gt;m_hDC);
+    if(hGLRC == NULL)
+        return -1;
+
+    if(wglMakeCurrent(pdc-&gt;m_hDC, hGLRC)==FALSE)
+        return -1;
+
+    glEnable(GL_ALPHA_TEST);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    float pos[4] = {3,3,3,1};
+    float dir[3] = {-1,-1,-1};
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+        return 0;
+}
+
+void CMFCView::OnDestroy() 
+{
+ if(wglGetCurrentContext()!=NULL) 
+   wglMakeCurrent(NULL, NULL) ;
+   
+
+    if(hGLRC!=NULL)
+        {
+      wglDeleteContext(hGLRC);
+      hGLRC = NULL;
+    }
+
+        delete pdc;
+
+        CView::OnDestroy();
+}
+
+void CMFCView::OnSize(UINT nType, int cx, int cy) 
+{
+        CView::OnSize(nType, cx, cy);
+        
+   glViewport(0,0,cx,cy);
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+   glOrtho(-5,5, -5,5, 2,12);   
+   gluLookAt( 0,0,5, 0,0,0, 0,1,0 );
+   glMatrixMode( GL_MODELVIEW );
+        
+}
+</pre>
+      Пояснения смотри в предыдущих разделах. В StdAfx.h включите заголовочные 
+      файлы, после строчки <tt>#include &lt;afxext.h&gt;</tt> 
+      <pre>#include &lt;gl/gl.h&gt;
+#include &lt;gl/glu.h&gt;
+#include &lt;gl/glaux.h&gt;
+</pre>
+      Запустите еще раз Class Wizard и добавьте функцию OnIdle в класс CMFCApp. 
+      Эта функция вызывается всякий раз, когда очередь сообщений окна пуста. Отредактируйте 
+      ее: 
+      <pre>BOOL CMFCApp::OnIdle(LONG lCount) 
+{
+ ( (CMFCView*) ((CMainFrame*)m_pMainWnd)-&gt;GetActiveView() )-&gt;display(); 
+        return 1;//CWinApp::OnIdle(lCount);
+}
+</pre>
+      <p> 
+
+<center><img src="templates/mfc/release/mfc.jpg"><br>
+Исходный файл смотрите <a href="templates/mfc/mfczip.exe">здесь</a>.
+Исполняемый файл <a href="templates/mfc/release/mfc.exe">здесь</a>.
+</center><br>    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td>
+
+      <h2><a name=tth_sEc7.5>7.5</a>&nbsp;&nbsp;Java-апплеты - Magician Library</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Достоинством данного типа приложения, конечно же, является переносимость(
+для тех платформ, для которых существует плагин)
+        и незаменимое средство для web-программирования. Вы можете украсить свой 
+        web-сервер апплетами с трехмерной графикой. К вашим услугам все возможности 
+        OpenGL и объектно-ориентированного программирования. Недостатком является 
+        сложность программирования на языке Java. За короткое время(три 
+        месяца) работы с этим языком на меня свалилось очень много элементарых 
+        проблем: отсутствие форматированного ввода/вывода, непонятное поведение 
+        апплета - в разных броузерах по-разному; устаревшие методы, которые одним 
+        компилятором воспринимались нормально, а другой выдавал предупреждение, 
+        и прочие мелкие проблемы. Вообще, писать java-приложения, т.е. самостоятельные 
+        программы, я бы не советовал. Воспользуйтесь альтернативой - OpenGL Auxilary 
+        Library, рассмотренной в самом начале этой главы. Также можно воспользоваться
+аналогом GLAUX библиотекой GLUT, о которой пойдет речь ниже.
+ Если же вам необходимо 
+        переносимое приложение, то возьмите его из примеров к Magician Library. 
+        Для java-апплетов - программ, исполняющихся в web-броузерах, альтернативы 
+        нет. Поэтому я и рассматриваю здесь программирование апплетов. У этого типа приложений
+имеются очень серьезные недостатки. Для запуска апплетов требуется плагин размером около двух мегабайт.
+Главным образом это связано с тем, что библиотека Magician осуществляет связку между классами Java и 
+длл-модулями от Silicon Graphics, которые не входят в поставку Windows. 
+ Работают
+такие апплеты крайне нестабильно, во всяком случае на момент времени июнь 1999 года было много проблем.
+И самый главный недостаток, эта библиотека платная, если вы хотите распространять ее со своими коммерческими
+приложениями, то вам нужно купить лицензию. У меня на сайте находится пробная версия этой библиотеки.
+Сейчас вышла еще одна библиотека OpenGL для работы с java-апплетами, она называется
+GL4Java. Далее я ее рассмотрю.
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Подробно описывать построение java-апплета, я думаю, излишне после рассмотренных здесь трех 
+        примеров приложений. Я лишь приведу здесь свой шаблонный файл template.java с комменариями. 
+         
+      <p>
+      <pre>
+// подключаем стандартные классы
+import java.applet.*;
+import java.awt.*;
+import java.awt.event.*;
+
+//подключаем классы, которые осуществляют связь с opengl.dll и glu.dll
+import com.hermetica.magician.*;
+import com.hermetica.util3d.*;
+
+public class template extends Applet implements GLEventListener
+{
+// в этом классе основные функции OpenGL, которые в СИ
+// были с приставкой gl
+    private CoreGL gl_ = new CoreGL();
+// в этом классе объявлены функции из glu.dll
+    private CoreGLU glu_ = new CoreGLU();
+// это компонент, на котором отображается окно OpenGL
+    private GLComponent glc = null;
+
+
+// размер компонента OpenGL
+    int width = 500;
+
+public void init()
+{  
+   // создаем компонент OpenGL и устанавливаем его в ценре апплета
+        glc = (GLComponent)GLDrawableFactory.createGLComponent(width, width);
+        add( "Center", glc );
+	
+        // устанавливаем пармметры контекста воспроизведения
+        GLCapabilities cap = glc.getContext().getCapabilities();
+        cap.setDoubleBuffered(GLCapabilities.DOUBLEBUFFER);
+
+               
+        glc.addGLEventListener(this);
+
+        // инициализируем и стартуем
+        glc.initialize();
+        glc.start();
+}
+
+    
+    
+public void initialize( GLDrawable component ) 
+{
+	float pos[] = {3,3,3,1};
+	float dir[] = {-1,-1,-1};
+
+  // тут префиксы немного другие
+        gl_.glClearColor( 1.0f, 1.0f, 0.796875f, 1.0f );
+        gl_.glShadeModel( GL.GL_SMOOTH );
+        gl_.glEnable(GL.GL_ALPHA_TEST);
+        gl_.glEnable(GL.GL_DEPTH_TEST);     
+        gl_.glEnable(GL.GL_COLOR_MATERIAL);
+        gl_.glEnable(GL.GL_LIGHTING);
+        gl_.glEnable(GL.GL_LIGHT0);
+        gl_.glEnable(GL.GL_BLEND);
+        gl_.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+
+    gl_.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, pos);
+    gl_.glLightfv(GL.GL_LIGHT0, GL.GL_SPOT_DIRECTION, dir);
+}
+
+
+
+
+
+public void reshape( GLDrawable component, int x, int y,
+                         int width, int height) 
+{
+ // устанавливаем парамметры сцены
+        gl_.glViewport( component, 0, 0, height, height);
+        gl_.glMatrixMode( GL.GL_PROJECTION );
+        gl_.glLoadIdentity();
+	gl_.glOrtho(-5,5,-5,5,2,12);
+        glu_.gluLookAt( 0,0,5, 0,0,0, 0,1,0 );
+        gl_.glMatrixMode( GL.GL_MODELVIEW );
+}
+
+
+
+
+
+public void display( GLDrawable component ) 
+{
+gl_.glClear( GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT );
+
+// перемещаем сферу
+       gl_.glTranslated(0.01,0,0);
+       gl_.glColor3d(0,1,0);
+       shapes.solidSphere(0.6, 16, 16);
+     
+}
+
+
+
+public void stop() 
+{
+if(glc.isRunning())
+ glc.suspend();
+}
+
+public void start()
+{
+if(glc.isRunning())
+ glc.resume();
+}
+
+public void destroy()
+{
+glc.destroy();
+}
+    
+public GL getGL()
+{
+return gl_;
+}
+
+}
+
+    
+</pre>
+      <p> 
+<center>
+          <img src="templates/java/java.jpg" width="600" height="465"><br>
+Исходный файл смотрите <a href="templates/java/template.java">здесь</a>.
+Html файл <a href="templates/java/index.html">здесь</a>.
+</center><br>    
+
+
+
+      <h2><a name=tth_sEc7.6>7.6</a>&nbsp;&nbsp;Java-апплеты GL4Java</h2>    
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ GL4Java еще одна библиотека, которая связывает классы Java с динамическими модулями
+opengl32.dll и glu32.dll. Недостатков у этого варианта гораздо меньше, чем у 
+преведущего. Библиотека имеется под разные платформы. Под Windows имеется инстоллятор.
+GL4Java работает с динамичсекими библиотеками OpenGL, которые входят в стандартную поставку
+Microsoft Windows, в следствие чего необходимый плагин занимает около 200Кб.
+Маленьким недостатком является требование java-машины версии 5.0.0.3186.
+Узнать версию вы можете в Internet Explorer'e, меню Ви-&gt;Консоль языка Java.
+GL4Java распространяется бесплатно, посленюю версию вы можете взять на сервере
+http://www.jausoft.com в разделе Products-&gt;GL4Java-&gt;Installation. 
+Если этот плагин получит широкое распространение, а у него есть для этого все 
+предпосылки, то написание java-апплетов с использованием OpenGL дело довольно 
+перспективное.
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;  
+ Теперь немного теории о том, как такие библиотеки устроены. Вообще, из Java-апплетов
+нельзя обращаться к локальному диску пользователя. И тут, у вас может возникнуть вопрос,
+как же так получается, что из Интернета все-таки можно загрузить апплет и он будет работать
+с динамическими библиотеками установленными на вашем компьютере? Ведь в одном случае
+это может быть OpenGL, а в другом - вирус, делающий низкоуровневое форматирование вашего диска
+и перезаписывающий BIOS. Ответ очень прост, у вас на машине имеются доверительные 
+динамические библиотеки и java-классы, которые с ними  взаимодействуют. Просто одних библиотек
+недостаточно. Из самого java-апплета вы можете загрузить только java-классы на машине
+пользователя, к которым прописан CLASSPATH. Последним, в свою очередь, разрешено
+взаимодействовать с динамическими библиотеками. В результате, получается когда вы загружаете
+java-апплет с использованием OpenGL, то вся графика делается не на уровне виртуальной
+java-машины, а на уровне opengl32.dll, функционирование которой мало чем отличается от
+выполнения обычного исполняемого файла. Такие плагины, вообще говоря, являются потенциальной
+дырой для проникновения в вашу систему из вне. Если вы работаете в многопользовательской операционной системе
+с разграничением доступа, то не запускайте подозрительных программ от имени администратора.
+Например, в Unix или WindowsNT, если вы запустите какой-нибудь вирус от имени пользователя,
+отформатировать жесткий диск ему не удастся, прав у пользователя таких нет. Администраторов
+лопухов, я здесь не рассматриваю.
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;  
+ Теперь рассмотрим пример. У меня, среди прилагающихся программ, в дириктории 
+template вы найдете поддириктории GL4Java. Здесь я привиду целиком исходный код
+с подробными комментариями.
+<pre>
+// подключаем необходимые библиотеки
+import gl4java.GLContext;
+import gl4java.awt.GLCanvas;
+import gl4java.awt.GLAnimCanvas;
+
+// подключаем стандартные библиотеки java
+import java.awt.*;
+import java.awt.event.*;
+import java.lang.Math;
+import java.applet.*;
+
+// код компонента OpenGL, который мы разместим на нашем апплете
+// компонентами являются кнопки, поля ввода и прочие элементы управления
+// их программирование очень схоже
+
+class BaseGL extends GLAnimCanvas
+{
+// в конструктор передаются парамметры размеров компонента
+// w - шириша, h - высота
+public BaseGL(int w, int h){super(w, h);}
+// устанавливаем парамметр контекста воспроизведения OpenGL
+// мы будем использовать анимацию и нам понадобится двойная буферизация
+public void preInit(){doubleBuffer = true;}
+
+// устанавливаем парамметры сцены
+public void init() 
+{
+gl.glMatrixMode(GL_PROJECTION);
+gl.glLoadIdentity();
+gl.glOrtho(-5,5,-5,5,2,12);
+glu.gluLookAt( 0,0,5, 0,0,0, 0,1,0 );
+gl.glMatrixMode(GL_MODELVIEW);
+glj.gljCheckGL();
+glj.gljMakeCurrent(false);
+}
+
+
+// функция display выглядит почти также, как и в языке Си
+// немного другие префиксы команд
+public void display()
+{
+ gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	  
+ gl.glRotated(5, 0,0,1);
+ gl.glLineWidth(5);
+
+
+ gl.glBegin(GL_LINES);
+
+   gl.glColor3d(1,0,0);   
+   gl.glVertex2d(-2,0);
+   gl.glVertex2d(2,0);
+
+   gl.glColor3d(0,1,0);   
+   gl.glVertex2d(0,-2);
+   gl.glVertex2d(0,2);
+
+   gl.glColor3d(0,0,1);   
+   gl.glVertex3d(0,0,-2);
+   gl.glVertex3d(0,0,2);
+ gl.glEnd();
+
+// этого своего рода аналог auxSwapBuffers
+glj.gljSwap();
+}//display
+
+}
+
+
+// теперь код апплета
+public class BaseApp extends Applet 
+{
+BaseGL baseGL = null;
+
+String gljLib=null;
+String glLib=null;
+String gluLib=null;
+
+public void init()
+{
+// Загружаем библиотеки, которые будут взаимодействовать c opengl32.dll
+// эти библиотеки находятся на машине пользователя
+ if(GLContext.loadNativeLibraries(gljLib, glLib, gluLib)==false)
+  System.out.println("could not load native libs:"+
+		     gljLib + ", " + glLib + ", " + gluLib);
+ else 
+  System.out.println("load native libs:"+
+	        gljLib + ", " + glLib + ", " + gluLib);
+
+
+// устанавливаем алгоритм размещения компонентов на апплете
+ setLayout(null);
+// устанавливаем размеры самого апплета
+ setSize(570,450);
+
+
+// создаем компоненте OpenGL
+ baseGL = new BaseGL(150,150);
+// устанавливаем его границы
+ baseGL.setBounds(120,0,450,450);
+// присоединяем к апплету
+ add(baseGL);
+} 
+
+
+// далее стандартные методы апплета
+public void start()
+{
+baseGL.start();
+}
+
+public void stop()
+{
+baseGL.stop();
+}
+
+public void destroy(){
+		       baseGL.stop();
+		       baseGL.cvsDispose();
+                      }
+
+}
+</pre>
+Html-код для запуска данного апплета выглядит следующим образом:
+<pre>
+&lt;HTML&gt;
+&lt;HEAD&gt;
+&lt;TITLE&gt;Base class for GL4Java&lt;/TITLE&gt;
+&lt;/HEAD&gt;
+&lt;BODY&gt;
+
+&lt;applet code="BaseApp.class" width=570 height=450>&lt;/applet&gt;
+
+&lt;/BODY&gt;
+&lt;/HTML&gt;
+</pre>
+
+<center>
+          <img src="templates/gl4java/gl4java.jpg"><br>
+Исходный файл смотрите <a href="templates/gl4java/BaseApp.java">здесь</a>.
+Html файл <a href="templates/gl4java/BaseApp.html">здесь</a>.
+</center><br>    
+
+
+
+  <h2><a name=tth_sEc7.7>7.7</a>&nbsp;&nbsp;Библиотека GLUT</h2>    
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Так получилось, что все примеры к этой книги я написал с использованием
+библиотеки GLAUX. Библиотека GLUT не менее, а может даже и более универсальная, чем GLAUX.
+ Ее реализация доступна в исходных кодах на языке Си, и она собирается под самые различные платформы
+и реализации OpenGL. При написание программ для Windows недостаком является отсутствие
+библиотеки glut32.dll в стандартной поставке Windows. В следствие чего вам придется
+вместе со своей программой распространять еще и файд glut32.dll, который занимает около
+150Кб. В то время как, с библиотекой GLAUX такой необходимости нет, ваш исполняемы файл будет
+работать на любой машине, где установлена операционная система Windows. Отмечу еще,
+что GLUT предоставляет больше возможностей по взаимодействия с операционной системой.
+Вы, например, можете создавать меню. Но в библиотеки GLUT нет таких функций, как
+[Solid/Wire]Box, [Solid/Wire]Cylinder. Правильные многогранники рисуются одного размера.
+Стоит еще заметить, что в ней нет ошибки Microsoft, когда у нас не получалось нарисовать
+на экране два конуса так, чтобы один из них был проволочный, а другой сплошной.
+Среди прилагающихся программ вы найдете приложение shapes_glut. Сравните с рисунком
+из упражнения "Рисуем трехмерные объекты".
+<center>
+          <img src="chapter2/shapes_glut/release/sg.jpg"><br>
+Исходный файл смотрите <a href="chapter2/shapes_glut/shapes_glut.c">здесь</a>.
+Исполняемый файл <a href="chapter2/shapes_glut/release/shapes_glut.exe">здесь</a>.
+</center><br>    
+
+
+<br>&nbsp;&nbsp;&nbsp;&nbsp;
+ Я вам, вкратце, обрисовал все ЗА и ПРОТИВ, а вы уже сами решайте, что вам
+использовать в каждом конкретном случае. 
+ Для того чтобы создать приложение c использованием библиотеки GLUT выполните
+следующие действия:
+
+<ul>
+ <li>Cоздайте новый проект - "Консольное приложение Win32"
+ <li>В меню Build-&gt;Set Active Configuration выберите Release
+ <li>Далее Project-&gt;Settings-&gt;Link-&gt;Objetc/library modules:
+    впишите следующие библиотеки opengl32.lib glu32.lib glut32.lib.
+ <li> Скопируйте мой шаблон glut.c и подключите его Project-&gt;Add To Project-&gt;Files
+</ul>
+
+Далее я привожу исходный текст шаблонного файла glut.c с комментариями.
+Места выделенные серым цветом отличаются от того, что было в glaux.c, все остальное
+тоже самое. 
+<pre>
+/*
+ * (c) Copyright 1995-2000, Igor Tarasov
+ * FidoNet: 2:5020/370.2 620.20 1103.5
+ * email: igor@itsoft.miem.edu.ru itarasov@rtuis.miem.edu.ru
+ * Phone: (095)916-89-51 916-89-63
+ */
+
+
+
+#include &lt;windows.h&gt;
+
+#include &lt;GL/gl.h&gt;
+#include &lt;GL/glu.h&gt;
+
+// подключаем заголовочный файл glut.h
+<table><tr><td bgcolor=#CCCCCC><pre>
+#include &lt;GL/glut.h&gt;
+</pre></td></tr></table>
+
+// здесь не нужен больше модификатор CALLBACK
+<table><tr><td bgcolor=#CCCCCC><pre>
+void resize(int width,int height)
+</pre></td></tr></table>
+{
+   glViewport(0,0,width,height);
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+   glOrtho(-5,5, -5,5, 2,12);   
+   gluLookAt( 0,0,5, 0,0,0, 0,1,0 );
+   glMatrixMode( GL_MODELVIEW );
+}    
+
+
+<table><tr><td bgcolor=#CCCCCC><pre>
+void display(void)
+</pre></td></tr></table>
+{
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  	/* remove next tree lines
+	 * and enter your code here
+	 */
+        glTranslated(0.01,0,0);
+	    glColor3d(1,0,0);
+
+//изменились префиксы функций
+// и появились некоторые дополнительные парамметры, 
+// которые позволяют лучше контролировать
+// выполнение того или иного действия
+// в данном случае 15, 15 означает кол-во разбиений
+// вдоль оси Z и поперех, т.е. дискретность с которой будет рисоваться
+// сфера, чем выше эти парамметры, тем более качественно будет сделана сфера,
+// но на это уйдет и больше времени
+<table><tr><td bgcolor=#CCCCCC><pre>
+        glutSolidSphere(1, 15,15);
+
+  glutSwapBuffers();
+</pre></td></tr></table>
+}
+
+
+
+void main()
+{
+float pos[4] = {3,3,3,1};
+float dir[3] = {-1,-1,-1};
+
+    GLfloat mat_specular[] = {1,1,1,1};
+// тут только префиксы поменялись
+// назначения функций можете посмотреть в
+// разделе по библиотеке GLAUX
+<table><tr><td bgcolor=#CCCCCC><pre>
+    glutInitWindowPosition(50, 10);
+    glutInitWindowSize(400, 400);
+    glutInitDisplayMode( GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE );
+    glutCreateWindow( "GLUT Template" );
+    glutIdleFunc(display);
+    glutDisplayFunc(display);
+    glutReshapeFunc(resize);
+</pre></td></tr></table>
+  
+    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, 128.0);
+
+
+    /*
+    * Enter your cod here
+    */
+<table><tr><td bgcolor=#CCCCCC><pre>
+    glutMainLoop();
+</pre></td></tr></table>
+}
+</pre>
+
+      <h2><a name=tth_sEc7.8>7.8</a>&nbsp;&nbsp;Linux-приложение - Mesa Library</h2>    
+      <h2><a name=tth_sEc7.9>7.9</a>&nbsp;&nbsp;Упражнение:"Переносим игру Arcanoid"</h2>
+      Перенесите во все, указанные здесь приложения, игру Arcanoid.
+      <p> 
+    </td>
+  </tr>
+</table>
+</body>
+</html>

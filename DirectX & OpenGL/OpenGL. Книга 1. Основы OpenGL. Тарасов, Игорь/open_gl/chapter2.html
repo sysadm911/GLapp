@@ -1,0 +1,608 @@
+<html>
+<head>
+<title>Глава 2</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#008080" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table bgcolor=white width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+      <p>
+      <p> 
+      <p> 
+      <h1><a name=tth_chAp2>Chapter 2 </a><br>
+        Быстрый старт</h1>
+      <p> 
+      <h2><a name=tth_sEc2.1>2.1</a>&nbsp;&nbsp;Устанавливаем OpenGL</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Начнем с самого главного, установим необходимое программное 
+        обеспечение. Я предполагаю, что Windows у Вас уже установлен и работает, в противном случае
+вы купили не ту книгу. Во-первых, 
+        установите MSVisualC++6.0 и jdk113 или выше, если вам интересно узнать о написание
+java-апплетов с использованием OpenGL. Впрочем java понадобится вам только 
+в седьмой главе. Во-вторых, нам понадобится 
+        реализация библиотеки OpenGL. Она входит в поставку Windows95/NT - это 
+        билиотеки opengl32.dll &amp; glu32.dll. Вы также можете взять библиотеки 
+        OpenGL от Silicon Graphics. Инструкция по установке там прилагается. 
+        Вам придется скопировать opengl.dll и glu.dll в windows\system и положить 
+        opengl.lib, glu.lib в подкатолог Lib, где установлено MSVisualC++. В-третьих, 
+        вам понадобятся четыре моих программы-шаблона, которые представляют собой 
+        начальный скелет, который мы потом будем наполнять функциональностью. 
+        Где взять OpenGL от Silicon Graphics, Magician, jdk и мои программы-шаблоны,
+        смотри в приложение 'А'.   
+<br>
+      <h2><a name=tth_sEc2.2>2.2</a>&nbsp;&nbsp;Давайте что-нибудь изобразим</h2>
+      <a name="Let's draw something"></a> 
+
+     Самым простым объектом, с помощью которого можно увидеть всю мощь OpenGL,
+        является сфера. Давайте попытаемся ее изобразить. Для этого надо создать
+новый проект в VisualC++, выполните следующие действия: 
+      <p> 
+      <ol type=1>
+        <li>Запустите MSVisualC++6.0 
+        <li>Щелкните меню File-&gt;New-&gt;Win32 Console Application. 
+        <li>Выберете каталог и имя проекта, впишите - sphere, щелкните OK. 
+          <p><em>Я все свои проекты держу на диске D в каталоге Projects. Projects 
+            ветвится дальше на подкатологи с базами данных, утилитами, графикой 
+            и Java-приложениями. В общем, старайтесь присваивать разумные имена 
+            и вести разумную структуру каталогов. Это очень серьезная проблема. 
+            </em> 
+          <p></p>
+        <li>Выберете An Empty Project, щелкните Finish. 
+        <li>Cкопируйте в каталог вашего проекта мой шаблон glaux.c и переименуйте 
+          его в sphere.c 
+        <li>Присоедините его к проекту. Project-&gt;Add To Project-&gt;Files 
+        <li>Щелкните Build-&gt;Set Active Configuration и установите тип проекта 
+          sphere - Win32 Release 
+        <li>Далее, щелкайте Project-&gt;Settings-&gt;Link-&gt;Object/library modules 
+          и добавьте туда opengl32.lib, glu32.lib и glaux.lib 
+        <li>Вставьте в функцию display следующий код:
+          <pre>      glColor3d(1,0,0);
+      auxSolidSphere(1);
+   </pre>
+        <li>Теперь откомпилируйте и запустите Вашу программу. <br>
+          Меню Build-&gt;Execute Sphere.exe 
+          <p></p>
+        </li>
+      </ol>
+<center><img src="templates/glaux/release/glaux.jpg"><br>
+Исходный файл смотрите <a href="templates/glaux/glaux.c">здесь</a>.
+Исполняемый файл <a href="templates/glaux/release/glaux.exe">здесь</a>.
+</center>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Тперь поясню назначение тех двух функций, что вы вставили в пункте 9.
+    Функция glColor3d устанавливает текущий цвет, которым будут рисоваться фигуры. Тут 
+      нужно пояснить, как устанавливается цвет и общую философию в названии функций 
+      OpenGL. Цвет устанавливается четырьмя параметрами: красный, синий, зеленый 
+      и прозрачность. Эти параметры вариируются в диапозоне от нуля до единицы. 
+      Четвертый параметр нам пока не нужен, поэтому мы вызвали glColor <a 
+name=glColor22></a>с тремя параметрами. В этом случае, значение четвертого параметра, 
+      прозрачности, по умолчанию считается равным единице, т.е. абсолютно непрозрачным, 
+      ноль - будет абсолютно прозрачным. Так как в языке Си нет перегрузки функций, 
+      то применяется следующий синтаксис вызова функций - FuncionName[n=число 
+      параметров][тип параметров]. Доступны следующие типы: 
+      <ul>
+        <p> 
+        <li>b - GLbyte байт 
+        <li>s - GLshort короткое целое 
+        <li>i - GLint целое 
+        <li>f - GLfloat дробное 
+        <li>d - GLdouble дробное с двойной точностью 
+        <li>ub - GLubyte беззнаковый байт 
+        <li>us - GLushort беззнаковое короткое целое 
+        <li>ui - GLuint беззнаковое целое 
+        <li>v - массив из n параметров указанного типа </li>
+      </ul>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      В нашем случае - glColor3d - означает, что в функцию передается три параметра 
+        типа GLdouble. Также можно было вызвать glColor3i, т.е. три параметра 
+        типа GLint. Если тип параметров короткое целое, целое, байт или длинное, то компонента 
+        цвета приводится к диапазону [0,1]. Приведение к этому диапозону осуществляется
+по следующим образом. В случае беззнакого типа  наибольшее возможное значение
+приводится к единице, ноль к нулю. В случае знакого максимальное значение приводится
+к единице или к минус единице, а минус единица будет приведена к единице. Мудрено, сразу и не поймешь.
+На практике вы будете пользоваться одним из трех случаев, рассмотренных в качестве примера 
+ниже.
+Например, для беззнакого байта приведение будет
+осуществленно по следующей формуле: значение_переменной_хранимой_в_байте/255,
+ т.к. 255 максимальное число, хранимое в одном байте. 
+
+ Функция glColor3dv означает, что в 
+        качестве параметров передается массив из трех элементов типа GLdouble. 
+        Например: 
+      <pre> double array[] = {0.5, 0.75, 0.3, 0.7};
+ ...
+
+ glColor3dv(array);
+ glColor3ub(200,100,0);   // приводится к 200/256, 100/256, 0,256
+ glColor3d(0.25,0.25,0);  // темно-желтый
+ glColot3ub(0,100,0);     // темно-зеленый
+ glColor3ub(0,0,255);     // синий
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Функция <a name=auxSolidSphere22></a>auxSolidSphere - рисует сферу в начале координат 
+      и единичным радиусом. Осещение, создание ламп и установка положения камеры
+мы рассмотрим чуть позже, а пока давайте по-лучше освоимся и почувствуем насколько
+здесь все просто. Первую программу под моим руководством вы уже написали.
+Теперь выполните самостоятельные упражнения.
+<br>
+      <h2><a name=tth_sEc2.3>2.3</a>&nbsp;&nbsp;Упражнение: "Трехмерные фигуры"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Замените функцию auxSolidSphere на функцию, из указанных ниже с соответсвующими 
+        параметрами. Значения параметров устанавливайте порядка единицы - 0.5-1.7. 
+        Если вы укажете слишком маленький размер, фигуру будет плохо видно; если 
+        слишком большой, то она получится урезанной. Это связано с тем, что ее 
+        край, как бы вылезет из монитора. 
+      <p><a name=auxSolidCube23></a><a name=auxSolidBox23></a><a 
+name=auxSolidTorus23></a><a name=auxSolidCylinder23></a><a 
+name=auxSolidCone23></a><a name=auxSolidIcosahedron23></a><a 
+name=auxSolidOctahedron23></a><a name=auxSolidTeapot23></a><a 
+name=auxWireCube23></a><a name=auxWireBox23></a><a name=auxWireTorus23></a><a 
+name=auxWireCylinder23></a><a name=auxWireCone23></a><a 
+name=auxWireIcosahedron23></a><a name=auxWireOctahedron23></a><a 
+name=auxWireTeapot23></a> 
+      <ul>
+        <li>auxSolidCube(width) // куб 
+        <li>auxSolidBox(width, height, depth) // коробка 
+        <li>auxSolidTorus(r,R) // тор 
+        <li>auxSolidCylinder(r,height) // цилиндер 
+        <li>auxSolidCone(r,height) // конус 
+        <li>auxSolidIcosahedron(width) // многогранники 
+        <li>auxSolidOctahedron(width) 
+        <li>auxSolidTetrahedron(width) 
+        <li>auxSolidDodecahedron(width) 
+        <li>auxSolidTeapot(width) // рисует чайник </li>
+      </ul>
+      <p>С помошью выше указанных функций вы можете рисовать сплошные фигуры. 
+        Если вам надо нарисовать проволочную, то вместо Solid пишите Wire. <br>
+Пример: 
+<pre>
+        auxWireCube(1) // рисует проволочный куб     
+</pre>
+   <h2><a name=tth_sEc2.4>2.4</a>&nbsp;&nbsp;Переход к новым координатам</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Продолжим рисовать трехмерные фигуры. В предыдущем параграфе вы научились 
+        рисовать примитивные трехмерные объекты. Но проблема в том, что они рисуются 
+        только в начале координат, т.е. в точке (0,0,0). Для того чтобы изобразить 
+        сферу в точке ( x<sub>0</sub>,y<sub>0</sub>,z<sub>0</sub> ), надо переместить 
+        начало координат в эту точку, т.е. надо перейти к новым координатам. Эта 
+        процедура довольно распространенная при программировании графики и анимации. 
+        Часто, бывает очень удобно, сместить координаты в новую точку и повернуть 
+        их на требуемый угол, и ваши расчеты резко упростятся. Конктреный пример 
+        мы рассмотрим ниже, когда научимся программировать анимацию. А пока вы 
+        узнаете, как переходить к новым координатам. Для перехода к новым координатам 
+        в OpenGL есть две функции: 
+      <p><a name=glTranslate24></a><a name=glRotate24></a> 
+      <ul>
+        <li>glTranslated( <font face=symbol>D</font>x,<font 
+  face=symbol>D</font>y,<font face=symbol>D</font>z ) 
+        <li>glRotated(<font 
+  face=symbol>j</font>,x<sub>0</sub>,y<sub>0</sub>,z<sub>0</sub> ) </li>
+      </ul>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Первая функция сдвигает начало системы координат на ( <font 
+face=symbol>D</font>x,<font face=symbol>D</font>y,<font face=symbol>D</font>z 
+        ). Вторая - поворачивает на угол <font face=symbol>j</font> против часовой 
+        стрелки вокруг вектора (x<sub>0</sub>,y<sub>0</sub>,z<sub>0</sub>).  
+      Теперь, стоит сказать еще о двух очень важных функциях: 
+      <p><a name=glPushMatrix24></a><a name=glPopMatrix24></a> 
+      <ul>
+        <li>glPushMatrix() 
+        <li>glPopMatrix() </li>
+      </ul>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Они предназначены для сохранения и восстановления текущих координат. 
+        Я не стал здесь приводить пример на то, как неудобно переходить от одной 
+        системы координат к другой и помнить все ваши переходы. Гораздо удобнее 
+        с помощью glPushMatrix() сохранить текущие координаты, потом сдвигаться, 
+        вертеться, как вам угодно, а после, вызывом glPopMatrix вернуться к старым 
+        координатам. 
+      Итак, настало время поэкспериментировать. Создайте новый проект, повторив 
+        пункты из раздела <a 
+href="index.html">2.2</a>. Только назовите его sphere2. Сначала мы рассмотрим
+сдвиг координат. Вставьте в функцию display 
+        следующий код: 
+      <p>
+      <pre>
+    glPushMatrix();       // сохраняем текущие координаты
+
+     glTranslated(1.4,0,0);  // сдвигаемся по оси Х на 1.4 
+     glColor3d(0,1,0);
+     auxSolidSphere(0.5); // рисуем сферу в (1.4,0,0) 
+                      // в абсолютных координатах
+
+     glTranslated(1,0,0);  // еще раз сдвигаемся
+     glColor3d(0,0,1);
+     auxSolidSphere(0.3);
+
+    glPopMatrix();  // возвращаемся к старой системе координат
+
+    glColor3d(1,0,0);
+    auxSolidSphere(0.75); // рисуем сферу в точке (0,0,0) 
+                     // в абсолютных координатах
+
+</pre>
+      <p>Теперь, откомпилируйте и запустите вашу программу. <br>
+        Меню Build-&gt;Execute Sphere.exe 
+<br><br>
+<center><img src="chapter2/sphere2/release/sphere2.jpg"><br>
+Исходный файл смотрите <a href="chapter2/sphere2/sphere2.c">здесь</a>.
+Исполняемый файл <a href="chapter2/sphere2/release/sphere2.exe">здесь</a>.
+</center>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      В общем-то, из комментариев многое понятно. Обращаю ваше внимание только 
+        на два последних вызова auxSolidSphere. Перед вызовом glPopMatrix сфера 
+        рисуется в точке (2,0,0), а после, в точке (0,0,0).     
+
+      <h2><a name=tth_sEc2.5>2.5</a>&nbsp;&nbsp;Упражнение: "Cписок трехмерных 
+        фигур"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Используя список функций из предыдущего упражнения, нарисуйте эти фигуры 
+      в два столбца. Слева проволочные. Справа сплошные. <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Примечание: тут хочу заметить, что в версии glaux.lib от фирмы Microsoft 
+        имеется следующий баг: цилиндр и конус рисуются всегда либо проволочными, 
+        либо сплошными. Если вы первый цилиндр/конус в программе нарисовали проволочным, 
+        то далее все цилиндры/конусы будут проволочными. Соответсвенно, если первой 
+        была сплошная фигура, то далее все будут сплошные. Поэтому, не стоит паниковать. 
+        Это ошибка Microsoft. Могу также вас порадовать, что ниже 
+        я расскажу, как обойти эту проблему. 
+      <p> 
+<center><img src="chapter2/shapes/release/shapes.jpg"><br>
+Исходный файл смотрите <a href="chapter2/shapes/shapes.c">здесь</a>.
+Исполняемый файл <a href="chapter2/shapes/release/shapes.exe">здесь</a>.
+</center><br>    
+      <h2><a name=tth_sEc2.6>2.6</a>&nbsp;&nbsp;Поворот координат</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Теперь рассмотрим вращение координат.   Создайте новый проект с именем Rotate. Переименуйте glaux.c в rotate.c 
+        В функцию display вставьте следующий код: 
+      <p><a name=glRotate26></a>
+      <pre>glColor3d(1,0,0);
+auxSolidCone(1, 2);  // рисуем конус в центре координат
+
+glPushMatrix();     // сохраняем текущие координаты
+ glTranslated(1,0,0);  // сдвигаемся в точку (1,0,0)
+ glRotated(75, 1,0,0); // поворачиваем систему координат на 75 градусов
+ glColor3d(0,1,0); 
+ auxSolidCone(1, 2);   // рисуем конус
+glPopMatrix();     // возвращаемся к старым координатам
+</pre>
+      <p>Как видите, конус повернулся в абсолютных координатах. Так что, для того, 
+        чтобы нарисовать фигуру <b>не</b> в начале координат, надо: 
+      <ol type=1>
+        <p> 
+        <li>сохранить текущие координаты 
+        <li>сдвинуть(glTranslated), повернуть(glRotated) 
+        <li>нарисовать то, что хотели 
+        <li>вернуться к старым координатам </li>
+      </ol>
+      <p>Вызовы glPushMatrixglPopMatrix могут быть вложенными, т.е.: 
+      <p>
+      <pre>glPushMatrix();
+  ...
+   glPushMatrix();
+   glPopMatrix();
+  ...
+glPopMatrix();
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+     Естественно число вызовов glPopMatrix должно соответствовать числу вызовов 
+        glPushMatrix, иначе у вас сцена улетит в неизвестном направление. 
+Максимально допусттимая глубина вложенности glPushMatrix/glPopMatrix 
+определяется следующим образом:
+<pre>
+int n;
+glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH, &n);    
+printf("n=%d\n",n);
+</pre>
+Спецификация на OpenGL гарантирует, что глубина стека не может быть меньше 32.
+
+    <h2><a name=tth_sEc2.7>2.7</a>&nbsp;&nbsp;Упражнение: "Снеговик"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Используя функцию glRotate, нарисуйте снеговика. Три сферы, шапка - конус, 
+      нос - тоже конус, глаза - сфера, рот можно квадратным сделать - glBox. 
+
+<br><br>
+<center><img src="chapter2/snowman/release/snowman.jpg"><br>
+Исходный файл смотрите <a href="chapter2/snowman/snowman.c">здесь</a>.
+Исполняемый файл <a href="chapter2/snowman/release/snowman.exe">здесь</a>.
+</center>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Примечание: Имеется еще один баг в glaux.lib от Microsoft. Кажется, последний 
+        из оюнаруженных мной. Функция aux[Solid/Wire]Cylinder прежде, чем нарисовать 
+        цилиндр, сдвигает и поворачивает координаты. Так что, если вы уже сместили 
+        и повернули координаты, то цилиндр нарисуется совсем не там, где вы рассчитывали. 
+        Люди из Microsoft, конечно же, будут уверять, что это особенность, и предложат 
+        вам скачать очередной ServicePack.;-) А я ниже расскажу, как более правильно 
+        рисовать цилиндры и конусы. Если вам некогда ждать, то далее приведен 
+        исправленный код этих функций. Большинство из вас сейчас пропустят его 
+        и перейдут к следующему очень интересному разделу - "Анимация". И правильно 
+        сделаете. К исправлению ошибок вернетесь, когда немного освоитесь. Но 
+        я все же решил привести код по исправлению ошибок Microsoft именно здесь. 
+        Можете пересобрать glaux.lib, заменив соответсвующий код в файле shapes.c. 
+        Где взять исходники, смотрите в приложение 'A'. По-моему, они есть в MSDN. 
+      <p>
+      <pre> 
+void auxWireCylinder (GLdouble radius, GLdouble height)
+{
+    GLUquadricObj *quadObj;
+    GLdouble *sizeArray, *tmp;
+    GLuint displayList;
+
+    sizeArray = (GLdouble *) malloc (sizeof (GLdouble) * 2);
+    tmp = sizeArray;
+    *tmp++ = radius;
+    *tmp++ = height;
+    displayList = findList (CYLINDERWIRE, sizeArray, 2);
+
+    if (displayList == 0) {
+        glNewList(makeModelPtr (CYLINDERWIRE, sizeArray, 2),
+            GL_COMPILE_AND_EXECUTE);
+            quadObj = gluNewQuadric ();
+            gluQuadricDrawStyle (quadObj, GLU_LINE);
+            gluCylinder (quadObj, radius, radius, height, 12, 2);
+        glEndList();
+    }
+    else {
+        glCallList(displayList);
+        free (sizeArray);
+    }
+}
+
+void auxSolidCylinder (GLdouble radius, GLdouble height)
+{
+    GLUquadricObj *quadObj;
+    GLdouble *sizeArray, *tmp;
+    GLuint displayList;
+
+    sizeArray = (GLdouble *) malloc (sizeof (GLdouble) * 2);
+    tmp = sizeArray;
+    *tmp++ = radius;
+    *tmp++ = height;
+    displayList = findList (CYLINDERSOLID, sizeArray, 2);
+
+    if (displayList == 0) {
+        glNewList(makeModelPtr (CYLINDERSOLID, sizeArray, 2),
+            GL_COMPILE_AND_EXECUTE);
+            quadObj = gluNewQuadric ();
+            gluQuadricDrawStyle (quadObj, GLU_FILL);
+            gluQuadricNormals (quadObj, GLU_SMOOTH);
+            gluCylinder (quadObj, radius, radius, height, 12, 2);
+        glEndList();
+    }
+    else {
+        glCallList(displayList);
+        free (sizeArray);
+    }
+}
+
+
+void auxSolidCone (GLdouble base, GLdouble height)
+{
+    GLUquadricObj *quadObj;
+    GLdouble *sizeArray, *tmp;
+    GLuint displayList;
+
+    sizeArray = (GLdouble *) malloc (sizeof (GLdouble) * 2);
+    tmp = sizeArray;
+    *tmp++ = base;
+    *tmp++ = height;
+    displayList = findList (CONESOLID, sizeArray, 2);
+
+    if (displayList == 0) {
+        glNewList(makeModelPtr (CONESOLID, sizeArray, 2),
+            GL_COMPILE_AND_EXECUTE);
+            quadObj = gluNewQuadric ();
+            gluQuadricDrawStyle (quadObj, GLU_FILL);
+            gluQuadricNormals (quadObj, GLU_SMOOTH);
+            gluCylinder (quadObj, base, (GLdouble)0.0, height, 15, 10);
+        glEndList();
+    }
+    else {
+        glCallList(displayList);
+        free (sizeArray);
+    }
+}
+
+</pre>    
+      
+      <h2><a name=tth_sEc2.8>2.8</a>&nbsp;&nbsp;Анимация</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Давайте оживим нашего снеговика и добавим интерактивность. Для этого 
+        надо отрисовывать кадры и реагировать на внешние события от клавиатуры 
+        или мыши. 
+      Для отрисовки кадров их надо как-то различать. Для этого мы в функции 
+        display вводим переменную time типа int с модификатором static. Создайте 
+        новый проект и в функцию display введите следующее: "static int time=0;". 
+        Модификатор static означает, что значение переменной будет сохраняться 
+        при выходе из функции. Начальное значение мы устанавливаем в ноль. Если 
+        функция display не зависит от времени, то счетчик кадров можно и не вести. 
+        Теперь добавьте следующие строчки: 
+      <p>
+      <pre> glPushMatrix();
+  glTranslated( ((double)time)/100.0 ,0,0);
+   ... // здесь код из предыдущего упражнения "Cнеговик"
+ glPopMatrix();
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Запустив приложение, вы увидите, что снеговик пополз вдоль оси Х. Вот 
+        так вы можете делать анимацию. Т.е. теперь координаты объектов вычисляются 
+        в зависимости от времени. Я привел простой пример. Вообще говоря, для 
+        программирования сложной графики вам понадобится вычислять координаты 
+        каждого отдельного объекта в зависимости от времени. <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Далее мы рассмотрим пример с более сложной анимацией. Здесь вращается 
+        тор и его ось вращения. Я приведу исходный текст с подробными комментариями. 
+        Пример программы "Гироскоп": 
+<br><br>
+<center><img src="chapter2/giroscop/release/giroscop.jpg"><br>
+          Исходный файл смотрите <a href="chapter2/giroscop/giroscop.c">здесь</a>. 
+          Исполняемый файл <a href="chapter2/giroscop/release/giroscop.exe">здесь</a>. 
+        </center><br>
+
+      <p><a name=glLineWidth28></a>
+      <pre>glPushMatrix();   // сохраняем текущие координаты, т.к. при выходе
+                  // из функции нам нужно вернуться к абсолютным
+                  // координатам
+                  // попробуйте закомментировать вызов glPushMatrix
+                  // здесь и glPopMatrix в конце и вы увидите, что
+                  // из этого получится
+
+   glRotated(time/2, 0.0, 1.0, 0.0); // поворачиваем координаты  
+      
+   glLineWidth(5);      // устанавливаем толщину линии - пять
+   glColor3f(1,0,0);    // устанавливаем текущий цвет - красный
+
+   glBegin(GL_LINES);     // рисуем красную ось          
+    glVertex3d(-0.3,0,0); // т.к. мы повернули координаты,
+    glVertex3d(1.5,0,0);  // ось будет повернута в абсолютных 
+   glEnd();               // координатах, и т.к. функция display 
+                          // вызывается в цикле, и переменная 
+                          // time увеличивается на единицу 
+                          // при каждом вызове display, мы 
+                          // получаем анимацию - вращающуюся ось 
+
+   glPushMatrix(); // теперь относительно повернутых координат   
+                   // мы переходим к новым координатам
+                              
+    glRotated(2*time, 1,0,0); // поворачиваем их на угол 
+                              // 2*time вокруг красной оси
+    glTranslated(-0.3,0,0);   // и сдвигаем на край оси
+    
+    glColor3f(0,0,1);         // устанавливаем синий цвет  
+       
+     glPushMatrix();          // теперь еще раз переходим к 
+                              // новым координатам,   
+     glRotated(90,0,1,0);     // чтобы развернуть тор на 
+                              // 90 градусов
+                              
+                              
+                              // у вас крыша еще не поехала?
+                              // немного?
+                              // то-то же, тут не так все просто,
+                              // но если понять что и как, то 
+                              // очень удобно 
+                              // программировать графику 
+      glLineWidth(1);         
+        auxWireTorus(0.2, 0.7);
+     glPopMatrix();           // нарисовав тор, мы возвращаемся 
+                              // к предыдущим
+                              // координатам, если забыли, 
+                              // начало этих координат
+                              // лежит на конце красной оси 
+       
+                 
+    glLineWidth(7);
+    glColor3f(0,1,0); 
+
+    glBegin(GL_LINES);    // теперь рисуем три зеленых линиии
+     glVertex3d(0,0,0);   // что тут и как рисуется, я поясню в 
+     glVertex3d(0,1,0);   // следующей     
+     glVertex3d(0,0,0);   // главе, сейчас это не так важно    
+     glVertex3d(0,-0.5,1);
+     glVertex3d(0,0,0);
+     glVertex3d(0,-0.5,-1);
+    glEnd();
+   glPopMatrix();         // теперь возвращаемся к повернутым 
+                          // координатам на угол time/2 
+    
+         
+glPopMatrix();        // ну и переходим к абсолютным координатам
+ 
+       time++;        // увеличиваем счетчик кадров или вермя,
+                      // называйте как хотите,
+                      // на единицу
+       
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Как вы, наверное, догадались, надо создать очередной проект, скопировать 
+        туда мой шаблон, добавить его в проект, указать библиотеки opengl32.lib 
+        glu32.lib glaux.lib в Project-&gt;Setting-&gt;Link-&gt;Settings-&gt;Link-&gt;Object/library 
+        modules:, вставить этот код в функцию display. Еще вам нужно в начале функции 
+        display вставить строку static int time=0; и закомментировать строчку 
+        glEnable(GL_LIGHTING) в функции main. <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Запустив это приложение, вы увидите, как оно работает. Теперь закомментируйте 
+        соответсвующие друг другу вызовы glPushMatrix и glPopMatrix и посмотрите 
+        на результат. Я бы рекомендовал такой способ для изучения и понимания 
+        работы программы: вы комментируете куски кода и смотрите, что получается. 
+<br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Для того, чтобы реагировать на клавиатуру или мышь, вы должны определить 
+        функцию, которая будет вызываться при поступление событий от клавиатуры 
+        или мыши. Для кнопки клавиатуры вы определяете функцию со следующим прототипом 
+        void CALLBACK FunctionName(void) и устанавливаете ее как обработчик <a 
+name=auxKeyFunc28></a>определенной кнопки - auxKeyFunc(key_code, FunctionName); 
+        key_code смотри в glaux.h. Пример: auxKeyFunc(AUX_LEFT, FunctionName) 
+        Здесь вы устанавливаете FunctionName как функцию, которая будет вызываться 
+        при нажатии на клавиатуре клавиши "стрелка влево". 
+<br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Для мыши вы устанавливаете свою функцию обработки событий мыши вызовом 
+        функции <a name=auxMouseFunc28></a>auxMouseFunc(int button,int action,AUXMOUSEPROC). 
+        Переменная button может принимать значения - AUX_LEFTBUTTON, AUX_MIDDLEBUTTON, 
+        AUX_RIGHTBUTTON. Переменная action принимает следующие значения - AUX_MOUSEDOWN, 
+        AUX_MOUSEUP, AUX_MOUSELOC. Функция AUXMOUSEPROC должна иметь прототип 
+        - void CALLBACK FunctionName(AUX_EVENTREC *event), где AUX_EVENTREC определено 
+        как 
+      <pre>typedef struct _AUX_EVENTREC
+{
+  GLint event;
+  GLint data[4];
+}AUX_EVENTREC;
+</pre>
+      <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;Для более детальной информации смотрите справочные руководства и исходные 
+        тексты библиотеки OpenGL Auxiliary library. Эта книга об OpenGL, а не 
+        о программировании интерфейсов пользователя. Поэтому, за подобной информацией 
+        вам придется лезть в соответсвующие справочные руководства по Win API, 
+        MFC, Java и т.п. <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      В FunctionName вы можете изменить какую-нибудь глобальную переменную, 
+        и, соответсвенно, функция display будет рисовать кадры в зависимости от 
+        этой переменной. 
+          </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td><br> 
+      <h2><a name=tth_sEc2.9>2.9</a>&nbsp;&nbsp;Упражнение:" Игра Арканоид"</h2>
+      Напишите игру "Arconoid" - летающий шарик, снизу подставка, пользователь стрелками 
+      или мышкой управляет подставкой и отбивает шарик. 
+      <p> 
+<center><img src="chapter2/arcanoid/release/arcanoid.jpg"><br>
+Исходный файл смотрите <a href="chapter2/arcanoid/arcanoid.c">здесь</a>.
+Исполняемый файл <a href="chapter2/arcanoid/release/arcanoid.exe">здесь</a>.
+</center><br>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td>
+      <h2><a name=tth_sEc2.10>2.10</a>&nbsp;&nbsp;Резюме</h2>
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      На этом эта глава книги закончена. Вы научились рисовать трехмерные объекты 
+      и делать интерактивную анимацию, используя эти объекты. Этого, в общем-то, 
+      достаточно для написания примитивных программ. В следующей главе мы научимся
+рисовать примитивные объекты: точки, линиии, ломааные и многоугольники.
+
+      <p> 
+    </td>
+  </tr>
+</table>
+</body>
+</html>

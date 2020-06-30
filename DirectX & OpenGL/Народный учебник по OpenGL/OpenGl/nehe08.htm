@@ -1,0 +1,415 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 8. Смешивание</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe08.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 8. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 8. Смешивание</p>
+</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=8" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Blending</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=head3word>Простая прозрачность</p>
+<p class=textword>&nbsp; </p>
+          <p class=textword>Большинство специальных эффектов в OpenGL основано 
+            на так называемом смешивании (blending). Смешивание используется, 
+            чтобы комбинировать цвет данного пикселя, который должен быть выведен 
+            с пикселем, уже находящемся на экране. Как будут объединены цвета, 
+            будет зависеть от альфа-канала, и/или функции смешивания, которая 
+            задается. Альфа - 4-й компонент цвета, который обычно указывается 
+            в конце. В прошлом Вы использовали GL_RGB, чтобы определить цвет с 
+            тремя компонентами. GL_RGBA может использоваться, чтобы также определить 
+            альфа-канал. Теперь мы можем использовать glColor4f() вместо glColor3f(). 
+          </p>
+          <p class=textword><span style='font-family:Arial;
+color:black;layout-grid-mode:line'>&nbsp; </span></p>
+<p class=textword><span style='layout-grid-mode:line'>Большинство людей думает 
+  об альфе, как о непрозрачности материала. Альфа- значение 0.0 подразумевает, 
+  что материал полностью прозрачен. Значение 1.0 означает полную непрозрачность.</span><span
+lang=EN-US style='layout-grid-mode:line'></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=head3word><span style='layout-grid-mode:line'>Уравнение смешивания</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Если Вы не дружите с математикой, и только хотите уметь просто 
+  использовать эффект прозрачности, то пропустите этот раздел. Если Вы хотите 
+  <i>понять</i>, как работает смешивание, этот раздел - для Вас. </p>
+<p class=textword><br>
+  <span style='font-size:8.0pt;font-family:"Courier New";
+layout-grid-mode:line'>(Rs Sr + Rd Dr, Gs Sg + Gd Dg, Bs Sb + Bd Db, As Sa + Ad 
+  Da) <br>
+  </span><br>
+  OpenGL вычислит результат смешивания двух пикселей, основанный на уравнении 
+  выше. Буквы <span lang=EN-US>s</span> и <span
+lang=EN-US>r</span> в нижнем регистре задают пиксели источника и приемника. S 
+  и D компоненты – коэффициенты смешивания (<span
+lang=EN-US>R</span>,<span lang=EN-US>G</span>,<span lang=EN-US>B</span>,<span lang=EN-US>A</span> 
+  – составляющие цвета). Их значения указывают, как бы Вы хотели смешать пиксели. 
+  Обычные значения для S и D: (As, As, As, As) (так называемые альфа источника 
+  (source alpha)) для S и (1, 1, 1, 1) - (As, As, As, As) (один минус альфа источника) 
+  для D. Отсюда уравнение смешивания будет выглядеть следующим образом: </p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>(Rs As + Rd (1 - As), Gs As + Gd (1 - As), 
+  Bs As + Bs (1 - As), As As + Ad (1 - As)) <br>
+  <br>
+  </span></p>
+<p class=textword><span style='layout-grid-mode:line'>Это уравнение определит 
+  стиль прозрачности/полу прозрачности.</span></p>
+<p class=textword><span style='layout-grid-mode:line'> &nbsp; </span></p>
+          <p class=head3word><span style='layout-grid-mode:line'>Смешивание в 
+            OpenGL</span></p>
+          <p class=head3word><span style='font-family:Arial;
+color:black;layout-grid-mode:line'>&nbsp; </span></p>
+          <p class=textword>Мы включаем эффект смешивания так же как что-либо 
+            другое. Затем мы задаем уравнение и выключаем буфер глубины на запись 
+            при рисовании прозрачных объектов, поскольку мы хотим увидеть объекты 
+            позади нарисованных полупрозрачных фигур. Это не идеальный способ 
+            смешивания, но в нашем простом проекте он будет работать достаточно 
+            хорошо.</p>
+          <p class=textword>&nbsp;</p>
+
+          <p class=textword><b><span style='color:#339966'>Комментарий Rui Martins:</span></b><span
+style='color:#339966'> более правильный путь состоит в том, чтобы вывести все 
+            прозрачные (с альфой &lt; 1.0) полигоны после того, как Вы вывели 
+            полную сцену, и выводить их в обратном порядке глубины (сначала – 
+            дальние). </span></p>
+          <p class=textword><span style='font-family:Arial;
+color:#339966;layout-grid-mode:line'>&nbsp; </span></p>
+          <p class=textword><span style='color:#339966;layout-grid-mode:line'>Это 
+            оттого, что смешивание двух полигонов (1 и 2) в различном порядке 
+            дает различные результаты, то есть если полигон 1 - самый близкий 
+            к наблюдателю, то нужно вывести полигон 2 и затем 1. Если провести 
+            аналогию с реальностью, то свет, проходящий сквозь эти два полигона 
+            (которые являются прозрачными), должен пройти сначала 2-й полигон 
+            и затем полигон 1 до того как достигнет глаза наблюдателя. </span></p>
+          <p class=textword><span style='font-family:Arial;
+color:#339966;layout-grid-mode:line'>&nbsp; </span></p>
+          <p class=textword><span style='color:#339966;layout-grid-mode:line'>Вы должны 
+            СОРТИРОВАТЬ ПРОЗРАЧНЫЕ ПОЛИГОНЫ ПО ГЛУБИНЕ и выводить их ПОСЛЕ ТОГО, 
+            КАК БЫЛА ОТРИСОВАНА ПОЛНАЯ СЦЕНА с ВЫКЛЮЧЕННЫМ БУФЕРОМ ГЛУБИНЫ, или 
+            получится неправильно. Я знаю, что это иногда трудно, но это - правильный 
+            способ делать это.</span></p>
+          <p class=textword>&nbsp;</p>
+
+<p class=textword>Мы будем использовать код от урока семь. Мы начинаем, прибавляя 
+  две новых переменных в начало кода. Я приведу повторно полный раздел кода для 
+  ясности. </p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US>#include &lt;windows.h&gt;    // </span>Заголовочный 
+            файл для<span lang=EN-US> Windows</span></p>
+          <p class=textpreword>#include &lt;stdio.h&gt;      // Заголовочный файл 
+            для стандартного ввода/вывода</p>
+          <p class=textpreword>#include &lt;gl\gl.h&gt;      // Заголовочный файл 
+            для библиотеки OpenGL32</p>
+          <p class=textpreword>#include &lt;gl\glu.h&gt;     // Заголовочный файл 
+            для для библиотеки GLu32</p>
+          <p class=textpreword>#include &lt;gl\glaux.h&gt;   // Заголовочный файл 
+            для библиотеки GLaux</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>HDC          hDC=NULL;  // приватный контекст устройства 
+            GDI</p>          <p class=textpreword>HGLRC        hRC=NULL;  // постоянный контекст 
+            рендеринга</p>
+<p class=textpreword>HWND         hWnd=NULL; // содержит дискриптор нашего окна</p>
+<p class=textpreword>HINSTANCE    hInstance; // содержит экземпляр нашего приложения</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>bool        keys[256];       // массив для процедуры 
+            обработки клавиатуры</p>
+          <p class=textpreword>bool        active=TRUE;     // флаг активности окна, по 
+            умолчанию TRUE</p>
+<p class=textpreword>bool        fullscreen=TRUE; // флаг полноэкранного режима, 
+  по умолчанию полный экран</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US>bool</span>  <span lang=EN-US>blend</span>; 
+            // Смешивание НЕТ/ДА? <span lang=EN-US>(</span>НОВОЕ<span lang=EN-US>)</span></p>          <p class=textpreword><span lang=EN-US>bool</span>  <span lang=EN-US>light</span>; 
+            // Освещение Вкл./Выкл.</p>
+          <p class=textpreword><span lang=EN-US>bool</span>  <span lang=EN-US>lp</span>; 
+               // <span lang=EN-US>L</span> Нажата?</p>
+          <p class=textpreword><span lang=EN-US>bool</span>  <span lang=EN-US>fp</span>; 
+               // <span lang=EN-US>F</span> Нажата?</p>
+          <p class=textpreword>bool  bp;    // B Нажата<span lang=EN-US>? </span>( 
+            Новое )</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US>GLfloat</span> <span lang=EN-US>xrot</span>; 
+                // Вращение вдоль оси <span lang=EN-US>X</span></p>
+          <p class=textpreword><span lang=EN-US>GLfloat</span> y<span lang=EN-US>rot</span>; 
+                // Вращение вдоль оси <span lang=EN-US>Y</span></p>
+          <p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>xspeed</span>;   // Скорость вращения вдоль 
+            оси <span lang=EN-US>X</span></p>
+          <p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>yspeed</span>;   // Скорость вращения вдоль 
+            оси <span lang=EN-US>X</span></p>
+          <p class=textpreword><span lang=EN-US>GLfloat</span> <span lang=EN-US>z</span>=-5.0<span lang=EN-US>f</span>; 
+             // Глубина в экран.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>// Задаем параметры освещения</p>
+          <p class=textpreword>GLfloat LightAmbient[]= { 0.5f, 0.5f, 0.5f, 1.0f 
+            };</p>
+          <p class=textpreword>GLfloat LightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f 
+            };</p>
+          <p class=textpreword>GLfloat LightPosition[]={ 0.0f, 0.0f, 2.0f, 1.0f 
+            };</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>GLuint filter;     // Используемый фильтр для текстур 
+          </p>
+          <p class=textpreword>GLuint texture[3]; // Хранит 3 текстуры</p>
+<p class=textpreword><span style='layout-grid-mode:line'> &nbsp; </span></p>
+<p class=textpreword><span lang=EN-US style='layout-grid-mode:line'>LRESULT</span><span lang=EN-US style='layout-grid-mode:
+line'> </span><span lang=EN-US style='layout-grid-mode:
+line'>CALLBACK</span><span lang=EN-US style='layout-grid-mode:line'> </span><span
+lang=EN-US style='layout-grid-mode:line'>WndProc</span><span
+style='layout-grid-mode:line'>(</span><span lang=EN-US style='layout-grid-mode:line'>HWND</span><span style='layout-grid-mode:line'>, 
+  </span><span
+lang=EN-US style='layout-grid-mode:line'>UINT</span><span
+style='layout-grid-mode:line'>, </span><span lang=EN-US style='layout-grid-mode:line'>WPARAM</span><span style='layout-grid-mode:line'>, 
+  </span><span lang=EN-US style='layout-grid-mode:line'>LPARAM</span><span
+style='layout-grid-mode:line'>);// Объявление для </span><span lang=EN-US
+style='layout-grid-mode:line'>WndProc</span><span
+style='layout-grid-mode:line'></span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Спускаемся вниз до LoadGLTextures(). Найдите строку, которая 
+  говорит texture1 = auxDIBImageLoad (&quot;Data/crate.bmp&quot;), измените ее 
+  на строку ниже. Мы используем текстуру окрашенного стекла для этого урока вместо 
+  текстуры ящика.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword><span>       </span><span lang=EN-US style='"Courier New";'></span><span
+style='"Courier New"'>// Загрузка текстуры стекла (МОДИФИЦИРОВАННО)</span></p>
+          <p class=textpreword><span style='font-family:"Times New Roman";'> </span><span>       
+            </span><span lang=EN-US style='"Courier New";'>texture</span><span style='"Courier New"'>1 
+            = </span><span lang=EN-US style='
+'>auxDIBImageLoad</span><span style='"Courier New"'>(&quot;</span><span lang=EN-US style='
+'>Data</span><span style='"Courier New"'>/</span><span
+lang=EN-US>glass</span><span
+style='"Courier New"'>.</span><span lang=EN-US>bmp</span><span
+style='"Courier New"'>&quot;);</span></p>
+          <p class=textpreword><span style='font-family:"Times New Roman";'>&nbsp; 
+            </span></p>
+          <p class=textword><span style='layout-grid-mode:line'>Прибавьте следующие 
+            две строки где-нибудь в InitGL(). Первая строка задает яркость для 
+            отрисовки объекта, равную полной яркости с альфой 50 % (непрозрачность). 
+            Это означает, когда включается смешивание, объект будет на 50% прозрачный. 
+            Вторая строка задает тип смешивания. </span></p>
+          <p class=textword><span style='font-family:Arial;
+color:black;layout-grid-mode:line'>&nbsp; </span></p>
+<p class=textword><span style='color:#339966;layout-grid-mode:line'>Комментарий 
+  Rui Martins: альфа, равное 0.0 подразумевало бы, что материал полностью прозрачен. 
+  Значение 1.0 было бы сиречь полностью непрозрачно.</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span lang=EN-US style='
+'>glColor4f(1.0f,1.0f,1.0f,0.5f); </span><span>  </span><span lang=EN-US style='
+'>// </span><span
+style='"Courier New"'>Полная</span><span style='"Courier New";'> </span><span style='"Courier New"'>яркость</span><span lang=EN-US style='
+'>, 50% </span><span style='"Courier New"'>альфа</span> <span
+lang=EN-US>(</span><span style='"Courier New"'>НОВОЕ</span><span
+lang=EN-US>)</span></p>
+<p class=textpreword><span style='"Courier New"'>glBlendFunc(GL_SRC_ALPHA,GL_ONE); 
+  // Функция смешивания для непрозрачности,</span></p>
+<p class=textpreword><span>                                  </span>// базирующаяся 
+  на значении альфы(НОВОЕ)<span style='font-family:Arial'></span></p>
+<p class=textpreword><span style='font-family:Arial'> &nbsp; </span></p>
+<p class=textword>Найдите следующий раздел кода, он должен быть в самом конце 
+  урока семь.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword>       if (keys[VK_LEFT])<span>       </span><span lang=EN-US style='"Courier New";'></span><span>  </span>// 
+            Нажата левая стрелка?</p>
+<p class=textpreword>       {</p>
+          <p class=textpreword>              yspeed-=0.01f;      // уменьшаем скорость</p>
+<p class=textpreword>       }<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Под вышеупомянутым кодом мы прибавляем следующие строки. Отслеживаем 
+  нажатие ‘<span lang=EN-US>B</span>’. Если она была нажато, компьютер проверит, 
+  включено ли смешивание. Если смешивание задано, компьютер выключает его. И наоборот, 
+  если смешивание выключено, включает его.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span>       </span>if (keys['B'] &amp;&amp; !bp)         
+               </p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword><span>       </span>       bp=TRUE;                         
+</p>
+          <p class=textpreword><span>       </span>       blend = !blend;      
+                        // <span style='"Courier New"'>Инвертируем</span> blend  
+          </p>
+          <p class=textpreword><span>       </span>       if(blend)                        // 
+            blend TRUE?</p>
+<p class=textpreword><span>       </span>       {</p>
+<p class=textpreword><span>             </span>       glEnable(GL_BLEND);        
+  // <span
+style='"Courier New"'>Включаем</span> <span
+style='"Courier New"'>смешивание</span><span lang=EN-US></span></p>
+<p class=textpreword><span>             </span>       glDisable(GL_DEPTH_TEST);  
+  // <span style='"Courier New"'>Выключаем</span><span style='
+'> </span><span style='"Courier New"'>тест</span> <span
+style='"Courier New"'>глубины</span><span lang=EN-US></span></p>
+<p class=textpreword><span>       </span>       }</p>
+<p class=textpreword><span>       </span>       else                             
+</p>
+<p class=textpreword><span>       </span>       {</p>
+<p class=textpreword><span>             </span>       glDisable(GL_BLEND);        
+  // <span
+style='"Courier New"'>Выключаем</span> <span
+style='"Courier New"'>смешивание</span><span lang=EN-US></span></p>
+          <p class=textpreword><span>             </span>       glEnable(GL_DEPTH_TEST);   
+            <span> </span>// <span style='"Courier New"'>Включаем</span><span style='
+'> </span><span style='"Courier New"'>тест</span> <span
+style='"Courier New"'>глубины</span></p>
+          <p class=textpreword><span>      </span>       <span> </span>}</p>
+<p class=textpreword style='text-indent:35.4pt'><span>       </span>}<span style='"Courier New"'></span></p>
+          <p class=textpreword style='text-indent:35.4pt'><span>       </span>if (!keys['B']) 
+                                <span>     </span>// ’B’ <span
+style='"Courier New"'>отжата</span><span lang=EN-US>?</span></p>
+<p class=textpreword><span>       </span><span
+style='"Courier New"'>{</span></p>
+<p class=textpreword><span>       </span>       bp=FALSE;                         
+  // тогда <span lang=EN-US>bp</span><span
+style='"Courier New"'> возвращает ложь</span></p>
+<p class=textpreword><span>       </span><span lang=EN-US style='"Courier New";'>}</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword><span style='layout-grid-mode:line'>Но как мы можем определить 
+  цвет, если используем картинку текстуры? Просто, в </span>режиме модулирования 
+  текстуры, каждый пиксель, который отображен из текстуры умножается на текущий 
+  цвет. Поэтому, если цвет для отображения (0.5, 0.6, 0.4), мы умножаем его на 
+  цвет и получаем (0.5, 0.6, 0.4, 0.2) (альфа принимается равной 1.0, если не 
+  задается явно).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Отлично! Смешивание, действительно просто сделать в <span
+lang=EN-US>OpenGL</span>.</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=head3word>Примечание от 13.11.99</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Я (<span lang=EN-US>NeHe</span>) модифицировал код смешивания, 
+  поэтому выводимые объекты выглядят лучше. Использование альфа значений для источника 
+  и приемника приводит к появлению артефактов при смешивании. От того, что задние 
+  грани выглядят более темными, чем боковые грани. От этого объект будет выглядеть 
+  очень странно. Способ, с помощью которого я делаю смешивание, может быть не 
+  лучший, но он работает, и объекты выглядят хорошо, даже когда включено освещение. 
+  Спасибо Тому за начальный код, способ, с помощью которого он смешивал , был 
+  правильный способ для смешивания с альфа значениями, но не выглядел привлекательно 
+  и как ожидают этого люди ;).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Код был модифицирован еще раз, для того чтобы исключить проблему, 
+  которая возникала при использовании <span lang=EN-US>glDepthMask</span>(). Это 
+  команда не эффективно разрешала и запрещала тест буфера глубины на некоторых 
+  видеокартах, поэтому я восстановил старый код с <span lang=EN-US>glEnable</span> 
+  и <span
+lang=EN-US>glDisable</span> теста глубины.</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Альфа из картинки текстуры</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Альфа значение, которое используется для прозрачности, может 
+  быть получено из картинки текстуры точно также как цвет, для того чтобы сделать 
+  это, вы должны извлечь альфа из изображения, которое Вы хотите загрузить, и 
+  затем использовать <span lang=EN-US>GL</span>_<span
+lang=EN-US>RGBA</span> для формата цвета при вызове <span lang=EN-US>glTexImage</span>2<span
+lang=EN-US>D</span>().</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Вопросы<span lang=EN-US>?</span></p>
+<p class=head3word>&nbsp; </p>
+<p class=textword>Если у Вас есть вопросы, не стесняйтесь послать их по адресу 
+  <u>stanis@cs.wisc.edu &lt;mailto:stanis@cs.wisc.edu&gt;.</u></p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Tom Stanis</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+<p align="center">
+<a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>PMG</b></font></a>
+
+            <font class="comment">&nbsp;27 февраля 2002&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:1b@ezmail.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  " 
+onmouseout=" return event_out(this) "> <font class="link"><b>Vlad Tushevskij</b></font></a> 
+          </p>
+</div>
+
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

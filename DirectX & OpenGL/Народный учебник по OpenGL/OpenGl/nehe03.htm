@@ -1,0 +1,223 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 3. Отображение цветов</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe03.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 3. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 3. Отображение цветов
+</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=3" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Colors</b></font></a>
+<br>
+<br>
+</p>
+
+
+<p class="text">
+В предыдущем уроке я показал, как можно отобразить на экране треугольник и квадрат. В
+этом уроке я научу вас отображать эти же фигуры, но в разных цветах. Квадрат мы зальем
+одним цветом, а вот треугольник будет залит тремя разными цветами (по одному на
+каждую вершину) с гладкими переходами.
+</p>
+
+
+<p class="text">
+Вы можете использовать код из предыдущего урока, изменив лишь процедуру
+DrawGLScene(). Я переписал ее содержимое, и, если вы планируете изменять предыдущий
+урок, вам нужно полностью ее заменить, или добавить те строки, которые там
+отсутствуют.
+</p>
+
+
+<p  ><font class="textpreword">GLvoid DrawGLScene(GLvoid)<br>
+{<br>
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);<br>
+        glLoadIdentity();<br>
+<br>
+        glTranslatef(-1.5f,0.0f,-6.0f);<br>
+<br>
+        glBegin(GL_TRIANGLES);</font></p  >
+
+<p class="text">
+Если вы еще помните предыдущий урок, в этой секции мы рисовали треугольник в левой
+части экрана. Следующие строки кода используют команду glColor3f(r, g, b). Три ее
+параметра указывают насыщенность цвета красной, синей и зеленой составляющей.
+Каждый из них может принимать значение от 0.0f до 1.0f.
+</p>
+
+
+<p class="text">
+Мы установим красный цвет (полный красный, без зеленого и синего). Следующие строки
+кода указывают, что первая вершина (верхняя) будет иметь красный цвет. Все что мы
+будем рисовать дальше красным, до тех пор, пока мы его не сменим цвет.
+</p>
+
+
+<p  ><font class="textpreword">                glColor3f(1.0f,0.0f,0.0f);      // Красный цвет<br>
+                glVertex3f( 0.0f, 1.0f, 0.0f);</font></p  >
+
+<p class="text">
+Мы отобразили первую вершину, установив для нее красный цвет. Теперь добавим
+следующую вершину (левую нижнею), но установим для нее уже зеленый цвет.
+</p>
+
+
+<p  ><font class="textpreword">                glColor3f(0.0f,1.0f,0.0f);      // Зеленный цвет<br>
+                glVertex3f(-1.0f,-1.0f, 0.0f);</font></p  >
+
+<p class="text">
+Пришло время третьей и последней вершины (правый нижний угол). Перед тем как
+отобразить ее, мы установим синий цвет. После выполнения команды glEnd() треугольник
+будет залит указанными цветами. Так как мы указали для каждой вершины свой цвет,
+каждая часть фигуры будет залита по-разному. При переходе в другую вершину заливка
+будет плавно изменять свой цвет на цвет вершины. В середине треугольника все три цвета
+будут слиты в один.
+</p>
+
+
+<p  ><font class="textpreword">                glColor3f(0.0f,0.0f,1.0f);      // Синий цвет<br>
+                glVertex3f( 1.0f,-1.0f, 0.0f);<br>
+        glEnd();<br>
+<br>
+        glTranslatef(3.0f,0.0f,0.0f);</font></p  >
+
+<p class="text">
+Теперь мы отобразим квадрат, но зальем его одним цветом. Очень важно помнить, что
+если вы установили какой-либо цвет, все примитивы в дальнейшем будет отображаться
+именно им. Каждый последующий проект, который вы будете создавать, так или иначе,
+будет использовать цвета. Если вы, например, создает сцену, где все фигуры
+текстурированы, цвет будет использоваться для тона текстур, и т.д.
+</p>
+
+
+<p class="text">
+Так как мы рисуем наш квадрат в одном цвете (для примера – в синем), для начала
+установим этот цвет, а затем отобразим саму фигуру. Синий цвет будет использоваться
+OpenGL для каждой вершины, так как мы не меняем его. В итоге мы получим синий
+квадрат.
+</p>
+
+
+<p  ><font class="textpreword">        glColor3f(0.5f,0.5f,1.0f);      // Установим синий цвет только один раз<br>
+        glBegin(GL_QUADS);<br>
+                glVertex3f(-1.0f, 1.0f, 0.0f);<br>
+                glVertex3f( 1.0f, 1.0f, 0.0f);<br>
+                glVertex3f( 1.0f,-1.0f, 0.0f);<br>
+                glVertex3f(-1.0f,-1.0f, 0.0f);<br>
+        glEnd();<br>
+}</font></p  >
+
+<p class="text">
+В этом примере я пытался, как можно детальнее описать процедуру установки цветов для
+вершин, показать различие между однотонной заливкой и разноцветной сглаженной.
+Попробуйте, для тренировки, изменять составляющие красного, зеленого и синего
+компонентов цвета. Посмотрите, какие будут результаты ваших экспериментов. Если у
+вас есть, какие либо замечания, вопросы или комментарии, я жду ваших писем. Если вы
+нашли неправильно описание или ошибки в коде, пожалуйста, сообщите мне об этом, мне
+очень хотелось бы, чтобы эти описания были лучше.
+</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+<p align="center">
+<a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>PMG</b></font></a>
+
+<font class="comment">&nbsp;27 марта 2001&nbsp;(c)&nbsp;</font>
+
+<a href="mailto:timurs@khsu.khakasnet.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Тимур Салихов</b></font></a>
+</p>
+</div>
+
+<div id="counter">
+<script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script><noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

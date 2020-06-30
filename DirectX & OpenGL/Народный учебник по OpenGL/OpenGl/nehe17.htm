@@ -1,0 +1,975 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 17 по OpenGL. Двухмерные шрифты из текстур</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe17.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 17. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 17 по OpenGL. Двухмерные шрифты из текстур</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=17" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>2D Texture Font</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Этот урок написан NeHe &amp; Giuseppe D'Agat.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textword>Я знаю, что все устали от шрифтов. Те уроки, которые 
+            уже были рассмотрены ранее, не только показывали текст, но они отображали 
+            3-х мерный текст, текстурированный текст, и могли быть привязаны к 
+            переменным. Но что будет, если вы перенесете свой проект на машину, 
+            которая не поддерживает Bitmap или Outline шрифты?</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textword>Благодаря Guiseppe D'Agata у нас есть еще один урок 
+            со шрифтами. Вы спросите, что же еще осталось? Если вы помните, в 
+            первом уроке про шрифты, я упоминал об использовании текстур для рисования 
+            букв на экран. Обычно, когда вы используете текстуры для рисования 
+            текста на экране, вы загружаете свою любимую программу рисования, 
+            выбираете шрифт и набираете букву или фразу, которую хотите отобразить 
+            на экране. Дальше вы сохраняете изображение и загружаете его в свою 
+            программу, как текстуру. Это не очень эффективно для программ, которые 
+            используют большое количество текста, или текст, который непрерывно 
+            меняется!</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textword>Эта программа использует только одну текстуру для 
+            отображения любого из 256 различных символов на экран. Имейте в виду, 
+            что каждый символ всего лишь 16 пикселов в ширину и 16 в высоту. Если 
+            взять стандартную текстуру 256*256, легко заметить, что в ней можно 
+            разместить только 16 символов поперек и получится 16 строк. Если нужно 
+            более детальное объяснение то: текстура 256 пикселов в ширину, а символ 
+            16 пикселов в ширину. 256 делим на 16, получаем 16 :)</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textword>Итак. Давайте сделаем демонстрационную программу 2-х 
+            мерных шрифтов. Эта программа дополняет код из первого урока. В первой 
+            части программы мы включим библиотеки math и stdio. Математическая 
+            библиотека нужна, чтобы двигать буквы по экрану, используя синус и 
+            косинус, а библиотека stdio нужна, чтобы убедиться в том, что файлы 
+            картинок, которые мы загружаем действительно существуют, перед тем 
+            как мы попытаемся сделать из них текстуры.</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword>#include &lt;windows.h&gt;        // Заголовочный 
+            файл для<span lang=EN-US> Windows</span></p>
+          <p class=textpreword>#include &lt;math.h&gt;           // Заголовочный 
+            файл для математической</p>
+          <p class=textpreword>                            // библиотеки Windows  
+            (Добавлено)</p>
+          <p class=textpreword>#include &lt;stdio.h&gt;          // Заголовочный 
+            файл для стандартной библиотеки</p>
+          <p class=textpreword>                            //ввода/вывода (Добавлено)</p>
+          <p class=textpreword>#include &lt;gl\gl.h&gt;          // Заголовочный 
+            файл для библиотеки OpenGL32 </p>
+          <p class=textpreword>#include &lt;gl\glu.h&gt;         // Заголовочный 
+            файл для библиотеки GLu32 </p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt;       // Заголовочный файл для 
+  библиотеки GLaux </p>
+          <p class=textpreword>HDC             hDC=NULL;   // Приватный контекст 
+            устройства GDI </p>
+          <p class=textpreword>HGLRC           hRC=NULL;   // Постоянный контекст 
+            визуализации</p>
+          <p class=textpreword>HWND            hWnd=NULL;  // Сохраняет дескриптор 
+            окна</p>
+          <p class=textpreword>HINSTANCE       hInstance;  // Сохраняет экземпляр 
+            приложения</p>
+          <p class=textpreword>bool    keys[256];          // Массив для работы 
+            с клавиатурой</p>
+          <p class=textpreword>bool    active=TRUE;        // Флаг активации окна, по умолчанию 
+            = TRUE</p>
+          <p class=textpreword>bool    fullscreen=TRUE;    // Флаг полноэкранного вывода</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Сейчас мы добавим переменную base указывающую на наш список 
+  отображения. Так же мы добавим texture[2], для хранения 2-х текстур, используемых 
+  для создания простого 3-х мерного объекта. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Добавим также переменную loop, которую будем использовать для 
+  циклов. И, наконец, cnt1 и cnt2, которые будут использоваться для движения текста 
+  по экрану и для вращения простого 3-х мерного объекта.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>GLuint  base;       // Основной список отображения для шрифта</p>
+<p class=textpreword>GLuint  texture[2]; // Место для текстуры нашего шрифта</p>
+<p class=textpreword>GLuint  loop;       // Общая переменная для циклов</p>
+<p class=textpreword>GLfloat cnt1;       // Первый счетчик для движения и раскрашивания 
+  текста</p>
+<p class=textpreword>GLfloat cnt2;       // Второй счетчик для движения и раскрашивания 
+  текста</p>
+<p class=textpreword>LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);   // 
+  Объявление<span lang=EN-US> WndProc</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь код для загрузки текстуры. Он точно такой же, как в предыдущих 
+  уроках по текстурированию.</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>AUX_RGBImageRec *LoadBMP(char *Filename) // Загрузка 
+            изображения</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+          <p class=textpreword><span>       </span>FILE *File=NULL;                  // 
+            Дескриптор файла<span lang=EN-US></span></p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>if 
+            (!Filename)                    // Удостоверимся, что имя файла передано</p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>{</p>
+          <p class=textpreword style='margin-left:0.0pt;text-indent:0.0pt'><span>       
+            </span><span>       </span>return NULL;               // Если нет, 
+            возвратим NULL</p>
+<p class=textpreword>       }</p>
+          <p class=textpreword>       File=fopen(Filename,&quot;r&quot;);         // 
+            Проверка, существует ли файл</p>          
+          <p class=textpreword>       if (File)                         // Существует?</p>
+<p class=textpreword>       {</p>
+          <p class=textpreword>              fclose(File);              // Закрываем 
+            файл</p>
+          <p class=textpreword>              // Загружаем изображение и возвращаем 
+            указатель</p>
+          <p class=textpreword style='margin-left:0.0pt;text-indent:0.0pt'><span>       
+            </span>       return auxDIBImageLoad(Filename);</p>
+          <p class=textpreword>       }</p>
+          <p class=textpreword>       return NULL;                      // Если 
+            загрузка не удалась, возвращаем NULL</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Данный код тоже немного изменился, в отличие от кода 
+            в предыдущих уроках. Если вы не уверены в том, для чего каждая строка, 
+            вернитесь и просмотрите предыдущие примеры заново.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textword>Отметим, что TextureImage[] будет хранить 2 записи о rgb изображении. 
+  Очень важно дважды проверить код, который работает с загрузкой и сохранением 
+  текстур. Одно неверное число может привести к зависанию!</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>int LoadGLTextures()                           // Загрузка 
+            и преобразование текстур</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>int Status=FALSE;                       
+  // Индикатор статуса<span lang=EN-US></span></p>
+<p class=textpreword><span>       </span>AUX_<span lang=EN-US>RGBImageRec</span> 
+  *<span lang=EN-US>TextureImage</span>[2];       // Место хранения для текстур</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Следующая строка самая важная. Если изменить 2 на любое другое 
+  число, точно возникнут проблемы. Проверьте дважды! Это число должно совпадать 
+  с тем, которое вы используете, когда определяете TextureImage[].</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Две текстуры, которые мы загрузим, будут font.bmp (наш шрифт) 
+  и bumps.bmp. Вторая текстура может быть любой, какую вы захотите. Я не очень 
+  творческий человек, поэтому я решил воспользоваться простой текстурой.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword style='text-indent:0.0pt'>memset(TextureImage,0,sizeof(void 
+            *)*2);          // Устанавливаем указатель в NULL</p>
+<p class=textpreword style='text-indent:0.0pt'>&nbsp; </p>
+          <p class=textpreword style='margin-left:0.0pt'>if ((TextureImage[0]=LoadBMP(&quot;Data/Font.bmp&quot;)) 
+            &amp;&amp;// Загружаем изображение шрифта (TextureImage[1]=LoadBMP(&quot;Data/Bumps.bmp&quot;)))    
+             // Загружаем текстуру</p>
+<p class=textpreword>       {</p>
+          <p class=textpreword>              Status=TRUE;                        // 
+            Устанавливаем статус в TRUE</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Другая важная строка, на которую нужно посмотреть 
+            дважды. Я не могу сказать, сколько писем я получил от людей, спрашивавших 
+            &quot;почему я вижу только одну текстуру, или почему моя текстура 
+            вся белая!?!&quot;. Обычно проблема в этой строке. Если заменить 2 
+            на 1, будет создана только одна текстура, а вторая будет в виде белой 
+            текстуры. Если заменить 2 на 3, то программа может зависнуть!</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textword>Вы должны вызывать glGenTextures() один раз. После вызова glGenTexture, 
+  необходимо сгенерировать все ваши текстуры. Я видел людей, которые вставляют 
+  вызов glGenTextures() перед созданием каждой текстуры. Обычно они ссылаются 
+  на то, что новая текстура перезаписывает все уже созданные текстуры. Было бы 
+  неплохо, сначала решить, сколько текстур необходимо сделать, а затем вызвать 
+  один раз glGenTextures(), а потом создать все текстуры. Не хорошо помещать вызов 
+  glGenTextures() в цикл без причины.</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>glGenTextures(2, &amp;texture[0]);            // 
+            Создание 2-х текстур</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword style='text-indent:0.0pt'>for (loop=0; loop&lt;2; 
+            loop++)              // Цикл для всех текстур</p>
+<p class=textpreword style='text-indent:0.0pt'>{</p>
+          <p class=textpreword>            <span lang=EN-US>// </span>Создание 
+            всех текстур<span lang=EN-US></span></p>
+          <p class=textpreword><span>     </span>       glBindTexture(GL_TEXTURE_2D, 
+            texture[loop]);</p>
+          <p class=textpreword><span>        </span>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+          <p class=textpreword><span>     </span>       glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+          <p class=textpreword>            <span lang=EN-US>glTexImage2D(GL_TEXTURE_2D, 
+            0, 3,</span></p>
+<p class=textpreword style='margin-left:106.2pt;text-indent:0.0pt'><span
+lang=EN-US>TextureImage[loop]-&gt;sizeX, TextureImage[loop]-&gt;sizeY, 0,</span></p>
+<p class=textpreword style='margin-left:106.2pt;text-indent:0.0pt'><span
+lang=EN-US>GL_RGB, GL_UNSIGNED_BYTE, TextureImage[loop]-&gt;data);</span></p>
+<p class=textpreword style='text-indent:0.0pt'>}</p>
+          <p class=textpreword> }</p>
+          <p class=textpreword><span style='font-family:"Courier New"'>&nbsp; 
+            </span></p>
+          <p class=textword>Следующие стоки кода проверяют, занимает ли загруженное 
+            нами rgb изображение для создания текстуры память. Если да, то высвобождаем 
+            ее. Заметьте, мы проверяем и освобождаем обе записи для изображений. 
+            Если мы используем три различные изображения для текстур, то необходимо 
+            проверить и освободить память из-под 3-х изображений.</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textpreword><span lang=EN-US>for (loop=0; loop&lt;2; loop++)</span></p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword>       if (TextureImage[loop])                // Если текстура 
+  существует</p>
+<p class=textpreword>              {</p>
+<p class=textpreword>              if (TextureImage[loop]-&gt;data)   // Если 
+  изображение текстуры существует</p>
+<p class=textpreword>              {</p>
+          <p class=textpreword>                     // Освобождаем память от изображения 
+            текстуры </p>
+          <p class=textpreword></p>
+          <p class=textpreword>                    free(TextureImage[loop]-&gt;data);</p>
+          <p class=textpreword>              }</p>
+          <p class=textpreword>              free(TextureImage[loop]);   // Освобождаем 
+            память от структуры изображения</p>
+<p class=textpreword>              }</p>
+<p class=textpreword>       }</p>
+          <p class=textpreword>return Status;                                // 
+            Возвращаем статус</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword><span style='font-family:"Courier New"'>&nbsp; 
+            </span></p>
+<p class=textword>Теперь создадим сам наш шрифт. Я пройду эту секцию с особо детальным 
+  описанием. Это не очень сложно, но там есть немного математики, которую нужно 
+  понять, а я знаю, что математика не всем нравится.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLvoid BuildFont(GLvoid)                   // Создаем список 
+  отображения нашего шрифта</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword><span style='font-family:"Courier New"'>&nbsp; 
+            </span></p>
+<p class=textword>Следующие две переменные будем использовать для сохранения позиции 
+  каждой буквы внутри текстуры шрифта. cx будет содержать позицию в текстуре по 
+  горизонтали, а cy содержать позицию по вертикали.</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword>       float       cx;                           // Содержит 
+  X координату символа</p>
+          <p class=textpreword>       float       cy;                           
+            // Содержит Y координату символа</p>
+          <p class=textpreword><span style='font-family:"Courier New"'>&nbsp; 
+            </span></p>
+<p class=textword>Дальше мы скажем OpenGL, что хотим 256 списков отображения. 
+  Переменная base будет указывать на положение первого списка отображения. Второй 
+  будет base+1, третий base+2, и т.д. Вторая строка кода ниже, выбирает нашу текстуру 
+  шрифта (texture[0]).</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>       base=glGenLists(256);                    // 
+            Создаем списки</p>
+<p class=textpreword>       glBindTexture(GL_TEXTURE_2D, texture[0]);// Выбираем 
+  текстуру шрифта</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Дальше мы начнем наш цикл. В цикле создадим 256 символов, сохраняя 
+  каждый символ в своем собственном списке отображения.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       for (loop=0; loop&lt;256; loop++)           // Цикл 
+  по всем 256 спискам</p>
+<p class=textpreword>       {</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Первая строка ниже, может показаться загадочной. Символ % означает 
+  остаток от деления loop на 16. cx будет двигаться по текстуре шрифта слева направо. 
+  Позже вы заметите в коде, что мы вычитаем из 1 cy, чтобы двигаться сверху вниз, 
+  вместо того, чтобы двигаться снизу вверх. Символ % довольно трудно объяснить, 
+  но я попробую.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textword>Все, о чем мы говорим, (loop % 16) /16.0f просто переводит 
+            результат в координаты текстуры. Поэтому, если loop было равно 16, 
+            cx будет равно остатку от деления 16 на 16, то есть 0. А cy равно 
+            16/16, то есть 1. Поэтому мы двигаемся вниз на высоту одного символа, 
+            и совсем не двигаемся вправо. Теперь, если loop равно 17, cx будет 
+            равно 17/16, что равно 1.0625. Остаток .0625 или 1/16-ая. Это значит, 
+            что мы двигаемся на один символ вправо. cy все еще будет равно 1, 
+            потому что нам важны только знаки слева от десятичной запятой. 18/16 
+            даст нам 2/16, двигая на 2 символа вправо, и все еще на один вниз. 
+            Если loop равно 32, cx будет опять 0, потому что остатка от деления 
+            нет, когда делим 32 на 16, но cy равно 2. Потому что число слева от 
+            десятичной запятой будет 2, двигая нас на 2 символа вниз от самого 
+            верха текстуры шрифта. Не так ли?</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>cx=float(loop%16)/16.0f;        
+            // X координата текущего символа</p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>cy=float(loop/16)/16.0f;        
+            // Y координата текущего символа</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Вау! Ок. Итак, теперь мы построим наш 2D шрифт, выбирая 
+            каждый символ из текстуры шрифта, в зависимости от значений cx и cy. 
+            В строках ниже мы добавим loop к значению base, если мы этого не сделаем, 
+            то каждая буква будет построена в первом дисплейном списке. Мы точно 
+            не хотим, чтобы это случилось, поэтому добавим loop к base и каждый 
+            следующий символ, который мы создаем, сохранится в следующем доступном 
+            списке отображения.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword>       glNewList(base+loop,GL_COMPILE); // Начинаем 
+            делать список</p>
+          <p class=textpreword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textword>Теперь, когда мы выбрали список отображения, который 
+            мы построили, мы создадим символ. Этого мы добъемся, создавая четырехугольник, 
+            и затем текстурируя его одним символом из текстуры шрифта.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword>       glBegin(GL_QUADS);              // Используем 
+            четырехугольник, для каждого символа</p>
+          <p class=textpreword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textword>cx и cy будут содержать очень маленькие значения от 
+            0.0f до 1.0f. Оба они будут равны 0 в первой строчке кода ниже, а 
+            именно: glTexCoord2f(0.0f,1-0.0f-0.0625f). Помните, что 0.0625 это 
+            1/16-ая нашей текстуры, или ширина/высота одного символа. Координаты 
+            текстуры ниже будут координатами левой нижней точки текстуры.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textword>Заметьте, мы используем glVertex2i(x, y) вместо glVertex3f(x, 
+            y, z). Наш шрифт – это двумерный шрифт, поэтому нам не нужна координата 
+            z. Поскольку мы используем плоский экран (<span lang=EN-US>Ortho</span><span
+lang=EN-US> </span><span lang=EN-US>screen</span><span
+lang=EN-US> </span>– ортографическая или параллельная проекция), нам не надо сдвигаться 
+            вглубь экрана. Мы должны сделать, чтобы нарисовать на плоском экране, 
+            это задать x и y координаты. Так как наш экран в пикселах от 0 до 
+            639 и от 0 до 479, нам вообще не надо использовать плавающую точку 
+            или отрицательные значения :). Используя плоский экран, мы получаем 
+            (0, 0) в нижнем левом углу. (640, 480) будет в верхнем правом углу. 
+            0 - левый край по оси x, 639 - правый край экрана по оси x. 0 – верхний 
+            край экрана по оси y и 479 – нижний край экрана на оси y. Проще говоря, 
+            мы избавились от отрицательных координат. Это тоже удобно для тех, 
+            кто не заботится о перспективе и предпочитает работать с пикселами 
+            больше, чем с экранными единицами.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textpreword>                    glTexCoord2f(cx,1-cy-0.0625f);  // Точка 
+  в текстуре (Левая нижняя)</p>
+<p class=textpreword>                    glVertex2i(0,0);                // Координаты 
+  вершины (Левая нижняя)</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Следующая точка на текстуре будет 1/16-ая правее предыдущей 
+            точки (точнее ширина одного символа). Поэтому это будет нижняя правая 
+            точка текстуры.</p>
+          <p class=textword>&nbsp;</p>          
+          <p class=textpreword>                    // Точка на текстуре (Правая 
+            нижняя)</p>
+          <p class=textpreword>                    glTexCoord2f(cx+0.0625f,1-cy-0.0625f);</p>
+          <p class=textpreword>                    glVertex2i(16,0); // Координаты 
+            вершины (Правая нижняя)</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Третья точка текстуры лежит в дальнем правом конце символа, 
+  но сдвинута вверх на 1/16-ую текстуры (точнее на высоту одного символа). Это 
+  будет верхняя правая точка отдельного символа.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>                    glTexCoord2f(cx+0.0625f,1-cy);  // Точка 
+  текстуры (Верхняя правая)</p>
+<p class=textpreword>                    glVertex2i(16,16);              // Координаты 
+  вершины (Верхняя правая)</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Наконец, мы двигаемся влево, чтобы задать нашу последнюю 
+            точку в верхнем левом углу символа.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword>                    glTexCoord2f(cx,1-cy);  // 
+            Точка текстуры (Верхняя левая)</p>
+          <p class=textpreword>                    glVertex2i(0,16);       // 
+            Координаты вершины (Верхняя левая)</p>
+          <p class=textpreword>              glEnd();                      // 
+            Конец построения четырехугольника (Символа)</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Наконец, мы перемещаемся на 10 пикселей вправо, двигаясь 
+            вправо по текстуре. Если мы не передвинемся, символы будут рисоваться 
+            поверх друг друга. Так как наш шрифт очень узкий, мы не будем двигаться 
+            на 16 пикселов вправо. Если мы это сделаем, то будет слишком большой 
+            пропуск между каждым символом. Двигаясь на 10 пикселей, мы уменьшаем 
+            расстояние между символами.<span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>          <p class=textpreword style='text-indent:0.0pt'>&nbsp;</p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>glTranslated(10,0,0);           
+            // Двигаемся вправо от символа</p>
+          <p class=textpreword></p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>glEndList();      
+                          // Заканчиваем создавать список отображения </p>
+          <p class=textpreword style='text-indent:0.0pt'>}                               <span>       
+            </span>// Цикл для создания всех 256 символов</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textword>Следующая секция кода такая же как мы делали в предыдущих 
+            уроках, для освобождения списка отображения, перед выходом из программы. 
+            Все 256 экранных списков, начиная от base, будут удалены. (Это хорошо!)</p>
+          <p class=textword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+<p class=textpreword>GLvoid KillFont(GLvoid)                // Удаляем шрифт из 
+  памяти<span
+lang=EN-US></span></p>
+<p class=textpreword>{</p>
+<p class=textpreword>       glDeleteLists(base,256);        // Удаляем все 256 
+  списков отображения<span
+lang=EN-US></span></p>
+<p class=textpreword>}</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Следующая секция кода содержит все рисование. Все довольно ново, 
+  поэтому я постараюсь объяснить каждую строчку особенно детально. Одно маленькое 
+  замечание: можно добавить переменные для поддержки размеров, пропусков, и кучу 
+  проверок для восстановления настроек которые были до того, как мы решили их 
+  напечатать.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>glPrint() имеет четыре параметра. Первый это координата x на 
+  экране (позиция слева на право). Следующая это y координата на экране (сверху 
+  вниз... 0 внизу, большие значения наверху). Затем нашу строку string (текст, 
+  который мы хотим напечатать), и, наконец, переменную set. Если посмотреть на 
+  картинку, которую сделал Giuseppe D'Agata, можно заметить, что там два разных 
+  набора символов. Первый набор - обычные символы,  а второй набор - наклонные. 
+  Если set = 0, то выбран первый набор. Если set = 1 или больше, то выбран второй 
+  набор символов.</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span lang=EN-US>GLvoid glPrint(GLint x, GLint y, char *string, 
+  int set) // </span>Где печатать<span lang=EN-US></span></p>
+<p class=textpreword>{<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Первое, что мы сделаем - это проверим, что set от 0 до 1. Если 
+  set больше 1, то присвоим ей значение 1.<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>       if (set&gt;1)                     // Больше 
+            единицы?</p>
+<p class=textpreword>       {</p>
+<p class=textpreword>       <span>       </span>set=1;                  // Сделаем 
+  Set равное единице</p>
+          <p class=textpreword >       }<span lang=EN-US></span></p>
+<p class=textpreword style='text-indent:0.0pt'><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь выберем нашу текстуру со шрифтом. Мы делаем это только, 
+  если раньше была выбрана другая текстура, до того как мы решили печатать что-то 
+  на экране.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       glBindTexture(GL_TEXTURE_2D, texture[0]);       // 
+  Выбираем нашу текстуру шрифта<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь отключим проверку глубины. Причина того, почему я так 
+  делаю, в том, что смешивание работает приятнее. Если не отменить проверку глубины, 
+  то текст может проходить за каким-нибудь объектом, или смешивание может выглядеть 
+  неправильно. Если вы не хотите смешивать текст на экране (из-за смешивания, 
+  т.е прозрачности черный фон вокруг символов не виден) можете оставить проверку 
+  глубины.</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>       glDisable(GL_DEPTH_TEST);               // 
+            Отмена проверки глубины</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Следующее несколько строк очень важны! Мы выбираем 
+            нашу матрицу проекции. Прямо после этого мы используем команду glPushMatrix(). 
+            glPushMatrix сохраняет текущую матрицу проекции. Похоже на кнопку 
+            &quot;память&quot; на калькуляторе.</p>
+          <p class=textword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textpreword>       glMatrixMode(GL_PROJECTION);            // 
+            Выбираем матрицу проекции</p>
+          <p class=textpreword>       glPushMatrix();                         // 
+            Сохраняем матрицу проекции</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь, когда наша матрица сохранена, мы сбрасываем ее и устанавливаем 
+  плоский экран. Первое и третье число (0) задают нижний левый угол экрана. Мы 
+  можем сделать левую сторону экрана -640, если захотим, но зачем нам работать 
+  с отрицательными числами, если это не нужно. Второе и четвертое число задают 
+  верхний правый угол экрана. Неплохо установить эти значения равными текущему 
+  разрешению. Глубины нет, поэтому устанавливаем значения z в -1 и 1.<span
+lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span><span lang=EN-US>glLoadIdentity</span>();                       // 
+            Сбрасываем матрицу проекции</p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span><span lang=EN-US>glOrtho</span>(0,640,0,480,-1,1);              // 
+            Устанавливаем плоский экран</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь выбираем нашу матрицу просмотра модели и сохраняем текущие 
+  установки, используя glPushMatrix(). Далее сбрасываем матрицу просмотра модели, 
+  так что можно работать, используя ортографическую проекцию.</p>
+<p class=textpreword style='text-indent:0.0pt'>&nbsp; </p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>glMatrixMode(GL_MODELVIEW);             // 
+            Выбираем матрицу модели просмотра </p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>glPushMatrix();                    
+                 // Сохраняем матрицу модели просмотра</p>
+          <p class=textpreword style='text-indent:0.0pt'><span>       </span>glLoadIdentity();                       // 
+            Сбрасываем матрицу модели просмотра</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Сохранив настройки перспективы и установив плоский экран, можно 
+  рисовать текст. Начнем с перемещения в позицию на экране, где мы хотим нарисовать 
+  текст. Используем glTranslated() вместо glTranslatef(), так как мы работаем 
+  с пикселами, поэтому точки с дробными значениями не имеют смысла. В конце концов, 
+  нельзя использовать половину пиксела :).</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       glTranslated(x,y,0);                    // Позиция 
+  текста (0,0 - Нижняя левая)<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Строка ниже выбирает, каким набором символов мы хотим 
+            воспользоваться. Если мы хотим использовать второй набор символов, 
+            то добавляем 128 к base (128 - половина 256 символов). Добавляя 128, 
+            мы пропускаем первые 128 символов.</p>
+          <p class=textword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textpreword>       glListBase(base-32+(128*set));  <span>       </span>// 
+            Выбираем набор символов (0 или 1)<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Сейчас, все что осталось - это  нарисовать символы на экране. 
+  Делаем это так же как во всех других уроках со шрифтами. Используем glCallLists(). 
+  strlen(string) это длина строки (сколько символов мы хотим нарисовать), GL_BYTE 
+  означает то, что каждый символ представляется одним байтом (байт это любое значение 
+  от 0 до 255). Наконец, string содержит тот текст, который надо напечатать на 
+  экране.<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>       glCallLists(strlen(string),GL_BYTE,string); // 
+            Рисуем текст на экране<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Все, что надо теперь сделать, это восстановить перспективу. 
+            Мы выбираем матрицу проектирования и используем glPopMatrix(), чтобы 
+            восстановить установки, сохраненные с помощью glPushMatrix(). Важно 
+            восстановить их в обратном порядке, в том в котором мы их сохраняли.</p>
+          <p class=textword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+<p class=textpreword>       glMatrixMode(GL_PROJECTION);            // Выбираем 
+  матрицу проекции</p>
+<p class=textpreword>       glPopMatrix();                          // Восстанавливаем 
+  старую матрицу проекции</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Теперь мы выбираем матрицу просмотра модели и делаем 
+            то же самое. Мы используем glPopMatrix(), чтобы восстановить нашу 
+            матрицу просмотра модели, на ту, которая была, прежде чем мы устанавливали 
+            плоский экран.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textpreword>       glMatrixMode(GL_MODELVIEW);             // Выбираем 
+  матрицу просмотра модели</p>
+<p class=textpreword>       glPopMatrix();                          // Восстанавливаем 
+  старую матрицу проекции</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Наконец, разрешаем проверку глубины. Если мы не запрещали проверку 
+  глубины в коде раньше, то нам не нужна эта строка.<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>       glEnable(GL_DEPTH_TEST);                // 
+            Разрешаем тест глубины</p>
+<p class=textpreword>}<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>В ReSizeGLScene() ничего менять не надо, так что переходим к 
+  InitGL().<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>int InitGL(GLvoid)                             // Все установки 
+            для OpenGL здесь</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textword>Переходим к коду построения текстур. Если построить 
+            текстуры не удалось по какой-либо причине, то возвращаем значение 
+            FALSE. Это позволит нашей программе узнать, что произошла ошибка, 
+            и программа изящно завершится.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textpreword>       if (!LoadGLTextures()) // Переходим к загрузке текстуры</p>
+<p class=textpreword>       {</p>
+          <p class=textpreword>              return FALSE;   // Если текстура 
+            не загрузилась - возвращаем FALSE</p>
+<p class=textpreword>       }<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Если ошибок не было, переходим к коду построения шрифта. Т.к. 
+  ничего не может случиться при построении шрифта, поэтому проверку ошибок не 
+  включаем.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword>       BuildFont();  // Создаем шрифт</p>
+          <p class=textpreword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+<p class=textword>Теперь делаем обычную настройку GL. Мы установим черный цвет 
+  фона для очистки, зададим значение глубины в 1.0. Выбираем режим проверки глубины 
+  вместе со смешиванием. Мы разрешаем сглаженное заполнение и, наконец, разрешаем 
+  2-мерное текстурирование.<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword>       glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Очищаем фон 
+  черным цветом</p>
+          <p class=textpreword>       glClearDepth(1.0);                    // 
+            Очистка и сброс буфера глубины</p>
+          <p class=textpreword>       glDepthFunc(GL_LEQUAL);               // 
+            Тип теста глубины</p>
+          <p class=textpreword>       glBlendFunc(GL_SRC_ALPHA,GL_ONE);     // 
+            Выбор типа смешивания</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>       glShadeModel(GL_SMOOTH);              // 
+            Сглаженное заполнение</p>
+          <p class=textpreword>       glEnable(GL_TEXTURE_2D);              // 
+            2-мерное текстурирование</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>       return TRUE;                          // Инициализация 
+            прошла успешно</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textword>Следующая секция кода создает сцену. Мы рисуем сначала 
+            3-х мерный объект и потом текст, поэтому текст будет поверх 3-х мерного 
+            объекта, вместо того, чтобы объект закрывал текст сверху. Причина, 
+            по которой я добавил 3-х мерный объект, заключается в том, чтобы показать, 
+            что перспективная и ортографическая проекции могут быть использованы 
+            одновременно.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword>int DrawGLScene(GLvoid)                             // Здесь 
+            мы рисуем все объекты</p>
+<p class=textpreword>{</p>
+          <p class=textpreword style='text-indent:0.0pt'><span lang=EN-US>glClear</span>(<span lang=EN-US>GL</span>_<span lang=EN-US>COLOR</span>_<span lang=EN-US>BUFFER</span>_<span
+lang=EN-US>BIT</span> | <span lang=EN-US>GL</span>_<span lang=EN-US>DEPTH</span>_<span lang=EN-US>BUFFER</span>_<span
+lang=EN-US>BIT</span>); // Очистка экрана и буфера глубины </p>
+<p class=textpreword style='text-indent:0.0pt'>glLoadIdentity();                                   
+  // Сброс матрицы просмотра модели</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>Мы выбрали нашу bumps.bmp текстуру, и сейчас можно 
+            построить маленький 3-х мерный объект. Мы сдвигаемся на 5 экранных 
+            единиц вглубь экрана, так чтобы можно было увидеть объект. Мы вращаем 
+            объект на 45 градусов вдоль оси z. Это повернет наш четырехугольник 
+            на 45 градусов по часовой стрелке, и он будет больше похож на ромб, 
+            чем на прямоугольник.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword style='text-indent:0.0pt'>glBindTexture(GL_TEXTURE_2D, 
+            texture[1]);// Выбираем вторую текстуру<span lang=EN-US> </span></p>
+          <p class=textpreword style='text-indent:0.0pt'><span lang=EN-US>glTranslatef</span>(0.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>,-5.0<span lang=EN-US>f</span>);   
+                  <span>  </span>// Сдвигаемся на 5 единиц вглубь экрана</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>       glRotatef(45.0f,0.0f,0.0f,1.0f); // Поворачиваем 
+            на 45 градусов (по часовой стрелке)</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textword>После поворота на 45 градусов, мы вращаем объект вокруг 
+            осей x и y, с помощью переменной cnt1*30. Это заставляет наш объект 
+            вращаться вокруг своей оси, подобно алмазу.</p>
+          <p class=textword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword>       glRotatef(cnt1*30.0f,1.0f,1.0f,0.0f); // 
+            Вращение по X &amp; Y на cnt1 (слева направо)</p>
+          <p class=textpreword><span
+style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textword>Отменяем смешивание (мы хотим, чтобы 3-х мерный объект 
+            был сплошным), и устанавливаем цвет на ярко белый. Затем рисуем один 
+            текстурированный четырехугольник.</p>
+          <p class=textword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textpreword>       glDisable(GL_BLEND);            // Отменяем 
+            смешивание перед рисованием 3D</p>
+          <p class=textpreword>       glColor3f(1.0f,1.0f,1.0f);      // Ярко 
+            белый</p>
+          <p class=textpreword>       glBegin(GL_QUADS);              // Рисуем первый текстурированный 
+            прямоугольник</p>
+          <p class=textpreword>       glTexCoord2d(0.0f,0.0f); <span>       </span>// 
+            Первая точка на текстуре</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>              glVertex2f(-1.0f, 1.0f); // Первая вершина</p>
+          <p class=textpreword>              glTexCoord2d(1.0f,0.0f); // Вторая 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f( 1.0f, 1.0f); // Вторая вершина</p>
+          <p class=textpreword>              glTexCoord2d(1.0f,1.0f); // Третья 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f( 1.0f,-1.0f); // Третья вершина</p>
+          <p class=textpreword>              glTexCoord2d(0.0f,1.0f); // Четвертая 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f(-1.0f,-1.0f); // Четвертая вершина</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>       glEnd();                        // Заканчиваем 
+            рисование четырехугольника</p>
+          <p class=textpreword><span
+lang=EN-US style='font-family:"Courier New";'>&nbsp; </span></p>
+          <p class=textword>Сразу, после того как мы нарисовали первый четырехугольник, 
+            мы поворачиваемся на 90 градусов по осям x и y. Затем рисуем другой 
+            четырехугольник. Второй четырехугольник проходит сквозь середину первого, 
+            в результате получается красивая фигура.</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+          <p class=textpreword style='margin-left:0.0pt'>// Поворачиваемся по 
+            X и Y на 90 градусов (слева на право)</p>
+          <p class=textpreword style='margin-left:0.0pt'>glRotatef(90.0f,1.0f,1.0f,0.0f);</p>
+          <p class=textpreword style='margin-left:0.0pt'> glBegin(GL_QUADS); 
+                            // Рисуем второй текстурированный четырехугольник</p>
+          <p class=textpreword>              glTexCoord2d(0.0f,0.0f); // Первая 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f(-1.0f, 1.0f); // Первая вершина</p>
+          <p class=textpreword>              glTexCoord2d(1.0f,0.0f); // Вторая 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f( 1.0f, 1.0f); // Вторая вершина</p>
+          <p class=textpreword>              glTexCoord2d(1.0f,1.0f); // Третья 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f( 1.0f,-1.0f); // Третья вершина</p>
+          <p class=textpreword>              glTexCoord2d(0.0f,1.0f); // Четвертая 
+            точка на текстуре</p>
+<p class=textpreword>              glVertex2f(-1.0f,-1.0f); // Четвертая вершина</p>
+          <p class=textpreword>       glEnd();                        // Заканчиваем 
+            рисовать четырехугольник</p>
+          <p class=textpreword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textword>После того как нарисованы четырехугольники, разрешаем 
+            смешивание и рисуем текст.</p>
+          <p class=textword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+<p class=textpreword>       glEnable(GL_BLEND);         // Разрешаем смешивание</p>
+<p class=textpreword>       glLoadIdentity();           // Сбрасываем просмотр<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Мы используем такой же код для раскрашивания, как в предыдущих 
+  примерах с текстом. Цвет меняется постепенно по мере движения текста по экрану.</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span>       </span><span lang=EN-US>// </span>Изменение 
+            цвета основывается на положении текста</p>
+          <p class=textpreword><span>       </span><span lang=EN-US> glColor3f(1.0f*float(cos(cnt1)),1.0f*float(sin(cnt2)),</span></p>
+          <p class=textpreword><span>       </span><span>       </span><span lang=EN-US>1.0f-0.5f*float(cos(cnt1+cnt2)));</span></p>
+          <p class=textpreword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textword>Затем мы рисуем текст. Мы все еще используем glPrint(). 
+            Первый параметр - это координата x. Второй - координата y. Третий 
+            параметр (&quot;NeHe&quot;) - текст, который надо написать на экране, 
+            и последний это набор символов (0 - обычный, 1 - наклонный).</p>
+          <p class=textword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+<p class=textword>Как вы могли заметить, мы двигаем текст по экрану используя 
+  SIN и COS, используя счетчики cnt1 и cnt2. Если вы не понимаете, что делают 
+  SIN и COS, вернитесь и прочитайте тексты предыдущих уроков.</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span>       </span>// Печатаем<span lang=EN-US> 
+            GL </span>текст на экране<span
+lang=EN-US></span></p>
+          <p class=textpreword></p>
+          <p class=textpreword><span>       </span>glPrint(int((280+250*cos(cnt1))),int(235+200*sin(cnt2)),&quot;NeHe&quot;,0);</p>
+          <p class=textpreword><span>       </span>glColor3f(1.0f*float(sin(cnt2)),</p>
+          <p class=textpreword><span>       </span><span>       </span>1.0f-0.5f*float(cos(cnt1+cnt2)),1.0f*float(cos(cnt1))); 
+          </p>
+          <p class=textpreword><span>       </span>// Печатаем<span lang=EN-US> 
+            GL </span>текст на экране<span
+lang=EN-US></span></p>
+          <p class=textpreword><span>       </span>glPrint(int((280+230*cos(cnt2))),int(235+200*sin(cnt1)),&quot;OpenGL&quot;,1);</p>
+          <p class=textpreword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textword>Мы устанавливаем темно синий цвет и пишем имя автора 
+            внизу экрана. Затем мы пишем его имя на экране опять, используя ярко 
+            белые символы.</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textpreword>       glColor3f(0.0f,0.0f,1.0f);        // Устанавливаем 
+  синий цвет</p>
+          <p class=textpreword>       glPrint(int(240+200*cos((cnt2+cnt1)/5)),</p>
+          <p class=textpreword>              2,&quot;Giuseppe D'Agata&quot;,0);   // 
+            Рисуем текст на экране</p>
+<p class=textpreword>       glColor3f(1.0f,1.0f,1.0f);        // Устанавливаем 
+  белый цвет</p>
+          <p class=textpreword>       glPrint(int(242+200*cos((cnt2+cnt1)/5)),</p>
+          <p class=textpreword>              2,&quot;Giuseppe D'Agata&quot;,0);   // 
+            Рисуем смещенный текст</p>
+          <p class=textpreword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textword>Последнее, что мы сделаем - это добавим обоим счетчикам 
+            разные значения. Это заставит текст двигаться и вращаться как 3-х 
+            мерный объект.</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textpreword>       cnt1+=0.01f;               // Увеличим первый счетчик</p>
+          <p class=textpreword>       cnt2+=0.0081f;             // Увеличим второй 
+            счетчик</p>
+<p class=textpreword>       return TRUE;               // Все прошло успешно</p>
+<p class=textpreword>}</p>
+<p class=textword><span lang=EN-US style='font-size:12.0pt;font-family:"Courier New";
+'> &nbsp; </span></p>
+<p class=textword>Код в KillGLWindow(), CreateGLWindow() и WndProc() не изменился, 
+  поэтому пропустим его.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword>int WINAPI WinMain( HINSTANCE       hInstance,   
+                   // Экземпляр<span lang=EN-US></span></p>          <p class=textpreword><span>             </span>       HINSTANCE       hPrevInstance,      
+            // Предыдущий экземпляр<span lang=EN-US></span></p>
+<p class=textpreword><span>             </span>       LPSTR           lpCmdLine,   
+         // Параметры командной строки</p>
+<p class=textpreword>                    int             nCmdShow)           // 
+  Стиль вывода окна</p>
+<p class=textpreword>{</p>
+<p class=textpreword>       MSG           msg;          // Структура сообщения</p>
+          <p class=textpreword>       BOOL       done=FALSE;      // Переменная 
+            для выхода из цикла</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span>       </span>// Спрашиваем у пользователя, 
+            какой режим он предпочитает</p>
+          <p class=textpreword style='margin-left:0.0pt'><span>       </span><span lang=EN-US>if 
+            (MessageBox(NULL,&quot;Would You Like To Run In Fullscreen Mode?&quot;,</span></p>
+          <p class=textpreword style='margin-left:0.0pt'><span lang=EN-US> </span><span>       
+            </span><span>       </span><span lang=EN-US>&quot;Start FullScreen?&quot;,MB_YESNO|MB_ICONQUESTION)==IDNO) 
+            {</span></p>
+<p class=textpreword><span>       </span>       fullscreen=FALSE;       // Режим 
+  окна<span lang=EN-US></span></p>
+<p class=textpreword><span>       </span>}</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Сменилось название окна.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>// </span>Создаем окно<span lang=EN-US> OpenGL </span></p>
+          <p class=textpreword><span>       </span>if (!CreateGLWindow(</p>
+          <p class=textpreword><span>       </span><span>       </span>&quot;NeHe 
+            &amp; Giuseppe D'Agata's 2D Font Tutorial&quot;,640,480,16,fullscreen))</p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword>              return 0;           // Окно не создалось - 
+  выходим</p>
+<p class=textpreword>       <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span>       </span>while(!done)               // Цикл пока<span lang=EN-US> 
+  done=FALSE</span></p>
+<p class=textpreword><span>       </span>{</p>
+          <p class=textpreword><span>       </span>       if (PeekMessage(&amp;msg,NULL,0,0,PM_REMOVE)) 
+            // Пришло сообщение<span
+lang=EN-US>?</span></p>
+<p class=textpreword><span>       </span>       {</p>
+          <p class=textpreword>                    if (msg.message==WM_QUIT)       
+                // Это сообщение о выходе?</p>
+<p class=textpreword>                    <span lang=EN-US>{</span></p>
+          <p class=textpreword><span>             </span>              done=TRUE; // 
+            Если да<span lang=EN-US>, </span>то<span lang=EN-US> done=TRUE</span></p>
+<p class=textpreword><span>             </span>       }</p>
+          <p class=textpreword>                    else              // Если нет, 
+            то обрабатываем сообщение</p>
+<p class=textpreword>                    {</p>
+<p class=textpreword>                           TranslateMessage(&amp;msg);// 
+  Переводим сообщение</p>
+          <p class=textpreword>                           DispatchMessage(&amp;msg); // 
+            Отсылаем сообщение</p>
+<p class=textpreword>                    }</p>
+<p class=textpreword>              }</p>
+          <p class=textpreword>              else                    // Нет сообщений</p>
+<p class=textpreword>              {</p>
+          <p class=textpreword style='margin-left:70.8pt;text-indent:0.0pt'>     // 
+            Рисуем сцену.  Ждем клавишу ESC или сообщение о выходе из DrawGLScene()<span lang=EN-US></span></p>
+          <p class=textpreword style='margin-left:0.0pt;text-indent:0.0pt'><span>       
+            </span>   <span>    </span>// Активно?  Было сообщение о выходе?</p>
+<p class=textpreword>                    <span lang=EN-US>if ((active &amp;&amp; 
+  !DrawGLScene()) || keys[VK_ESCAPE])</span></p>
+<p class=textpreword>                    {</p>
+          <p class=textpreword>                           done=TRUE; // ESC или 
+            DrawGLScene сообщает о выходе</p>
+<p class=textpreword>                    }</p>
+          <p class=textpreword>                    else              // Не время 
+            выходить, обновляем экран</p>
+<p class=textpreword>                    {</p>
+          <p class=textpreword>                           SwapBuffers(hDC); // 
+            Меняем экраны (Двойная буферизация)</p>
+<p class=textpreword>                    }</p>
+<p class=textpreword>              }</p>
+<p class=textpreword>       }</p>
+<p class=textpreword>       // Закрываем приложение<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Последнее, что надо сделать, это добавить KillFont() 
+            в конец KillGLWindow(), как я показывал раньше. Важно добавить эту 
+            строчку. Она очищает память перед выходом из  программы.</p>
+          <p class=textword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textpreword>       if (!UnregisterClass(&quot;OpenGL&quot;,hInstance)) // 
+            Можем удалить регистрацию класса</p>
+<p class=textpreword>       <span
+lang=EN-US>{</span></p>
+          <p class=textpreword style='margin-left:0.0pt;text-indent:0.0pt'><span
+lang=EN-US>      </span><span>       </span><span
+lang=EN-US>MessageBox(NULL,&quot;Could Not Unregister Class.&quot;,&quot;SHUTDOWN 
+            ERROR&quot;,</span></p>
+          <p class=textpreword style='margin-left:0.0pt;text-indent:0.0pt'><span
+lang=EN-US>                  MB_OK | MB_ICONINFORMATION);</span></p>
+          <p class=textpreword><span>       </span>      hInstance=NULL;       
+            // Устанавливаем<span lang=EN-US> hInstance </span>в<span lang=EN-US> 
+            NULL</span></p>
+<p class=textpreword><span>       </span>}</p>
+          <p class=textpreword><span>       </span>KillFont();                 // Уничтожаем 
+            шрифт<span lang=EN-US></span></p>
+          <p class=textpreword><span lang=EN-US>}</span></p>
+          <p class=textpreword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textword>Я думаю, что могу официально заявить, что моя страничка 
+            теперь учит всем возможным способам, как писать текст на экране {усмешка}. 
+            В целом, я думаю это хороший урок. Код можно использовать на любом 
+            компьютере, на котором работает OpenGL, его легко использовать, и 
+            писать с помощью него текст на экране довольно просто.</p>
+          <p class=textword><span lang=EN-US style='font-family:"Courier New";'>&nbsp; 
+            </span></p>
+          <p class=textword>Я бы хотел поблагодарить Giuseppe D'Agata за оригинальную 
+            версию этого урока. Я сильно его изменил и преобразовал в новый базовый 
+            код, но без его присланного кода, я, наверное, не смог бы написать 
+            этот урок. Его версия кода имела побольше опций, таких как пробелы 
+            между символами и т.д., но я дополнил его прикольным 3-х мерным объектом 
+            {усмешка}.</p>
+          <p class=textword><span style='font-family:"Courier New"'>&nbsp; </span></p>
+<p class=textword>Я надеюсь, всем понравился этот урок. Если у вас есть вопросы, 
+  пишите Giuseppe D'Agata или мне.<span lang=EN-US></span></p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Giuseppe D'Agata (<a href="mailto:waveform@tiscalinet.it">waveform@tiscalinet.it</a>)</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;15 февраля 2002&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:prvv1@uic.nnov.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Валерий Провалов</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

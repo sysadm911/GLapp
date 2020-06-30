@@ -1,0 +1,1269 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 30. Определение столкновений и моделирование законов физики</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe30.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 30. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 30. Определение столкновений и моделирование законов физики</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=30" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Collision Detection</b></font></a>
+<br>
+<br>
+</p>
+
+          <p class=textword>Исходный код на котором основан этот урок, взят из 
+            моей старой конкурсной работы (ее можно найти на OGLchallenge.dhs.org). 
+            Тема называлась “Сумасшедшие столкновения” и моя статья (которая, 
+            кстати, заняла первое место :)) была названа Магической Комнатой. 
+            Она освещала определение столкновений, моделирование законов физики 
+            и эффекты.<span lang=EN-US></span></p>
+          <p class=head2word><span lang=EN-US> &nbsp; </span></p>
+          <p class=head2word>Определение столкновений <br>
+            <br>
+          </p>
+          <p class=textword>Трудная тема, и честно говоря, я не знаю до сих пор 
+            простых подходов для ее решения. Для каждого приложения существуют 
+            различные способы нахождения и проверки столкновений. Конечно, существуют 
+            обобщенные физические законы и они могут работать с любыми видами 
+            объектов, но они очень медленные. <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Мы собираемся исследовать алгоритмы, которые очень быстрые, легкие 
+            для понимания и до некоторой степени гибкие. К тому же важно и должно 
+            быть рассмотрено, что сделать, когда столкновение определено, и то, 
+            как тогда перемещать объекты, в соответствии с законами физики. Мы 
+            имеет много материала для рассмотрения. Давайте просмотрим, что мы 
+            собираемся изучить: <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            1) Определение столкновений </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Движущаяся сфера - Плоскость </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Движущаяся сфера - Цилиндр </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Движущаяся сфера - движущаяся сфера </p>
+          <p class=textword style='margin-left:18.0pt'>&nbsp; </p>
+          <p class=textword>2) Моделирование законов физики </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Реакция на столкновение </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Движение под действием гравитации с использованием 
+            уравнения Эйлера </p>
+          <p class=textword style='margin-left:18.0pt'>&nbsp; </p>
+          <p class=textword>3) Специальные эффекты </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Моделирование взрыва с использованием метода Fin-Tree 
+            Billboard </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span lang=EN-US style='font-family:
+Symbol;'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Использование звуков с помощью <span lang=EN-US>The 
+            Windows Multimedia Library (</span>только для<span lang=EN-US> Windows) 
+            </span></p>
+          <p class=textword style='margin-left:18.0pt'><span lang=EN-US> &nbsp; 
+            </span></p>
+          <p class=textword>4) Разъяснение кода </p>
+          <p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+            <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            </span></span> Код, разделен на 5 файлов </p>
+          <p class=textword style='margin-left:18.0pt'>&nbsp; </p>
+          <table border=0 cellpadding=2>
+            <tr> 
+              <td class="Normal"> 
+                <p class=textword>Lesson30.cpp</p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword>&nbsp;</p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword>: Основной код для этого учебника</p>
+              </td>
+            </tr>
+            <tr> 
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Image.cpp,</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Image.h</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword>: Код загрузки текстур</p>
+              </td>
+            </tr>
+            <tr> 
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Tmatrix.cpp,</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Tmatrix.h</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword>: Классы обработки вращения</p>
+              </td>
+            </tr>
+            <tr> 
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Tray.cpp,</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Tray.h</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword>: Классы, обрабатывающие операции с лучами</p>
+              </td>
+            </tr>
+            <tr> 
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Tvector.cpp,</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword><span lang=EN-US>Tvector.h</span></p>
+              </td>
+              <td class="Normal"> 
+                <p class=textword>: Классы, обрабатывающие операции с векторами</p>
+              </td>
+            </tr>
+          </table>
+          <p class=textword><br>
+            В этом коде есть много удобного для дальнейшего использования! Классы 
+            операций с векторами, лучами и матрицами очень полезны. Я использую 
+            их до сих пор в собственных проектах.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=head2word>1) Определение столкновений.</p>
+          <br>
+          <p class=textword>Для определения столкновений мы собираемся использовать 
+            алгоритмы метода трассировки лучей. Дадим сначала определение луча. 
+            <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Луч задается с помощью вектора, он имеет начальную точку и вектор 
+            (обычно нормализованный), по направлению которого идет луч. По существу, 
+            луч исходит из начальной точки и движется по направлению направляющего 
+            вектора. Итак, наше уравнение луча: </p>
+          <p class=textpreword><span lang=EN-US><br>
+            PointOnRay = Raystart + t * Raydirection <br>
+            <br>
+            </span></p>
+          <p class=textword>t - точка, принимающая значения из [0, бесконечность). 
+            <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            При 0 мы получим начальную точку, используя другие значения, мы получаем 
+            соответствующие точки вдоль луча. <span lang=EN-US></span></p>
+          <p class=textword><br>
+            PointOnRay, Raystart, Raydirection - трехмерные вектора со значениями 
+            (x,y,z). Сейчас мы можем использовать это представление луча и вычислить 
+            пересечение с плоскостью или цилиндром. <span
+lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=head3word>Определение пересечения луча с плоскостью.</p>
+          <p class=head3word><br>
+          </p>
+          <p class=textword>Плоскость представляется с помощью векторного представления 
+            таким образом: <span
+lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>Xn dot X = d<span lang=EN-US></span></p>
+          <p class=textpreword><span style='font-family:Tahoma;"Times New Roman"'> 
+            &nbsp; </span></p>
+          <p class=textword>Xn, X - векторы, и d - значение с плавающей точкой. 
+          </p>
+          <p class=textword>Xn - ее нормаль.</p>
+          <p class=textword>X - точка на ее поверхности.</p>
+          <p class=textword>d - расстояние от центра системы координат до плоскости 
+            вдоль нормали. </p>
+          <p class=textword><br>
+            По существу, плоскость обозначает половину пространства. Поэтому, 
+            все, что нам необходимо, чтобы определить плоскость, это 3D точка 
+            и нормаль в этой точке, которая является перпендикуляром к этой плоскости. 
+            Эти два вектора формируют плоскость, т.е. если мы возьмем для 3D точки 
+            вектор (0,0,0) и нормаль (0,1,0), мы по существу определяем плоскость 
+            через оси x и y. Поэтому, определения точки и нормали достаточно для 
+            вычисления векторного представления плоскости. <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Согласно векторному уравнению плоскости, нормаль - Xn и 3D точка из 
+            которой исходит нормаль - X. Недостающие значение - d, которое легко 
+            вычисляется с помощью dot product (скалярного произведения). <span lang=EN-US></span></p>
+          <p class=textword><br>
+            (Замечание: Это векторное представление эквивалентно широко известной 
+            параметрической формуле плоскости Ax + By + Cz + D=0, для соответствия 
+            надо просто взять три значения нормали x,y,z как A,B,C и присвоить 
+            D=-d). <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Вот два уравнения, которые мы пока что имеем: <span lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span lang=EN-US style='
+'>PointOnRay = Raystart + t * Raydirection<br>
+            Xn dot X = d</span><span lang=EN-US> <br>
+            <br>
+            </span></p>
+          <p class=textword>Если луч пересекает плоскость в некоторой точке, то 
+            тогда должна быть какая-то точка на луче, которая соответствует уравнению 
+            плоскости следующим образом: <span lang=EN-US></span></p>
+          <p class=textword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US style='
+'>Xn dot PointOnRay = d </span><span style='"Courier New"'>или</span><span lang=EN-US style='
+'> (Xn dot Raystart) + t * (Xn dot Raydirection) = d</span><span
+lang=EN-US> <br>
+            <br>
+            </span></p>
+          <p class=textword>находя для <span lang=EN-US>t</span>: </p>
+          <p class=textword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US style='
+'>t = (d - Xn dot Raystart) / (Xn dot Raydirection)</span><span
+lang=EN-US> <br>
+            <br>
+            </span></p>
+          <p class=textword>заменяя <span lang=EN-US>d</span>: <span lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span lang=EN-US style='
+'>t= (Xn dot PointOnRay - Xn dot Raystart) / (Xn dot Raydirection)</span><span lang=EN-US> 
+            <br>
+            <br>
+            </span></p>
+          <p class=textword>сокращая его<span
+lang=EN-US>: </span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span lang=EN-US style='
+'>t= (Xn dot (PointOnRay - Raystart)) / (Xn dot Raydirection)</span><span lang=EN-US> 
+            <br>
+            <br>
+            </span></p>
+          <p class=textword><span lang=EN-US>t</span> представляет расстояние 
+            от начала  луча до точки пересечения с плоскостью по направлению луча. 
+            Поэтому, подставляя t в уравнении луча, мы можем получить точку столкновения. 
+            Однако, существует несколько особых случаев. Если Xn dot Raydirection 
+            = 0, тогда эти два вектора перпендикулярны (луч идет паралельно плоскости), 
+            и столкновения не будет. Если t отрицателен, луч направлен в противоположную 
+            от плоскости сторону и не пересекает ее.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword><span lang=EN-US>int TestIntersionPlane</span></p>
+          <p class=textpreword><span lang=EN-US>(const Plane&amp; plane,const 
+            TVector&amp; position,</span></p>
+          <p class=textpreword><span> </span>const TVector&amp; direction, double&amp; 
+            lamda, TVector&amp; pNormal)</p>
+          <p class=textpreword><span lang=EN-US>{</span></p>
+          <p class=textpreword><span>      </span>// Векторное произведение между 
+            нормалью плоскости и лучом</p>
+          <p class=textpreword>      <span
+lang=EN-US>double DotProduct=direction.dot(plane._Normal);</span></p>
+          <p class=textpreword><span>      </span>double l2;</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>      // Определить, параллелен ли луч плоскости</p>
+          <p class=textpreword>      <span
+lang=EN-US>if ((DotProduct&lt;ZERO)&amp;&amp;(DotProduct&gt;-ZERO))</span></p>
+          <p class=textpreword><span>            </span>return 0;</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>      </span>// Определить расстояние до 
+            точки столкновения</p>
+          <p class=textpreword>      <span
+lang=EN-US>l2=(plane._Normal.dot(plane._Position-position))/DotProduct;</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>      </span>if (l2&lt;-ZERO)     // Определить, 
+            пересекает ли луч плоскость</p>
+          <p class=textpreword>            <span
+lang=EN-US>return 0;</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>      </span>pNormal=plane._Normal;</p>
+          <p class=textpreword><span>      </span>lamda=l2;</p>
+          <p class=textpreword><span>      </span>return 1;</p>
+          <p class=textpreword>}</p>
+          <p class=textword><br>Код, приведенный выше, вычисляет и возвращает пересечение. 
+            Он возвращает 1, если пересечение есть, иначе 0. Параметры: плоскость 
+            (<span
+lang=EN-US>plane</span>), начало (<span
+lang=EN-US>position</span>) и направление вектора луча (<span lang=EN-US>direction</span>), 
+            lamda - расстояние до точки столкновения, если оно есть, и вычисляется 
+            нормаль от точки столкновения (<span lang=EN-US>pNormal</span>).<span
+lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=head3word>Пересечение луча с цилиндром <br>
+            <br>
+          </p>
+          <p class=textword>Вычисление пересечения между бесконечным цилиндром 
+            и лучом настолько сложено, что я не хочу объяснять его здесь. Этот 
+            способ требует больших математических расчетов и его просто объяснить, 
+            но моя главная цель дать вам инструменты, без излишней детализации 
+            (это не класс геометрии). Если кто-то интересуется теорией, на которой 
+            основан код, смотрите Graphic Gems II Book (pp 35, intersection of 
+            a with a cylinder). Цилиндр представляется как луч, с началом и направляющим 
+            вектором (здесь он совпадает с как осью), и радиус (радиус вокруг 
+            оси цилиндра). Соответственно функция:</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword><span lang=EN-US>int TestIntersionCylinder</span></p>
+          <p class=textpreword><span lang=EN-US>(const Cylinder&amp; cylinder, 
+            const TVector&amp; position, const TVector&amp; direction,</span></p>
+          <p class=textpreword><span> </span>double&amp; lamda, TVector&amp; pNormal, 
+            TVector&amp; newposition)</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Возвращает 1, если было обнаружено пересечение, иначе 
+            0. <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Параметры: структура, задающая цилиндр (смотрите в объяснении кода 
+            ниже), вектор начала и вектор направления луча. Значения, возвращаемые 
+            через параметры - расстояние, нормаль от точки пересечения и сама 
+            точка пересечения. <br>
+            <br>
+            <span lang=EN-US></span></p>
+          <p class=head3word>Столкновение сферы со сферой <br>
+            <br>
+          </p>
+          <p class=textword>Сфера задается с помощью ее центра и ее радиуса. Столкновение 
+            двух сфер определить легко. Находя расстояние между двумя центрами 
+            (метод dist класса TVector) мы можем это определить, пересекаются 
+            ли они, если расстояние меньше, чем сумма их радиусов. <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Проблема лежит в определении, столкнуться ли две ДВИЖУЩИЕСЯ сферы. 
+            Ниже есть пример, где две сферы двигаются в течение временного шага 
+            из одной точки в другую. Их пути пересекаются, но этого недостаточно, 
+            чтобы подтвердить, что столкновение произошло (они могут пройти в 
+            различное время), да и точку столкновения определить невозможно. </p><br>
+          <p class=textword align=center style='text-align:center'> <img width=256 height=256
+src="nehe30-1.jpg" v:shapes="_x0000_i1025"> <br>
+            Рисунок 1</p>
+          <p class=textword><br>
+            Предыдущие методы пересечения были решением уравнений объектов для 
+            определения пересечения. Когда используются сложные формы объектов 
+            или эти уравнения не применимы или не могут быть решены, должны быть 
+            использованы другие методы. Начальные и конечные точки, временной 
+            шаг, скорость (направление сферы + скорость) сферы и метод вычисления 
+            пересечения неподвижных сфер уже известны. Чтобы вычислить пересечение, 
+            временной шаг должен быть разрезан на более мелкие части. Затем, мы 
+            перемещаем сферы в соответствии к этим разрезанным временным шагам, 
+            используя ее скорость, и проверяем столкновение. Если в какой-либо 
+            точке обнаруживается столкновение (это означает, что сферы уже проникли 
+            друг в друга), то мы берем предыдущую позицию как точку пересечения 
+            (мы можем начать интерполяцию между этими точками, чтобы точно определить 
+            позицию пересечения, но это в основном не требуется). <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Чем меньше временной шаг, чем больше частей мы используем, тем точнее 
+            метод. Например, допустим временной шаг равен 1 и количество частей 
+            - 3. Мы бы проверили два шара на столкновение во время 0, 0.33, 0.66, 
+            1. Легко!!!! <br>
+            <br>
+            Код, который это выполняет:</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>/*** Определить, какой из текущих шаров ***/</p>
+          <p class=textpreword>/*** пересекает другой в текущем временном шаге ***/</p>
+          <p class=textpreword>/*** Возвращает индекс двух пересекающихся шаров, точку и время пересечения ***/</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span lang=EN-US>int FindBallCol</span></p>
+          <p class=textpreword><span lang=EN-US>(TVector&amp; point, double&amp; 
+            TimePoint, double Time2,</span></p>
+          <p class=textpreword><span> </span>int&amp; BallNr1, int&amp; BallNr2)</p>
+          <p class=textpreword><span lang=EN-US>{</span></p>
+          <p class=textpreword><span>      </span>TVector RelativeV;</p>
+          <p class=textpreword><span>      </span>TRay rays;</p>
+          <p class=textpreword><span>      </span>double MyTime=0.0, Add=Time2/150.0, 
+            Timedummy=10000, Timedummy2=-1;</p>
+          <p class=textpreword><span>      </span>TVector posi;</p>
+          <p class=textpreword>      // Проверка всех шаров один относительно 
+            других за 150 маленьких шагов</p>
+          <p class=textpreword>      <span
+lang=EN-US>for (int i=0;i&lt;NrOfBalls-1;i++)</span></p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>            </span>for (int j=i+1;j&lt;NrOfBalls;j++)</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword><span>                  </span>RelativeV=ArrayVel[i]-ArrayVel[j]; 
+            // Найти расстояние<span
+lang=EN-US></span></p>
+          <p class=textpreword><span>                  </span>rays=TRay(OldPos[i],TVector::unit(RelativeV));</p>
+          <p class=textpreword><span>                  </span>MyTime=0.0;</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>            <span>      </span>// Если расстояние 
+            между центрами больше чем 2*радиус</p>
+          <p class=textpreword>                  <span
+lang=EN-US>if ( (rays.dist(OldPos[j])) &gt; 40) continue; </span></p>
+          <p class=textpreword><span>                  </span>// Произошло пересечение</p>
+          <p class=textpreword><span>                  </span>// Цикл для точного 
+            определения точки пересечения</p>
+          <p class=textpreword>                  <span
+lang=EN-US>while (MyTime&lt;Time2)</span></p>
+          <p class=textpreword><span>                  </span>{</p>
+          <p class=textpreword><span>                        </span>MyTime+=Add;</p>
+          <p class=textpreword><span>                        </span>posi=OldPos[i]+RelativeV*MyTime;</p>
+          <p class=textpreword><span>                        </span>if (posi.dist(OldPos[j])&lt;=40)</p>
+          <p class=textpreword><span>                        </span>{</p>
+          <p class=textpreword><span>                             </span>point=posi;</p>
+          <p class=textpreword><span>                             </span>if (Timedummy&gt;(MyTime-Add)) 
+            Timedummy=MyTime-Add;</p>
+          <p class=textpreword><span>                             </span>BallNr1=i;</p>
+          <p class=textpreword><span>                             </span>BallNr2=j;</p>
+          <p class=textpreword><span>                             </span>break;</p>
+          <p class=textpreword><span>                        </span>}</p>
+          <p class=textpreword><span>                  </span>}</p>
+          <p class=textpreword><span>            </span>}</p>
+          <p class=textpreword><span>      </span>}</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>      </span>if (Timedummy!=10000)</p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>            </span>TimePoint=Timedummy;</p>
+          <p class=textpreword><span>            </span>return 1;</p>
+          <p class=textpreword><span>      </span>}</p>
+          <p class=textpreword>      return 0;</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=head3word>Как использовать то, что мы только что изучили. <br>
+            <br>
+            <span lang=EN-US></span></p>
+          <p class=textword>Поскольку сейчас мы можем определить точку пересечения 
+            между лучом и плоскостью/цилиндром, мы должны использовать это каким-нибудь 
+            образом для определения столкновения между сферой и одним из этих 
+            примитивов. Что мы могли сделать до этого, это определить точную точку 
+            столкновения между частицей (точкой) и плоскостью/цилиндром. Начало 
+            луча - расположение частицы, и направление луча - его вектор скорости 
+            (скорость и направление). Сделать это применительно к сферам довольно 
+            легко. Смотрите на рисунке 2а, как это может быть выполнено. </p><br>
+          <p class=textword align=center style='text-align:center'> <img width=656 height=200
+src="nehe30-2.jpg" v:shapes="_x0000_i1028"> <br>
+            Рисунок 2a &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+            Рисунок 2b</p>
+          <p class=textword><br>
+            Каждая сфера имеет радиус, берем центр сферы как частицу (точка) и 
+            сдвигаем поверхность вдоль нормали каждой интересующей нас плоскости/цилиндра. 
+            На рисунке 2а эти новые примитивы изображены пунктирными линиями. 
+            Наши настоящие примитивы изображены непрерывными линиями, но тест 
+            на столкновение делается с помощью сдвинутых примитивов (представленных 
+            пунктирными линиями). Фактически, мы выполняем тест на пересечение 
+            с помощью небольшой плоскости сдвига и увеличенным радиусом цилиндра. 
+            Используя эту маленькую хитрость, шар не проникает в поверхность, 
+            если пересечение обнаружено с помощью его центра. Иначе мы получаем 
+            ситуацию как на рисунке 2b, где сфера проникает в поверхность. Это 
+            происходит, потому что мы определяем пересечение между его центром 
+            и примитивом, что означает, что мы не изменяли наш первоначальный 
+            код! <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Определив, где будет столкновение, мы должны определить, будет ли 
+            пересечение в нашем текущем временном шаге. Временной шаг это время, 
+            в течение которого мы перемещаем сферу из ее текущей точки в соответствии 
+            с ее скоростью. Из-за того, что мы тестируем с помощью бесконечных 
+            лучей, всегда существует возможность того, что точка столкновения 
+            будет позади нового расположения сферы. Чтобы определить это, мы перемещаем 
+            сферу, вычисляем ее новое расположение и находим расстояние между 
+            начальной и конечной точкой. Из нашей процедуры определения столкновений 
+            мы также можем взять расстояния от начальной точки до точки столкновения. 
+            Если это расстояние меньше чем расстояние между начальной и конечной 
+            точкой, тогда столкновение есть. Чтобы вычислить точное время, мы 
+            решаем следующее простое уравнение. Представляем расстояние между 
+            начальной и конечной точкой как Dst, расстояние между начальной точкой 
+            и точкой столкновения - Dsc, и временной шаг - Т. Время, когда происходит 
+            столкновение (Тс): <span lang=EN-US></span></p>
+          <p class=textpreword><br>
+            Tc= Dsc*T / Dst <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Все это выполняется, конечно, если пересечение было определено. Возвращаемое 
+            время - часть от целого временного шага, если временной шаг был в 
+            1 секунду, и мы обнаружили пересечение точно в середине расстояния, 
+            то вычисленное время столкновения будет 0.5 сек. Сейчас точка пересечения 
+            может быть вычислена только умножением Тс на текущую скорость и прибавлением 
+            к начальной точке. <span
+lang=EN-US></span></p>
+          <p class=textpreword><br>
+            Collision point= Start + Velocity*Tc <br>
+            <br>
+            <span lang=EN-US></span></p>
+          <p class=textword>Это точка столкновения на расширенном примитиве, чтобы 
+            найти точку столкновения на настоящем примитиве мы добавляем к этой 
+            точке реверс нормали от этой точки (который также возвращается процедурой 
+            пересечения) с помощью радиуса сферы. Заметьте, что процедура пересечения 
+            цилиндра возвращает точку пересечения, если она существует, поэтому 
+            не нуждается в вычислении.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=head2word><span style='font-size:13.5pt'>2) Моделирование законов 
+            физики</span> <span lang=EN-US></span></p>
+          <p class=head3word><br>
+            Реакция на столкновения <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Определить, как отреагируют после удара неподвижные объекты, типа 
+            плоскостей, цилиндров также важно, как определить точку столкновения. 
+            Используя описанные алгоритмы и функции, можно обнаружить точную точку 
+            столкновения, нормаль от нее и время внутри временного шага, в течение 
+            которого происходит столкновение. <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Чтобы определить, как отреагировать на столкновение, должны быть применены 
+            законы физики. Когда объект сталкивается с поверхностью, его направление 
+            меняется, т.е. он отскакивает. Угол нового направления (или вектор 
+            отражения) от нормали точки столкновения такой же, как у первоначального 
+            вектора. Рисунок 3 показывает столкновение со сферой. </p><br>
+          <p class=textword align=center style='text-align:center'> <img width=256 height=256
+src="nehe30-3.jpg" v:shapes="_x0000_i1030"> <br>
+            Рисунок 3</p>
+          <p class=textword><br>
+            <br>
+            R - новый направляющий вектор<span lang=EN-US></span></p>
+          <p class=textword>I - старый направляющий вектор, до столкновения</p>
+          <p class=textword>N - нормаль от точки столкновения</p>
+          <p class=textword><br>
+            Новый вектор R вычисляется следующим образом: <span lang=EN-US></span></p>
+          <p class=textpreword><br>
+            <span style='"Courier New"'>R= 2*(-I dot N)*N + I</span><span
+lang=EN-US></span></p>
+          <p class=textword> <br>
+            Есть ограничение: вектора I и N должны быть единичными векторами. 
+            Вектор скорости, который мы использовали в наших примерах, представляет 
+            скорость и направление. Вектор скорости не может быть включен в уравнение 
+            за место I, без преобразования. Скорость должна быть исключена. Скорость 
+            исключается нахождением величины вектора. Когда величина вектора найдена, 
+            вектор может быть преобразован в единичный и включен в уравнение, 
+            вычисляющее вектор отражения R. R показывает нам направление луча 
+            отражения, но для того, чтобы использовать как вектор скорости, необходимо 
+            к нему подключить скорость. Берем его, умножаем на величину первоначального 
+            луча, получаем правильный вектор скорости. <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            В примере эта процедура применяется для вычисления реакции на столкновение, 
+            когда шар сталкивается с плоскостью или цилиндром. Но она работает 
+            также для любых поверхностей, их форма не имеет значения. Пока точка 
+            столкновения и нормаль могут быть вычислены, метод вычисления реакции 
+            на столкновение всегда будет тот же самый. Код, который выполняет 
+            эти операции:</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>rt2=ArrayVel[BallNr].mag(); // Найти величину скорости</p>
+          <p class=textpreword>ArrayVel[BallNr].unit(); // Нормализовать его</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US>// </span>Вычислить отражение<span lang=EN-US></span></p>
+          <p class=textpreword><span lang=EN-US>ArrayVel[BallNr]=TVector::unit( 
+            (normal*(2*normal.dot(-ArrayVel[BallNr]))) + ArrayVel[BallNr] );</span></p>
+          <p class=textpreword>// Умножить на величину скорости для получения 
+            вектора скорости</p>
+          <p class=textpreword><span lang=EN-US>ArrayVel[BallNr]=ArrayVel[BallNr]*rt2;</span></p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=head3word>Когда сфера сталкивается с другой сферой<span lang=EN-US></span></p>
+          <p class=head3word> </p>
+          <p class=textword>Определить реакцию на столкновение двух шаров намного 
+            труднее. Должны быть решены сложные уравнения динамики частиц, и поэтому 
+            я выдам только окончательное решение без каких-либо доказательств. 
+            Просто поверьте мне в этом :). Во время столкновения имеем ситуацию, 
+            как изображено на рисунке 4. </p><br>
+          <p class=textword align=center style='text-align:center'><span
+style='color:black'> <img width=256 height=256
+src="nehe30-4.jpg" v:shapes="_x0000_i1032"> <br>
+            Рисунок 4</span></p>
+          <p class=textword align=center style='text-align:center'>&nbsp;</p>
+          <p class=textword>U1 и U2 векторы скорости двух сфер во время столкновения. 
+            Существует ось (X_Axis), вектор, которые соединяет центры двух сфер, 
+            и U1x, U2x проекции векторов скоростей U1,U2 ось (X_Axis).<span lang=EN-US></span></p>
+          <p class=textword> <br>
+            U1y и U2y проекции векторов скорости U1,U2 на ось, перпендикулярную 
+            X_Axis. Чтобы найти эти вектора нужно просто произвести скалярное 
+            произведение. M1, M2 - массы двух сфер, соответственно. V1,V2 - новые 
+            скорости после столкновения, и V1x, V1y, V2x, V2y - проекции векторов 
+            скорости на X_Axis.<span lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US><br>
+            </span>Более подробно<span
+lang=EN-US>:</span></p>
+          <p class=textword><span lang=EN-US><br>
+            a) </span>Найти<span lang=EN-US> X_Axis</span></p>
+          <p class=textpreword><span lang=EN-US><br>
+            </span>X_Axis = (center2 - center1);<span lang=EN-US></span></p>
+          <p class=textpreword><span lang=EN-US>Unify X_Axis, X_Axis.unit();</span></p>
+          <p class=textword><span> </span><span
+lang=EN-US><br>
+            b) </span>Найти проекции<span
+lang=EN-US></span></p>
+          <p class=textpreword> <br>
+            <span lang=EN-US>U</span>1<span lang=EN-US>x</span>= <span lang=EN-US>X</span>_<span lang=EN-US>Axis</span> 
+            * (<span lang=EN-US>X</span>_<span lang=EN-US>Axis</span><span lang=EN-US> 
+            </span><span
+lang=EN-US>dot</span><span lang=EN-US> </span><span
+lang=EN-US>U</span>1)<span lang=EN-US></span></p>
+          <p class=textpreword><span lang=EN-US>U1y= U1 - U1x</span></p>
+          <p class=textpreword><span lang=EN-US>U2x =-X_Axis * (-X_Axis dot U2)</span></p>
+          <p class=textpreword><span lang=EN-US>U</span>2<span
+lang=EN-US>y</span> =<span lang=EN-US>U</span>2 - <span lang=EN-US>U</span>2<span lang=EN-US>x</span></p>
+          <p class=textword><br>
+            <span lang=EN-US>c</span>) Найти новые скорости<span
+lang=EN-US></span></p>
+          <p class=textpreword><br>
+                 (U1x * M1)+(U2x*M2)-(U1x-U2x)*M2</p>
+          <p class=textpreword><span lang=EN-US>V1x= --------------------------------</span></p>
+          <p class=textpreword><span>                </span>M1+M2</p>
+          <p class=textpreword><span>     </span>(U1x * M1)+(U2x*M2)-(U2x-U1x)*M1</p>
+          <p class=textpreword><span lang=EN-US>V2x= --------------------------------</span></p>
+          <p class=textpreword><span>                </span>M1+M2</p>
+          <p class=textword><span lang=EN-US><br>
+            </span>В нашем приложении мы установили <span lang=EN-US>M</span>1=<span lang=EN-US>M</span>2=1, 
+            поэтому уравнение получилось даже проще. <span lang=EN-US></span></p>
+          <p class=textword><br>
+            d) Найти окончательные скорости<span lang=EN-US></span></p>
+          <p class=textword><br>
+            <span style='font-family:"Courier New";'>V1y=U1y<br>
+            V2y=U2y<br>
+            V1=V1x+V1y<br>
+            V2=V2x+V2y </span><br>
+            <br>
+            Решение этих уравнений требует много работы, но раз они в той форме, 
+            как выше, они могут быть использованы совершенно легко. Код, который 
+            вычисляет действительную реакцию на столкновение:</p>
+          <p class=textword><span style='color:black'>&nbsp; </span></p>
+          <p class=textpreword><span lang=EN-US>TVector pb1,pb2,xaxis,U1x,U1y,U2x,U2y,V1x,V1y,V2x,V2y;</span></p>
+          <p class=textpreword><span lang=EN-US>double a,b;</span></p>
+          <p class=textpreword>// Найти расположение первого шара</p>
+          <p class=textpreword><span lang=EN-US>pb</span>1=<span
+lang=EN-US>OldPos</span>[<span lang=EN-US>BallColNr</span>1]+<span lang=EN-US>ArrayVel</span>[<span lang=EN-US>BallColNr</span>1]*<span lang=EN-US>BallTime</span>; 
+          </p>
+          <p class=textpreword>// Найти расположение второго шара</p>
+          <p class=textpreword><span lang=EN-US>pb2=OldPos[BallColNr2]+ArrayVel[BallColNr2]*BallTime;</span></p>
+          <p class=textpreword><span lang=EN-US>xaxis=(pb2-pb1).unit(); // </span>Найти<span lang=EN-US> 
+            X-Axis</span></p>
+          <p class=textpreword><span lang=EN-US>a=xaxis.dot(ArrayVel[BallColNr1]); 
+            // </span>Найти проекцию<span
+lang=EN-US></span></p>
+          <p class=textpreword>U1x=xaxis*a;      // Найти спроецированные вектора</p>
+          <p class=textpreword><span lang=EN-US>U1y=ArrayVel[BallColNr1]-U1x;</span></p>
+          <p class=textpreword>xaxis=(pb1-pb2).unit(); // Сделать также, как выше</p>
+          <p class=textpreword>b=xaxis.dot(ArrayVel[BallColNr2]); // Найти проекцию</p>
+          <p class=textpreword>U2x=xaxis*b; // Векторы для другого шара</p>
+          <p class=textpreword><span lang=EN-US>U2y=ArrayVel[BallColNr2]-U2x;</span></p>
+          <p class=textpreword>V1x=(U1x+U2x-(U1x-U2x))*0.5; // Сейчас найти новые 
+            скорости</p>
+          <p class=textpreword><span lang=EN-US>V2x=(U1x+U2x-(U2x-U1x))*0.5;</span></p>
+          <p class=textpreword><span lang=EN-US>V1y=U1y;</span></p>
+          <p class=textpreword><span lang=EN-US>V2y=U2y;</span></p>
+          <p class=textpreword>for (j=0;j&lt;NrOfBalls;j++) // Обновить все новые 
+            расположения</p>
+          <p class=textpreword><span lang=EN-US>ArrayPos[j]=OldPos[j]+ArrayVel[j]*BallTime;</span></p>
+          <p class=textpreword>ArrayVel[BallColNr1]=V1x+V1y; // Установить новые 
+            вектора скорости</p>
+          <p class=textpreword>ArrayVel[BallColNr2]=V2x+V2y; // столкнувшимся 
+            шарам</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=head3word>Движение под действием гравитации, с использованием 
+            уравнения Эйлера <br>
+            <br>
+          </p>
+          <p class=textword>Чтобы изобразить реалистичное движение со столкновениями, 
+            определение точки столкновения и вычисления реакции не достаточно. 
+            Движение основывается на физических законах и тоже должно быть смоделировано. 
+            <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Наиболее широко используемый метод для этого - использование уравнения 
+            Эйлера. Как показано, все вычисления должны быть выполнены с использованием 
+            временного шага. Это означает, что все моделирование происходит в 
+            некоторых временных шагах, в течение которых происходит движение, 
+            и выполняются тесты на столкновения и реакцию. 
+            Как пример, мы можем произвести моделирование в течение 2 секунд на 
+            каждом фрейме. Основываясь на уравнении Эйлера, скорость и расположение 
+            в каждом нового временном шаге вычисляется следующим образом: <span lang=EN-US></span></p>
+          <p class=textpreword><br>
+            Velocity_New = Velovity_Old + Acceleration*TimeStep<br>
+            Position_New = Position_Old + Velocity_New*TimeStep<span lang=EN-US></span></p>
+          <p class=textword> <br>
+            Сейчас объекты перемещаются и тестируются на столкновения, используя 
+            новую скорость. Ускорение для каждого объекта вычисляется делением 
+            силы, действующей на него, на его массу, в соответствии с эти уравнением: 
+            <span lang=EN-US></span></p>
+          <p class=textpreword><br>
+            Force = mass * acceleration <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Много физических формул :) <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Но, в нашем случае, на объекты действует только сила тяжести, которая 
+            может быть представлена сейчас как вектор, указывающий ускорение. 
+            В нашем случае, что-либо отрицательное в направлении Y, типа (0,-0.5,0). 
+            Это означает, что в начале каждого временного шага, мы вычисляем новую 
+            скорость каждой сферы и перемещаем их, тестируя на столкновение. Если 
+            во время временного шага происходит столкновение (скажем после 0.5 
+            сек. с временным шагом равным 1 сек.) мы передвигаем объект в эту 
+            позицию, вычисляем отражение (новый вектор скорости) и перемещаем 
+            объект за оставшееся время (0.5 в нашем примере) снова тестируя на 
+            столкновения в течение этого времени. Эта процедура выполняется пока 
+            не завершится временной шаг. <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Когда присутствует много движущихся объектов, каждый движущийся объект 
+            тестируется на пересечение с неподвижными объектами и ближайшее пересечение 
+            записывается. Далее выполняется тест на пересечение среди движущихся 
+            объектов для определения столкновений, в котором каждый объект тестируется 
+            с каждым другим. Обнаруженные пересечения сравниваются с пересечениями 
+            со статическим объектами, и берется наиболее близкое из них. Все моделирование 
+            обновляется в этой точке, (т.е., если ближайшее пересечение было после 
+            0.5 сек., мы должны переместить все объекты на 0.5 сек.), для столкнувшихся 
+            объектов вычисляется вектор отражения, и цикл снова выполняется за 
+            оставшееся время.</p>
+          <p class=textword><span style='color:black'>&nbsp; </span></p>
+          <p class=head2word>3) Специальные эффекты <br>
+            <br>
+          </p>
+          <p class=head3word>Взрывы </p>
+          <p class=textword><br>
+            Каждый раз, когда происходит столкновение, в точке столкновения происходит 
+            взрыв. Хороший способ моделировать взрывы - произвести смешивание 
+            двух перпендикулярных друг другу полигонов с центрами в интересующей 
+            точке (в точке пересечения). Полигоны уменьшаются и исчезают со временем. 
+            Исчезновение выполняется изменением для вершин в течение времени значения 
+            alpha от 1 до 0. Так как возникает много полупрозрачных полигонов, 
+            то это может вызвать проблемы, и они могут перекрывать друг друга 
+            (как указано в Red Book в главе о прозрачности и смешивании) из-за 
+            Z-буфера, мы заимствуем технику, используемую в рендеринге частиц. 
+            Чтобы реализовать корректно этот трюк (как это описано в <span
+lang=EN-US>R</span>ed <span lang=EN-US>B</span>ook), мы должны отсортировать полигоны 
+            в соответствии с их расположением по глубине, но с выключением записи 
+            в буфер глубины (не чтения). Заметьте, что число взрывов ограничено 
+            до 20 за один фрейм, если происходят дополнительные взрывы, буфер 
+            переполняется, и они сбрасываются. Код, который производит взрывы:</p>
+          <p class=textword><span style='color:black'>&nbsp; </span></p>
+          <p class=textpreword>// Исполнение / смешивание взрывов</p>
+          <p class=textpreword>glEnable(GL_BLEND); // Включить смешивание</p>
+          <p class=textpreword>glDepthMask(GL_FALSE); // Отключить запись буфера 
+            глубины </p>
+          <p class=textpreword>glBindTexture(GL_TEXTURE_2D, texture[1]); // Подключение 
+            текстуры</p>
+          <p class=textpreword>for(i=0; i&lt;20; i++) // Обновление и визуализация 
+            взрывов</p>
+          <p class=textpreword><span lang=EN-US>{</span></p>
+          <p class=textpreword><span>      </span>if(ExplosionArray[i]._Alpha&gt;=0)</p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>            </span>glPushMatrix();</p>
+          <p class=textpreword><span>            </span>ExplosionArray[i]._Alpha-=0.01f; 
+            // Обновить альфу<span lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>ExplosionArray[i]._Scale+=0.03f; 
+            // Обновить размер<span lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>// Назначить прозрачным 
+            вершинам желтый цвет</p>
+          <p class=textpreword><span>            </span>glColor4f(1,1,0,ExplosionArray[i]._Alpha); 
+            // Размер<span lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>glScalef(ExplosionArray[i]._Scale,</p>
+          <p class=textpreword>                  <span
+lang=EN-US>ExplosionArray[i]._Scale,ExplosionArray[i]._Scale);</span></p>
+          <p class=textpreword><span>            </span>// Переместить в позицию 
+            с учетом масштабирования</p>
+          <p class=textpreword>            <span
+lang=EN-US>glTranslatef(</span></p>
+          <p class=textpreword>            <span
+lang=EN-US>(float)ExplosionArray[i]._Position.X()/ExplosionArray[i]._Scale,</span></p>
+          <p class=textpreword>            <span
+lang=EN-US>(float)ExplosionArray[i]._Position.Y()/ExplosionArray[i]._Scale,</span></p>
+          <p class=textpreword><span>            </span>(float)ExplosionArray[i]._Position.Z()/ExplosionArray[i]._Scale);</p>
+          <p class=textpreword><span>            </span>glCallList(dlist);// Вызвать 
+            список изображений</p>
+          <p class=textpreword>            glPopMatrix();</p>
+          <p class=textpreword>      }</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword><span style='color:black'>&nbsp; </span></p>
+          <p class=head3word>Звук </p>
+          <p class=textword><br>
+            Для звука была использована мультимедийная функция окошек PlaySound(). 
+            Это быстрый и отвратительный способ проигрывания звуковых файлов быстро 
+            и без хлопот.</p>
+          <p class=textword><span style='color:black'>&nbsp; </span></p>
+          <p class=head2word>4) Разъяснение кода <span lang=EN-US></span></p>
+          <p class=textword><br>
+            Поздравляю... </p>
+          <p class=textword><br>
+            Если вы еще со мной, значит, вы успешно пережили теоретическую часть 
+            ;). Перед тем как позабавиться с демкой, необходимы некоторые разъяснения 
+            исходного кода. Основные действия и шаги моделирования следующие (в 
+            псевдокоде):<span
+lang=EN-US></span></p>
+          <p class=textpreword> <br>
+            Цикл (ВременнойШаг!=0)<br>
+            {<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Цикл по всем шарам<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;вычислить 
+            ближайшее столкновение с плоскостью <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;вычислить 
+            ближайшее столкновение с цилиндром <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Сохранить 
+            и заменить, если это ближайшее пересечение <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;по 
+            времени вычисленное до сих пор;<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Проверить на столкновение среди 
+            движущихся шаров; <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Сохранить и заменить, если это 
+            ближайшее пересечение <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;по времени, вычисленное до сих 
+            пор; <br>
+             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If (Столкновение произошло) <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Переместить 
+            все шары на время, равное времени столкновения; <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Мы 
+            уже вычислили точку, нормаль и время столкновения.) <br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Вычислить 
+            реакцию; <br>
+            &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ВременнойШаг 
+            -=ВремяСтолкновения;<br>
+            &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Переместить 
+            все шары на время, равное временному шагу <br>
+            }</p>
+          <p class=textword><span> </span><br>
+            Настоящий код, выполняющий псевдокод выше - тяжелей для чтения, но, 
+            в сущности, точная реализация этого псевдокода.<span style='color:black'>&nbsp; 
+            </span></p>
+          <p class=textpreword><br>
+            // Пока не закончится временной шаг</p>
+          <p class=textpreword><span lang=EN-US>while (RestTime&gt;ZERO)</span></p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      lamda=10000; // Инициализировать очень большое 
+            значение</p>
+          <p class=textpreword>      // Для всех шаров найти ближайщее пересечение 
+            между шарами и плоскостями/цилиндрами</p>
+          <p class=textpreword>      <span
+lang=EN-US>for (int i=0;i&lt;NrOfBalls;i++)</span></p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword>            // Вычислить новое расположение и расстояние</p>
+          <p class=textpreword>            <span
+lang=EN-US>OldPos[i]=ArrayPos[i];</span></p>
+          <p class=textpreword><span>            </span>TVector::unit(ArrayVel[i],uveloc);</p>
+          <p class=textpreword><span>            </span>ArrayPos[i]=ArrayPos[i]+ArrayVel[i]*RestTime;</p>
+          <p class=textpreword><span>            </span>rt2=OldPos[i].dist(ArrayPos[i]);</p>
+          <p class=textpreword><span>            </span>// Проверить, произошло 
+            ли столкновение между шаром и всеми 5 плоскостями</p>
+          <p class=textpreword>            <span
+lang=EN-US>if (TestIntersionPlane(pl1,OldPos[i],uveloc,rt,norm))</span></p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>                  // Найти время пересечения</p>
+          <p class=textpreword>                  rt4=rt*RestTime/rt2;</p>
+          <p class=textpreword>                  // Если оно меньше, чем уже сохраненное 
+            во временном шаге, заменить</p>
+          <p class=textpreword>                  <span
+lang=EN-US>if (rt4&lt;=lamda)</span></p>
+          <p class=textpreword><span>                  </span>{</p>
+          <p class=textpreword>                        // Если время пересечения 
+            в текущем временном шаге</p>
+          <p class=textpreword>                        <span
+lang=EN-US>if (rt4&lt;=RestTime+ZERO)</span></p>
+          <p class=textpreword><span>                             </span>if (! 
+            ((rt&lt;=ZERO)&amp;&amp;(uveloc.dot(norm)&gt;ZERO)) )</p>
+          <p class=textpreword><span>                             </span>{</p>
+          <p class=textpreword><span>                                   </span>normal=norm;</p>
+          <p class=textpreword><span>                                   </span>point=OldPos[i]+uveloc*rt;</p>
+          <p class=textpreword><span>                                   </span>lamda=rt4;</p>
+          <p class=textpreword><span>                                   </span>BallNr=i;</p>
+          <p class=textpreword><span>                             </span>}</p>
+          <p class=textpreword><span>                  </span>}</p>
+          <p class=textpreword><span>            </span>}</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if (TestIntersionPlane(pl2,OldPos[i],uveloc,rt,norm))</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>                  // ...То же самое, что и выше</p>
+          <p class=textpreword>            <span
+lang=EN-US>}</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if (TestIntersionPlane(pl3,OldPos[i],uveloc,rt,norm))</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>                  // ...То же самое, что и выше</p>
+          <p class=textpreword>            <span
+lang=EN-US>}</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if (TestIntersionPlane(pl4,OldPos[i],uveloc,rt,norm))</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>                  // ...То же самое, что и выше</p>
+          <p class=textpreword>            <span
+lang=EN-US>}</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if (TestIntersionPlane(pl5,OldPos[i],uveloc,rt,norm))</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>                  // ...То же самое, что и выше</p>
+          <p class=textpreword>            }</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>            // Сейчас проверяем пересечения с 3 
+            цилиндрами</p>
+          <p class=textpreword>            <span
+lang=EN-US>if (TestIntersionCylinder(cyl1,OldPos[i],uveloc,rt,norm,Nc))</span></p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword><span>                  </span>rt4=rt*RestTime/rt2;</p>
+          <p class=textpreword><span>                  </span>if (rt4&lt;=lamda)</p>
+          <p class=textpreword><span>                  </span>{</p>
+          <p class=textpreword><span>                        </span>if (rt4&lt;=RestTime+ZERO)</p>
+          <p class=textpreword><span>                             </span>if (! 
+            ((rt&lt;=ZERO)&amp;&amp;(uveloc.dot(norm)&gt;ZERO)) )</p>
+          <p class=textpreword><span>                             </span>{</p>
+          <p class=textpreword><span>                                   </span>normal=norm;</p>
+          <p class=textpreword><span>                                   </span>point=Nc;</p>
+          <p class=textpreword><span>                                   </span>lamda=rt4;</p>
+          <p class=textpreword><span>                                   </span>BallNr=i;</p>
+          <p class=textpreword><span>                             </span>}</p>
+          <p class=textpreword><span>                  </span>}</p>
+          <p class=textpreword><span>            </span>}</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if (TestIntersionCylinder(cyl2,OldPos[i],uveloc,rt,norm,Nc))</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>                  // ...То же самое, что и выше</p>
+          <p class=textpreword>            <span
+lang=EN-US>}</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if (TestIntersionCylinder(cyl3,OldPos[i],uveloc,rt,norm,Nc))</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword>                  // ...То же самое, что и выше</p>
+          <p class=textpreword>            }</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>      }</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>      // После того, как были проверены все шары 
+            на столкновение с плоскостями/цилиндрами</p>
+          <p class=textpreword>      // Проверить между ними и записать наименьшее 
+            время столкновения</p>
+          <p class=textpreword>      <span
+lang=EN-US>if (FindBallCol(Pos2,BallTime,RestTime,BallColNr1,BallColNr2))</span></p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>            </span>if (sounds)</p>
+          <p class=textpreword><span>                  </span>PlaySound(&quot;Explode.wav&quot;,NULL,SND_FILENAME|SND_ASYNC);</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>if ( (lamda==10000) || 
+            (lamda&gt;BallTime) )</p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword><span>                  </span>RestTime=RestTime-BallTime;</p>
+          <p class=textpreword><span>                  </span>TVector pb1,pb2,xaxis,U1x,U1y,U2x,U2y,V1x,V1y,V2x,V2y;</p>
+          <p class=textpreword><span>                  </span>double a,b;</p>
+          <p class=textpreword><span>                  </span>.</p>
+          <p class=textpreword>                  .</p>
+          <p class=textpreword>                  Код опущен для экономии пространства</p>
+          <p class=textpreword>                  Код описан в разделе Моделирование 
+            физических законов</p>
+          <p class=textpreword>                  Столкновение между сферами</p>
+          <p class=textpreword>                  .</p>
+          <p class=textpreword>                  .</p>
+          <p class=textpreword>                  //Обновить массив взрывов и вставить 
+            взрыв</p>
+          <p class=textpreword>                  <span
+lang=EN-US>for(j=0;j&lt;20;j++)</span></p>
+          <p class=textpreword><span>                  </span>{</p>
+          <p class=textpreword><span>                        </span>if (ExplosionArray[j]._Alpha&lt;=0)</p>
+          <p class=textpreword><span>                        </span>{</p>
+          <p class=textpreword><span>                             </span>ExplosionArray[j]._Alpha=1;</p>
+          <p class=textpreword><span>                             </span>ExplosionArray[j]._Position=ArrayPos[BallColNr1];</p>
+          <p class=textpreword><span>                             </span>ExplosionArray[j]._Scale=1;</p>
+          <p class=textpreword><span>                             </span>break;</p>
+          <p class=textpreword><span>                        </span>}</p>
+          <p class=textpreword><span>                  </span>}</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>                  </span>continue;</p>
+          <p class=textpreword><span>            </span>}</p>
+          <p class=textpreword><span>      </span>}</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>      </span>// Конец проверок<span lang=EN-US></span></p>
+          <p class=textpreword><span>      </span>// Если столкновение произошло, 
+            произвести моделирование для точного временного шага</p>
+          <p class=textpreword>      // и вычислить реакцию для столкнувшихся 
+            шаров</p>
+          <p class=textpreword>      <span
+lang=EN-US>if (lamda!=10000)</span></p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>            </span>RestTime-=lamda;</p>
+          <p class=textpreword><span>            </span>for (j=0;j&lt;NrOfBalls;j++)</p>
+          <p class=textpreword><span>            </span>ArrayPos[j]=OldPos[j]+ArrayVel[j]*lamda;</p>
+          <p class=textpreword><span>            </span>rt2=ArrayVel[BallNr].mag();</p>
+          <p class=textpreword><span>            </span>ArrayVel[BallNr].unit();</p>
+          <p class=textpreword><span>            </span>ArrayVel[BallNr]=TVector::unit( 
+            (normal*(2*normal.dot(-ArrayVel[BallNr])))</p>
+          <p class=textpreword>                             <span
+lang=EN-US>+ ArrayVel[BallNr] );</span></p>
+          <p class=textpreword><span>            </span>ArrayVel[BallNr]=ArrayVel[BallNr]*rt2;</p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>            </span>// Обновить массив взрывов 
+            и вставить взрыв</p>
+          <p class=textpreword>            <span
+lang=EN-US>for(j=0;j&lt;20;j++)</span></p>
+          <p class=textpreword><span>            </span>{</p>
+          <p class=textpreword><span>                  </span>if (ExplosionArray[j]._Alpha&lt;=0)</p>
+          <p class=textpreword><span>                  </span>{</p>
+          <p class=textpreword><span>                        </span>ExplosionArray[j]._Alpha=1;</p>
+          <p class=textpreword><span>                        </span>ExplosionArray[j]._Position=point;</p>
+          <p class=textpreword><span>                        </span>ExplosionArray[j]._Scale=1;</p>
+          <p class=textpreword><span>                        </span>break;</p>
+          <p class=textpreword><span>                  </span>}</p>
+          <p class=textpreword><span>            </span>}</p>
+          <p class=textpreword><span>      </span>}</p>
+          <p class=textpreword><span>      </span>else RestTime=0;</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword><span lang=EN-US style='color:black;'>&nbsp; </span></p>
+          <p class=textword>Основные глобальные переменные, представляющие важность: 
+            <span
+lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <table border=1 cellpadding=0 width="96%">
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Представляет направление и расположение камеры. 
+                  Камера перемещается, используя функцию LookAt. Как вы, возможно, 
+                  заметите, в не hook моде (который я объясню позже), вся сцена 
+                  вращается вокруг, camera_rotation - угол вращения.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>TVector dir</span></p>
+                <p class=textword><span lang=EN-US>Tvector pos(0,-50,1000);</span></p>
+                <p class=textword><span lang=EN-US>float camera_rotation=0;</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Представляет ускорение, приложенное к движущимся 
+                  шарам. В приложении действует как гравитация.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword>TVector accel(0, -0.05, 0);</p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Массив, который содержит новые и старые расположения 
+                  и векторы скорости каждого шара. Количество шаров жестко установлено 
+                  равным 10.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>TVector ArrayVel[10];</span></p>
+                <p class=textword><span lang=EN-US>TVector ArrayPos[10];</span></p>
+                <p class=textword><span lang=EN-US>TVector OldPos[10];</span></p>
+                <p class=textword><span lang=EN-US>int NrOfBalls=3;</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Временной шаг, который мы используем.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword>double Time=0.6;</p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Если 1, камера меняет вид и следует за шаром 
+                  (шар с индексом 0 в массиве). Для того чтобы камера следовала 
+                  за шаром, мы использовали его расположение и вектор скорости 
+                  для расположения камеры точно за шаром, и установили ее вид 
+                  вдоль вектора скорости шара.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>int hook_toball1=0;</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Структуры, содержащие данные по взрывам, плоскостям 
+                  и цилиндрам.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>struct Plane</span></p>
+                <p class=textword><span lang=EN-US>struct Cylinder</span></p>
+                <p class=textword><span lang=EN-US>struct Explosion</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Взрывы, хранящиеся в массиве фиксированной длины.</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword>Explosion ExplosionArray[20];</p>
+              </td>
+            </tr>
+          </table>
+          <p class=textword><br>
+            Основные интересующие функции:<span lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <table border=1 cellpadding=0 width="96%">
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Выполняет тест на пересечение с примитивами</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>Int TestIntersionPlane(….);</span></p>
+                <p class=textword><span lang=EN-US>int TestIntersionCylinder(...);</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Загружает текстуры из <span lang=EN-US>bmp</span> 
+                  файлов</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>void LoadGLTextures();</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Код визуализации. Визуализация шаров, стен, 
+                  колонн и взрывов.<span lang=EN-US></span></p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>void DrawGLScene();</span></p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Выполнение основной логики симуляции</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>void</span><span
+  lang=EN-US> </span><span lang=EN-US>idle</span>();</p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Инициализация <span lang=EN-US>OpenGL</span></p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>void</span><span
+  lang=EN-US> </span><span lang=EN-US>InitGL</span>();</p>
+              </td>
+            </tr>
+            <tr> 
+              <td width="71%" class="Normal"> 
+                <p class=textword>Поиск, если любой шар сталкивается с другим 
+                  в текущее время</p>
+              </td>
+              <td width="27%" class="Normal"> 
+                <p class=textword><span lang=EN-US>int</span><span
+  lang=EN-US> </span><span lang=EN-US>FindBallCol</span>(...);</p>
+              </td>
+            </tr>
+          </table>
+
+          <p class=textword>&nbsp;</p>
+          <p class=textword>Для большей информации смотрите исходный код. Я пытался 
+            прокомментировать его настолько хорошо, насколько смог. Сейчас, когда 
+            логика определения столкновения и реакции понята, исходный код должен 
+            стать ясным. Не стесняйтесь обращаться ко мне для получения большей 
+            информации. <span
+lang=EN-US></span></p>
+          <p class=textword><br>
+            Как я заявил в начале этого учебника, тема определения столкновений 
+            - очень сложная тема, чтобы ее охватить в одном учебнике. Вы многое 
+            изучите в этом учебнике, достаточное для создания своих собственных 
+            достаточно впечатляющих демок, но все еще есть много чего, что нужно 
+            изучить по этой теме. Сейчас, когда вы имеете основы, все другие исходники 
+            по определению столкновений и моделированию физических законов должны 
+            стать легче для понимания. С этими словами, я отправляю вас своей 
+            дорогой и желаю вам счастливых столкновений!!!<span
+lang=EN-US></span></p>
+          <p class=textword> <br>
+            Немного информации о Dimitrios Christopoulos: в настоящее время он 
+            работает как программный инженер по виртуальной реальности в Foundation 
+            of the Hellenic World в Athens/Греция (www.fhw.gr). Хотя он родился 
+            в Германии, он учился в Греции в <span lang=EN-US>University</span><span
+lang=EN-US> </span><span lang=EN-US>of</span><span
+lang=EN-US> </span><span lang=EN-US>Patras</span> на факультете  Компьютерной 
+            инженерии и информатики. Он также имеет <span lang=EN-US>MSc</span> 
+            степень в Университете <span lang=EN-US>Hull</span> (<span lang=EN-US>UK</span>) 
+            по Компьютерной Графике и Виртуальному окружению. Первые шаги по программированию 
+            игр он начинал на  <span lang=EN-US>Basic</span> на <span lang=EN-US>Commodore</span> 
+            64, и перешел на <span
+lang=EN-US>C</span>/<span lang=EN-US>C</span>++/<span lang=EN-US>Assembly</span> 
+            на <span lang=EN-US>PC</span> платформе, после того как стал студентом. 
+            В течение нескольких последних лет он перешел на <span lang=EN-US>OpenGL</span>. 
+            Также смотри на его сайте http://members.xoom.com/D_Christop. <span lang=EN-US></span></p>
+          <p class=textword><span lang=EN-US> &nbsp; </span></p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Dimitrios Christopoulos</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p> <a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;21 декабря 2001&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:n_vova@mail.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Владимир Намхоев</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

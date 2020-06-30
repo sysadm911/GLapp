@@ -1,0 +1,478 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 15. Текстурные шрифты</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe15.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 15. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 15. Текстурные шрифты</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=15" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Texture Mapped Fonts</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>После публикации двух последних уроков о растровых и векторных 
+  шрифтах, я получил несколько писем от людей, которые задают вопрос: можно ли 
+  накладывать текстуру на шрифт. Вы можете использовать автоматическую генерацию 
+  координат текстуры. При этом будут генерироваться координаты текстуры для каждого 
+  полигона у шрифта.<br>
+  <br>
+</p>
+<p class=textword>Небольшое примечание, этот код применим только в Windows. Здесь 
+  используются функции wgl Windows для построения шрифта. Очевидно, Apple имеет 
+  поддержку agl, которая должна делать тоже самое, и X имеет glx. К сожалению, 
+  я не могу гарантировать, что этот код переносим. Если кто-нибудь имеет платформо-незавизимый 
+  код для вывода шрифтов на экран, пришлите мне его, и я напишу другой урок по 
+  шрифтам.<br>
+  <br>
+</p>
+<p class=textword>Мы будем использовать код от урока 14 для нашей демонстрационной 
+  программы текстурных шрифтов. Если код изменился в каком-либо разделе программы, 
+  я перепишу весь раздел кода, чтобы было проще видеть изменения, которые я сделал.<br>
+  <br>
+</p>
+<p class=textword>Следующий раздел кода такой же как в уроке 14, но на этот раз 
+  мы не включим в него stdarg.h.</p>
+<p class=textword> &nbsp; </p>
+<p class=textpreword>#include &lt;windows.h&gt;  // Заголовочный файл для Windows</p>
+<p class=textpreword>#include &lt;stdio.h&gt;    // Заголовочный файл для стандартной 
+  библиотеки ввода/вывода</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;    // Заголовочный файл для библиотеки 
+  OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;   // Заголовочный файл для библиотеки 
+  GLu32 </p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt; // Заголовочный файл для библиотеки 
+  GLaux </p>
+<p class=textpreword>#include &lt;math.h&gt;     // Заголовочный файл для математической 
+  библиотеки </p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>HDC        hDC=NULL;  // Приватный контекст устройства GDI</p>
+<p class=textpreword>HGLRC      hRC=NULL;  // Постоянный контекст рендеринга</p>
+<p class=textpreword>HWND       hWnd=NULL; // Сохраняет дескриптор окна</p>
+<p class=textpreword>HINSTANCE  hInstance; // Сохраняет экземпляр приложения</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>bool  keys[256];      // Массив для работы с клавиатурой</p>
+<p class=textpreword>bool  active=TRUE;    // Флаг активации окна, по умолчанию 
+  = TRUE</p>
+<p class=textpreword>bool  fullscreen=TRUE;// Флаг полноэкранного режима</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Мы собираемся добавить одну новую переменную целого типа, которая 
+  называется <b>texture</b><b>[]</b>. Она будет использоваться для хранения нашей 
+  текстуры. Последние три строки такие же, как в уроке 14 и не изменились и здесь.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLuint  texture[1]; // Одна текстура ( НОВОЕ )</p>
+<p class=textpreword>GLuint  base;       // База списка отображения для фонта</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLfloat   rot;      // Используется для вращения текста</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>LRESULT  CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // 
+  Объявление WndProc</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Следующий раздел кода претерпел незначительные изменения. В 
+  этом уроке я собираюсь использовать wingdings шрифт, для того чтобы отобразить 
+  объект в виде черепа и двух скрещенных костей под ним (эмблема смерти). Если 
+  Вы захотите вывести текст вместо этого, Вы можете оставить код таким же, как 
+  это было в уроке 14, или замените шрифт на ваш собственный.<br>
+  <br>
+</p>
+<p class=textword>Может быть кто-то уже задавался вопросом, как использовать wingdings 
+  шрифт. Это тоже является причиной, по которой я не использую стандартный шрифт. 
+  wingdings – СПЕЦИАЛЬНЫЙ шрифт, и требует некоторых модификаций, чтобы заставить 
+  программу работать с ним. При этом надо не просто сообщить Windows, чтобы Вы 
+  будете использовать wingdings шрифт. Если Вы изменяете, название шрифта на wingdings, 
+  Вы увидите, что шрифт не будет выбран. Вы должны сообщить Windows, что шрифт 
+  является специальным шрифтом, и не стандартным символьным шрифтом. Но об этом 
+  позже.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLvoid BuildFont(GLvoid)       // Построение шрифта</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  GLYPHMETRICSFLOAT  gmf[256]; // Адрес буфера для хранения 
+  шрифта</p>
+<p class=textpreword>  HFONT  font;                 // ID шрифта в Windows</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  base = glGenLists(256);      // Храним 256 символов</p>
+<p class=textpreword>  font = CreateFont(  -12,     // Высота фонта</p>
+<p class=textpreword>        0,        // Ширина фонта</p>
+<p class=textpreword>        0,        // Угол отношения</p>
+<p class=textpreword>        0,        // Угол наклона</p>
+<p class=textpreword>        FW_BOLD,  // Ширина шрифта</p>
+<p class=textpreword>        FALSE,    // Курсив</p>
+<p class=textpreword>        FALSE,    // Подчеркивание</p>
+<p class=textpreword>        FALSE,    // Перечеркивание</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Вот она волшебная строка! Вместо того чтобы использовать <b>ANSI</b><b>_CHARSET</b>, 
+  как мы делали в уроке 14, мы используем <b>SYMBOL</b><b>_CHARSET</b>. Это говорит 
+  Windows, что шрифт, который мы строим - не обычный шрифт, составленный из букв. 
+  Специальный шрифт обычно составлен из крошечных картинок (символов). Если Вы 
+  забудете изменить эту строку, wingdings, webdings и любой другой специальный 
+  шрифт, который Вы можете пробовать использовать, не будет работать.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        SYMBOL_CHARSET,      // Идентификатор набора символов 
+  ( Модифицировано )</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Следующие строки не изменились.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        OUT_TT_PRECIS,       // Точность вывода</p>
+<p class=textpreword>        CLIP_DEFAULT_PRECIS, // Точность отсечения</p>
+<p class=textpreword>        ANTIALIASED_QUALITY, // Качество вывода</p>
+<p class=textpreword>        FF_DONTCARE|DEFAULT_PITCH, // Семейство и шаг</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Теперь, когда мы выбрали идентификатор набора символов, мы можем 
+  выбирать wingdings шрифт!</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        &quot;Wingdings&quot;);       // Имя шрифта ( Модифицировано 
+  )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  SelectObject(hDC, font);  // Выбрать шрифт, созданный нами</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  wglUseFontOutlines(  hDC, // Выбрать текущий контекст устройства 
+  (DC)</p>
+<p class=textpreword>        0,                  // Стартовый символ</p>
+<p class=textpreword>        255,                // Количество создаваемых списков 
+  отображения</p>
+<p class=textpreword>        base,               // Стартовое значение списка 
+  отображения</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Я устанавливаю большой уровень отклонения. При этом GL не будет 
+  точно отслеживать контур шрифта. Если Вы зададите отклонение равным 0.0f, Вы 
+  заметите проблемы с текстурированием на очень изогнутых поверхностях. Если Вы 
+  допустите некоторое отклонение, большинство проблем исчезнет.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        0.1f,        // Отклонение от истинного контура</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Следующие три строки кода те же самые.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        0.2f,        // Толщина шрифта по оси Z</p>
+<p class=textpreword>        WGL_FONT_POLYGONS, // Использовать полигоны, а не 
+  линии</p>
+<p class=textpreword>        gmf);        // Буфер адреса для данных списка отображения</p>
+<p class=textpreword>}</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Перед <b>ReSizeGLScene</b><b>()</b> мы собираемся добавить следующий 
+  раздел кода для загрузки нашей текстуры. Вы знаете этот код по прошлым урокам. 
+  Мы создаем память для хранения растрового изображения. Мы загружаем растровое 
+  изображение. Мы говорим OpenGL, сгенерировать 1 текстуру, и мы сохраняем эту 
+  текстуру в <b>texture</b><b>[0]</b>.<br>
+  <br>
+</p>
+<p class=textword>Я создаю мип-мап текстуру, так как она смотрится лучше. Имя 
+  текстуры - lights.bmp.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>AUX_RGBImageRec *LoadBMP(char *Filename)     // Загрузка 
+  картинки</p>
+<p class=textpreword>{</p>
+<p class=textpreword> FILE *File=NULL;          // Индекс файла</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword> if (!Filename)            // Проверка имени файла</p>
+<p class=textpreword> {</p>
+<p class=textpreword>  return NULL;             // Если нет вернем NULL</p>
+<p class=textpreword> }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> File=fopen(Filename,&quot;r&quot;); // Проверим существует 
+  ли файл</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> if (File)                 // Файл существует?</p>
+<p class=textpreword> {</p>
+<p class=textpreword>  fclose(File);            // Закрыть файл</p>
+<p class=textpreword>  return auxDIBImageLoad(Filename); // Загрузка картинки 
+  и вернем на нее указатель</p>
+<p class=textpreword> }</p>
+<p class=textpreword> return NULL;              // Если загрузка не удалась вернем 
+  NULL</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>int LoadGLTextures()                      // Загрузка картинки 
+  и конвертирование в текстуру</p>
+<p class=textpreword>{</p>
+<p class=textpreword> int Status=FALSE;                        // Индикатор состояния</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> AUX_RGBImageRec *TextureImage[1];        // Создать место 
+  для текстуры</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> memset(TextureImage,0,sizeof(void *)*1); // Установить указатель 
+  в NULL</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> // Загрузка картинки, проверка на ошибки, если картинка 
+  не найдена - выход</p>
+<p class=textpreword> if (TextureImage[0]=LoadBMP(&quot;Data/Lights.bmp&quot;))</p>
+<p class=textpreword> {</p>
+<p class=textpreword>  Status=TRUE;       // Установим Status в TRUE</p>
+<p class=textpreword>  glGenTextures(1, &amp;texture[0]);     // Создание трех 
+  текстур</p>
+<p class=textpreword>  // Создание текстуры с мип-мап наложением</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[0]);</p>
+<p class=textpreword>  gluBuild2DMipmaps(GL_TEXTURE_2D, 3, TextureImage[0]-&gt;sizeX, 
+  TextureImage[0]-&gt;sizeY,</p>
+<p class=textpreword>   GL_RGB, GL_UNSIGNED_BYTE, TextureImage[0]-&gt;data);</p>
+<p class=textpreword>  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword>  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);</p>
+<p class=textpreword> }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>В следующих четырех строках кода автоматически генерируются 
+  текстурные координаты для любого объекта, который мы выводим на экран. Команда 
+  glTexGen чрезвычайно мощная и комплексная, и включает достаточно сложную математику. 
+  Но Вы должны только знать то, что <b>GL</b><b>_S</b> и <b>GL</b><b>_T</b> - 
+  координаты текстуры. По умолчанию они заданы так, чтобы брать текущее <b>x</b> 
+  положение на экране и текущее <b>y</b> положение на экране и из них вычислить 
+  вершину текстуру. Вы можете отметить, что объекты не текстурированны по <b>z</b> 
+  плоскости... только появляются полосы. Передние и задние грани текстурированны, 
+  однако, именно это и необходимо. <b>X</b> (<b>GL</b><b>_S</b>) охватывает наложение 
+  текстуры слева направо, а <b>Y</b> (<b>GL</b><b>_T</b>) охватывает наложение 
+  текстуры сверху и вниз.<br>
+  <br>
+</p>
+<p class=textword><b>GL</b><b>_TEXTURE</b><b>_GEN</b><b>_MODE</b> позволяет нам 
+  выбрать режим наложения текстуры, который мы хотим использовать по координатам 
+  текстуры <b>S</b> и <b>T</b>. Есть три возможности:<br>
+  <br>
+</p>
+<p class=textword><b>GL</b><b>_EYE</b><b>_LINEAR</b> - текстура зафиксирована 
+  на экране. Она никогда не перемещается. Объект накладывается на любую часть 
+  текстуры, которую он захватывает.</p>
+<p class=textword><b> &nbsp; </b></p>
+<p class=textword><b>GL</b><b>_OBJECT</b><b>_LINEAR</b> – мы воспользуемся этим 
+  режимом. Текстура привязана к объекту, перемещающемуся по экрану.<br>
+  <br>
+</p>
+<p class=textword><b>GL</b><b>_SPHERE</b><b>_MAP</b> – всегда в фаворе. Создает 
+  металлический отражающий тип объекта.<br>
+  <br>
+</p>
+<p class=textword>Важно обратить внимание на то, что я опускаю много кода. Мы 
+  также должны задать <b>GL</b><b>_OBJECT</b><b>_PLANE</b>, но значение по умолчанию 
+  то, которое мы хотим. Купите хорошую книгу, если Вы хотите изучить больше, или 
+  поищите в помощи MSDN на CD.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // Текстуризация контура закрепленного за объектом</p>
+<p class=textpreword>    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);</p>
+<p class=textpreword>    // Текстуризация контура закрепленного за объектом</p>
+<p class=textpreword>    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);</p>
+<p class=textpreword>    glEnable(GL_TEXTURE_GEN_S);      // Автоматическая генерация</p>
+<p class=textpreword>    glEnable(GL_TEXTURE_GEN_T);      // Автоматическая генерация</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  if (TextureImage[0])            // Если текстура существует</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    if (TextureImage[0]-&gt;data)    // Если изображение 
+  текстуры существует</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      free(TextureImage[0]-&gt;data); // Освобождение памяти 
+  изображения текстуры</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    free(TextureImage[0]);         // Освобождение памяти 
+  под структуру</p>
+<p class=textpreword>  }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  return Status;        // Возвращаем статус</p>
+<p class=textpreword>}</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Есть несколько новых строк кода в конце <b>InitGL</b><b>()</b>. 
+  Вызов <b>BuildFont</b><b>()</b> был помещен ниже кода, загружающего нашу текстуру. 
+  Строка с <b>glEnable</b><b>(GL</b><b>_COLOR</b><b>_MATERIAL</b><b>)</b> была 
+  удалена. Если Вы хотите задать текстуре цвет, используйте <b>glColor</b><b>3f</b><b>(r</b><b>, 
+  г, b</b><b>)</b> и добавьте строку <b>glEnable</b><b>(GL</b><b>_COLOR</b><b>_MATERIAL</b><b>)</b> 
+  в конце этой секции кода.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>int InitGL(GLvoid)        // Все начальные настройки OpenGL 
+  здесь</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  if (!LoadGLTextures())  // Переход на процедуру загрузки 
+  текстуры</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return FALSE;         // Если текстура не загружена возвращаем 
+  FALSE</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  BuildFont();            // Построить шрифт</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  glShadeModel(GL_SMOOTH);    // Разрешить плавное затенение</p>
+<p class=textpreword>  glClearColor(0.0f, 0.0f, 0.0f, 0.5f); // Черный фон</p>
+<p class=textpreword>  glClearDepth(1.0f);         // Установка буфера глубины</p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST);    // Разрешение теста глубины</p>
+<p class=textpreword>  glDepthFunc(GL_LEQUAL);     // Тип теста глубины</p>
+<p class=textpreword>  glEnable(GL_LIGHT0);        // Быстрое простое освещение</p>
+<p class=textpreword>                              // (устанавливает в качестве 
+  источника освещения Light0)</p>
+<p class=textpreword>  glEnable(GL_LIGHTING);      // Включает освещение</p>
+<p class=textpreword>  // Действительно хорошие вычисления перспективы</p>
+<p class=textpreword>  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Разрешение наложения 2D текстуры, и выбор текстуры номер один. 
+  При этом будет отображена текстура номер один на любой 3D объект, который мы 
+  выводим на экран. Если Вы хотите большего контроля, Вы можете разрешать и запрещать 
+  наложение текстуры самостоятельно.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D); // Разрешение наложения текстуры</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[0]); // Выбор текстуры</p>
+<p class=textpreword>  return TRUE; // Инициализация окончена успешно</p>
+<p class=textpreword>}</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Код изменения размера не изменился, но код <b>DrawGLScene</b> 
+  изменился.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>int DrawGLScene(GLvoid) // Здесь мы будем рисовать все</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 
+  Очистка экран и буфера глубины</p>
+<p class=textpreword>  glLoadIdentity(); // Сброс просмотра</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Здесь наше первое изменение. Вместо того чтобы поместить объект 
+  в середину экрана, мы собираемся вращать его на экране, используя <b>COS</b> 
+  и <b>SIN</b> (это не сюрприз). Мы перемещаемся на 3 единицы в экран (-3.0f). 
+  По оси X, мы будем раскачиваться от -1.1 слева до +1.1 вправо. Мы будем использовать 
+  переменную <b>rot</b> для управления раскачиванием слева направо. Мы будем раскачивать 
+  от +0.8 верх до -0.8 вниз. Мы будем использовать переменную <b>rot</b> для этого 
+  раскачивания также (можно также задействовать и другие переменные).</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  // Позиция текста</p>
+<p class=textpreword>  glTranslatef(1.1f*float(cos(rot/16.0f)),0.8f*float(sin(rot/20.0f)),-3.0f);</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Теперь сделаем вращения. Символ будет вращаться по осям X, Y 
+  и Z.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  glRotatef(rot,1.0f,0.0f,0.0f);        // Вращение по оси 
+  X</p>
+<p class=textpreword>  glRotatef(rot*1.2f,0.0f,1.0f,0.0f);   // Вращение по оси 
+  Y</p>
+<p class=textpreword>  glRotatef(rot*1.4f,0.0f,0.0f,1.0f);   // Вращение по оси 
+  Z</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Мы смещаем символ по каждой оси немного налево, вниз, и вперед, 
+  чтобы центрировать его. Иначе, когда он вращается, он будет вращаться не вокруг 
+  собственного центра. (-0.35f, -0.35f, 0.1f) те числа, которые подходят. Я потратил 
+  некоторое время, прежде чем подобрал их, и они могут изменяться в зависимости 
+  от шрифта. Почему шрифты построены не вокруг центральной точки, я не знаю.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  glTranslatef(-0.35f,-0.35f,0.1f);      // Центр по осям 
+  X, Y, Z</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Наконец мы выводим наш эмблемы смерти, затем увеличиваем переменную 
+  <b>rot</b>, поэтому наш символ вращается и перемещается по экрану. Если Вы не 
+  можете понять, почему я получаю череп из символа 'N', сделайте так: запустите 
+  Microsoft Word или Wordpad. Вызовите ниспадающие меню шрифтов. Выберите wingdings 
+  шрифт. Наберите в верхнем регистре 'N'. Появиться эмблема смерти.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  glPrint(&quot;N&quot;); // Нарисуем символ эмблемы смерти</p>
+<p class=textpreword>  rot+=0.1f;    // Увеличим переменную вращения</p>
+<p class=textpreword>  return TRUE;  // Покидаем эту процедуру</p>
+<p class=textpreword>}</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Последнее, что надо сделать добавить <b>KillFont</b><b>()</b> 
+  в конце <b>KillGLWindow</b><b>()</b> точно так, как показано ниже. Важно добавить 
+  эту строку. Это почистит память прежде, чем мы выйдем из нашей программы.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  if (!UnregisterClass(&quot;OpenGL&quot;,hInstance))    
+  // Если класс не зарегистрирован</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    MessageBox(NULL,&quot;Could Not Unregister Class.&quot;,&quot;SHUTDOWN 
+  ERROR&quot;,MB_OK | MB_ICONINFORMATION);</p>
+<p class=textpreword>    hInstance=NULL;          // Установить копию приложения 
+  в ноль</p>
+<p class=textpreword>  }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  KillFont();            // Уничтожить шрифт</p>
+<p class=textpreword>}</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Даже притом, что я не вдавался в излишние подробности, Вы должны 
+  получить хорошее понимание о том, как заставить OpenGL генерировать координаты 
+  текстуры. У Вас не должно возникнуть никаких проблем при наложении текстур на 
+  шрифты, или даже на другие объекты. И, изменяя только две строки кода, Вы можете 
+  разрешить сферическое наложение, которое является действительно крутым эффектом.<br>
+  <br>
+</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;30 июля 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:pmg-ru@narod.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Сергей Анисимов</b></font></a> 
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

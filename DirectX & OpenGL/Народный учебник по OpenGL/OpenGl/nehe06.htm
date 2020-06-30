@@ -1,0 +1,404 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 6. Наложение текстуры</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe06.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 6. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 6. Наложение текстуры
+</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=6" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Texture Mapping</b></font></a>
+<br>
+<br>
+</p>
+
+<p class="text">
+Из наложения текстуры можно извлечь много полезного. Предположим, что вы хотите,
+чтобы ракета пролетела через экран. До этого урока мы попытались бы сделать ракету из
+полигонов и фантастических цветов. С помощью наложения текстуры, мы можем
+получить реальную картинку ракеты и заставить ее летать по экрану. Как вы думаете, что
+будет выглядеть лучше? Фотография или объект сделанный их треугольников и
+четырехугольников? Используя наложение текстуры, и выглядеть будет лучше, и ваша
+программа будет работать быстрее. Ракета с наложением текстуры - это всего лишь
+четырехугольник, движущийся по экрану. Ракета сделанная из полигонов может иметь
+сотни или тысячи полигонов. Отрисовка простого четырехугольника будет отнимать
+меньше процессорного времени.
+</p>
+ 
+          <p class="text"> Давайте начнем с добавления четырех новых строк в начало 
+            кода первого урока. Первые три строки задают четыре вещественных переменных 
+            - xrot, yrot и zrot. Эти переменные будут использованы для вращения 
+            куба по осям x, y, z. В четвертой строке резервируется место для одной 
+            текстуры. Если вы хотите загрузить более чем одну текстуру, измените, 
+            число один на число текстур, которые вы хотите загрузить. </p>
+
+<pre><font class="textpre">#include &lt;windows.h&gt;		// Заголовочный файл для Windows
+#include &lt;gl\gl.h&gt;		// Заголовочный файл для OpenGL32 библиотеки
+#include &lt;gl\glu.h&gt;		// Заголовочный файл для GLu32 библиотеки
+#include &lt;gl\glaux.h&gt;		// Заголовочный файл для GLaux библиотеки
+
+static HGLRC hRC;		// Постоянный контекст рендеринга
+static HDC hDC;			// Приватный контекст устройства GDI
+
+BOOL	keys[256];		// Массив для процедуры обработки клавиатуры
+
+GLfloat	xrot;			// Вращение X
+GLfloat	yrot;			// Y
+GLfloat	zrot;			// Z
+
+GLuint	texture[1];		// Место для одной текстуры</font></pre>
+
+<p class="text">
+Теперь сразу же после этого кода, до InitGL, мы добавим следующую секцию кода. Этот
+код загружает файл картинки, и конвертирует его в текстуру. Прежде чем я начну
+объяснять этот код, я сделаю нескольких ВАЖНЫХ замечаний, которые вы должны знать
+об изображениях, которые вы используете как текстуры. Такое изображение ДОЛЖНО
+иметь высоту и ширину кратной двум. При этом высота и ширина изображения должна
+быть не меньше чем 64 пикселя, и по причинам совместимости, не более 256 пикселов.
+Если изображение, которое вы используете не 64, 128 или 256 пикселов в ширину и
+высоту, измените его размер в программе для рисования. Имеются возможность обойти
+эти ограничения, но мы пока будем придерживаться стандартных размеров текстуры.
+</p>
+
+<p class="text">
+AUX_RGBImageRec *texture1 задает указатель на структуру для хранения первой
+картинки, которую мы загрузим и используем как текстуру. Структура содержит красную,
+зеленную и синею компоненты цвета, которые используются при создании изображения.
+Обычно так размещается в памяти загруженная картинка. Структура AUX_RGBImageRec
+определена в библиотеке glAux, и делает возможной загрузку картинки в память. В
+следующей строке происходит непосредственная загрузка. Файл картинки "NeHe.bmp" из
+каталога "Data" будет загружен и сохранен в структуре texture1, которую мы задали выше
+с помощью AUX_RGBImageRec.
+</p>
+
+<pre><font class="textpre">// Загрузка картинки и конвертирование в текстуру
+GLvoid LoadGLTextures()
+{
+	// Загрузка картинки
+	AUX_RGBImageRec *texture1;
+	texture1 = auxDIBImageLoad("Data/NeHe.bmp");</font></pre>
+
+
+<p class="text">
+Сейчас мы загрузили изображение как данные компонент цветов красного, зеленного и
+синего, далее мы построим текстуру используя эти данные.  Вызовом glGenTextures(1,
+&texture[0]) мы скажем OpenGL, что мы хотим построить текстуру в нулевом элементе
+массива texture[]. Помните, в начале урока мы зарезервировали место для одной текстуры
+с помощью GLuint texture[1]. Хотя вы, возможно, подумали, что мы сохраним текстуру в
+&texture[1], но это не так. Первая действительная область для сохранения имеет номер 0.
+Если вы хотите две текстуры, надо задать GLuint texture[2] и вторая текстура будет
+сохранена в texture[1].
+</p>
+ 
+<p class="text">
+Во второй строке вызов glBindTexture(GL_TEXTURE_2D, texture[0]) говорит OpenGL, что
+texture[0] (первая текстура) будет 2D текстурой. 2D текстуры имееют и высоту (по оси Y)
+и ширину (по оси X). Основная задача glGenTexture указать OpenGL на доступную
+память. В этом случае мы говорим OpenGL, что память доступна в  &texture[0]. Затем мы
+создаем текстуру, и она будет сохранена в этой памяти. Далее, если мы привязываемся к
+памяти, в которой уже находиться текстура, мы говорим OpenGL захватить данные
+текстуры из этой области памяти. Обычно это указатель на доступную память, или
+память, в которой содержиться текстура.
+</p>
+
+<pre><font class="textpre">	// Создание текстуры
+	glGenTextures(1, &texture[0]);
+	glBindTexture(GL_TEXTURE_2D, texture[0]);</font></pre>
+
+<p class="text">
+В следующих двух строках мы сообщим OpenGL какой тип фильтрации надо
+использовать, когда изображение больше на экране, чем оригинальная текстура
+(GL_TEXTURE_MAG_FILTER), или когда оно меньше на экране, чем текстура
+(GL_TEXTURE_MIN_FILTER). я обычно использую GL_LINEAR для обоих случаев. При
+этом текстура выглядит сглаженной на расстоянии, и вблизи. Использование GL_LINEAR
+требует много работы для процессора/видеокарты, поэтому если ваша система медленная,
+вы можете захотеть использовать GL_NEAREST. Текстура, которая фильтруется с
+GL_NEAREST состоит из хорошо видимых цветовых прямоугольников, когда она вблизи.
+Вы можете попробовать комбинировать оба способа. Сделайте одну фильтрацию вблизи,
+а другую вдали.
+</p>
+
+<pre><font class="textpre">	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</font></pre>
+
+          <p class="text"> В завершении мы создаем фактическую текстуру. В следующей 
+            строке мы говорим OpenGL, что текстура будет двухмерной (GL_TEXTURE_2D). 
+            Ноль задает уровень детализации, это обычно ноль. Три - число компонент 
+            цветовых данных, так как изображение сделано из трех цветовых компонент 
+            (красный, зеленный, синий). texture1- >sizeX - это ширина текстуры, 
+            автоматически. Если вы знаете ширину, вы можете указать ее тут, но 
+            проще дать компьютеру сделать это за вас. texture1->sizeY - высота 
+            текстуры. Ноль - это бордюр. Он обычно остается нулем. GL_RGB сообщает 
+            OpenGL, что данные изображения представлены в порядке следования красных, 
+            зеленных и голубых компонент цвета. GL_UNSIGNED_BYTE означает, что 
+            данные из которых состоит изображение имеют размер байта и все числа 
+            без знака, и в конце texture1->data сообщает OpenGL, где брать сами 
+            данные. В этом случае указатель на данные в записи texture1. </p>
+
+<pre><font class="textpre">glTexImage2D(GL_TEXTURE_2D, 0, 3, texture1->sizeX, texture1->sizeY, 0,
+GL_RGB, GL_UNSIGNED_BYTE, texture1->data);
+}</font></pre>
+
+<p class="text">
+Мы добавим две строчки в код InitGL. я повторно привожу эту секцию кода, для того
+чтобы было легко увидеть строчки, которые я добавил, и где они идут в коде.
+</p>
+ 
+<p class="text">
+В первой строке происходит вызов процедуры LoadGLTextures(), которая загружает
+изображение и делает из него текстуру. Вторая строка glEnable(GL_TEXTURE_2D)
+разрешает наложение текстуры. Если вы не делаете доступной наложение текстуры, ваш
+объект будет закрашен сплошным белым цветом, который точно не очень хорош.
+</p>
+
+<pre><font class="textpre">GLvoid InitGL(GLsizei Width, GLsizei Height)
+{
+LoadGLTextures();			// Загрузка текстур
+glEnable(GL_TEXTURE_2D);		// Разрешение наложение текстуры
+glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+glClearDepth(1.0);
+glDepthFunc(GL_LESS);
+glEnable(GL_DEPTH_TEST);
+glShadeModel(GL_SMOOTH);
+
+glMatrixMode(GL_PROJECTION);
+glLoadIdentity();
+
+gluPerspective(45.0f,(GLfloat)Width/(GLfloat)Height,0.1f,100.0f);
+
+glMatrixMode(GL_MODELVIEW);
+}</font></pre>
+
+<p class="text">
+Сейчас мы нарисуем куб с текстурой. Мы можете заменить код DrawGLScene на код
+ниже, или вы можете добавить новый код в оригинальный код первого урока. Эта секция
+будет сильно прокомментирована, поэтому легка для понимания. Первые две строки кода
+glClear() и glLoadIdentity() взяты из оригинального кода первого урока.
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) очищает экран цветом,
+который мы выбрали в InitGL(). В этом случае, экран будет очищен в синий цвет. Буфер
+глубины будет также очищен. Просмотр будет сброшен с помощью glLoadIdentity().
+</p>
+
+<pre><font class="textpre">GLvoid DrawGLScene(GLvoid)
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	glTranslatef(0.0f,0.0f,-5.0f);</font></pre>
+
+<p class="text">
+Следующие три строки кода будут вращать куб по оси X, затем по оси Y, и в конце по оси
+Z. Насколько велико будет вращение (угол) по каждой оси будет зависеть от значения
+указанного в xrot, yrot и zrot.
+</p>
+
+<pre><font class="textpre">	glRotatef(xrot,1.0f,0.0f,0.0f);		// Вращение по оси X
+	glRotatef(yrot,0.0f,1.0f,0.0f);		// Вращение по оси Y
+	glRotatef(zrot,0.0f,0.0f,1.0f);		// Вращение по оси Z</font></pre>
+
+<p class="text">
+В следующей строке кода происходит выбор какую текстуру мы хотим использовать для
+наложения текстуры. Если вы хотите использовать более чем одну текстуру в вашей
+сцене, вы должны выбрать текстуру glBindTexture(GL_TEXTURE_2D, texture[номер
+текстуры для использования]). Вы должны затем нарисовать несколько
+четырехугольников используя эту текстуру. Каждый раз, когда Вы захотите сменить
+текстуру, Вы должны привязать новую текстуру. Одно замечание: вы НЕ должны
+связывать текстуру внутри  glBegin() и glEnd().
+</p>
+
+<pre><font class="textpre">	glBindTexture(GL_TEXTURE_2D, texture[0]);</font></pre>
+
+<p class="text">
+Для того чтобы правильно отобразить текстуру на четырехугольник, вы должны
+отобразить правый верхний угол текстуры на правую верхнею вершину
+четырехугольника. Левый верхний угол текстуры отображается в левую верхнею вершину
+четырехугольника, правый нижний угол текстуры отображается в правую нижнею
+вершину четырехугольника, и в завершении,  левый нижний угол текстуры отображается
+в левую нижнею вершину четырехугольника. Если углы текстуры не совпадают с углами
+четырехугольника, изображение может быть сдвинуто вниз, в сторону, или вообще
+отсутствовать.
+</p>
+ 
+<p class="text">
+Первый аргумент glTexCoord2f - координата X. 0.0f - левая сторона текстуры. 0.5f -
+середина текстуры, и 1.0f - правая сторона текстуры. Втрое значение glTexCoord2f - это Y
+координата. 0.0f - низ текстуры. 0.5f - середина текстуры, и 1.0f  - верх текстуры.
+</p>
+ 
+<p class="text">
+Теперь мы знаем, что левая верхняя координата текстуры 0.0f по X и 1.0f по Y, и левая
+верхняя вершина четырехугольника -1.0f по X, и 1.0f по Y.  Теперь осталось сделать так,
+чтобы оставшиеся три координаты совпали с тремя углами четырехугольника.
+</p>
+ 
+<p class="text">
+Попробуйте поиграться со значениями x и y в glTexCoord2f. Изменение 1.0f на 0.5f будет
+только рисовать левую половину текстуры от 0.5f (середина) до 1.0f (право).
+</p>
+
+<pre><font class="textpre">glBegin(GL_QUADS);
+
+				// Передняя грань
+glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	// Низ лево
+glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	// Низ право
+glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	// Верх право
+glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	// Верх лево
+
+				// Задняя грань
+glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);	// Низ право
+glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Верх право
+glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Верх лево
+glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Низ лево
+
+				// Верхняя грань
+glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Верх лево
+glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	// Низ лево
+glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	// Низ право
+glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Верх право
+	
+				// Нижняя грань
+glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, -1.0f, -1.0f);	// Верх право
+glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Верх лево
+glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	// Низ лево
+glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	// Низ право
+
+				// Правая грань
+glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f, -1.0f, -1.0f);	// Низ право
+glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  1.0f, -1.0f);	// Верх право
+glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  1.0f,  1.0f);	// Верх лево
+glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, -1.0f,  1.0f);	// Низ лево
+
+				// Левая грань
+glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, -1.0f, -1.0f);	// Низ лево
+glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, -1.0f,  1.0f);	// Низ право
+glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  1.0f,  1.0f);	// Верх право
+glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f);	// Верх лево
+
+glEnd();</font></pre>
+
+<p class="text">
+Сейчас мы увеличим значения xrot, yrot и zrot. Попробуйте изменить значения каждой
+переменной, замедляя или ускоряя вращение куба, или изменяя ' +' на '-'  заставляя куб
+вращаться в другом направлении.
+</p>
+
+<pre><font class="textpre">	xrot+=0.3f;			// Ось вращения X
+	yrot+=0.2f;			// Ось вращения Y
+	zrot+=0.4f;			// Ось вращения Z
+}</font></pre>
+
+<p class="text">
+Теперь Вы должны лучше понимать наложение текстуры. Вы научились накладывать
+текстуру на поверхность любого четырехугольника с изображением по вашему выбору.
+Как только вы лучше поймете наложение текстуры, попробуйте наложить на куб шесть
+разных текстур.
+</p>
+ 
+<p class="text">
+Наложение текстуры не трудно для понимания, если Вы понимаете координаты текстуры.
+Если  Вы имеете проблемы с пониманием любой части этого урока, дайте мне знать. Или
+я изменю этот урок, и я отвечу Вам по почте. Развлекайтесь созданием наложения
+текстуры в Ваших сценах.
+</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+<p align="center">
+<a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>PMG</b></font></a>
+
+<font class="comment">&nbsp;13 сентября 2001&nbsp;(c)&nbsp;</font>
+
+<a href="mailto:pmg-ru@narod.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Сергей Анисимов</b></font></a>
+</p>
+</div>
+
+<div id="counter"><script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script><noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

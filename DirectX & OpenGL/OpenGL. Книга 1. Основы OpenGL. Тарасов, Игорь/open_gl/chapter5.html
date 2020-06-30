@@ -1,0 +1,626 @@
+<html>
+<head>
+<title>Глава 5</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+      <p> 
+      <p> 
+      <h1><a name=tth_chAp5>Chapter 5 </a><br>
+        Работа с картинками</h1>
+
+
+      <h2><a name=tth_sEc5.1>5.1</a>&nbsp;&nbsp;Общие слова</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Строить примитивные объекты вы уже научились. Но строить трехмерные сцены 
+      с использованием только примитивов вам вряд ли придется, да и выглядят 
+      они как-то схематично и тускло. Для того, чтобы их оживить, на примитивы 
+      накладывают картинки - текстуры. В качестве фона сцены тоже полезно использовать 
+      графическое изображение. Тем самым приложение сделается более живым и интересным. 
+      Так что в этой главе мы научимся работать с изображениями.     
+
+
+
+      <h2><a name=tth_sEc5.2>5.2</a>&nbsp;&nbsp;Работа с изображениями</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Существует множество графических форматов - bmp, pcx, gif, jpeg и прочие. 
+      OpenGL напрямую не поддерживает не один из них. В OpenGL нет функций чтения/записи 
+      графических файлов. Но поддерживается работа с массивами пикселей. Вы загружаете 
+      графический файл, используя библиотеки других фирм, в память и работаете 
+      с ними средствами OpenGL. В массиве данные о пикселах могут располагаться 
+      разными способами: RGB, BGR, RGBA; могут присутствовать не все компоненты; 
+      каждый элемент массива может занимать один байт, два, четыре или восемь; 
+      выравнивание может быть по байту, слову или двойному слову. В общем, форматов 
+      расположения данных о графическом изображении в памяти очень много. Я рассмотрю 
+      один из них, наиболее часто применяемый, как мне кажется. Информация о 
+      каждом пикселе хранится в формате RGB и занимает три байта, выравнивание 
+      по байту. В Auxiliary Library есть функция auxDIBImageLoad(LPCSTR), <a name=auxDIBImageLoad52></a>которая 
+      загружает в память bmp-файл и возвращает указатель на структуру: 
+      <pre> typedef struct _AUX_RGBImageRec {
+   GLint sizeX, sizeY;
+   unsigned char *data;
+} AUX_RGBImageRec;   
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Для простоты я буду пользоваться именно этой функцией. Среди прилагаемых 
+      программ вы найдете мою утилиту для загрузки файлов из форматов pcx. Исходный 
+      текст этой утилиты абсолютно переносим на любую платформу с компилятором 
+      ANSI C.  <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      В OpenGL имеются функции для вывода массива пикселей на экран(glDrawPixels), 
+        <a name=glDrawPixels52></a><a name=glCopyPixels52></a>копирования(glCopyPixels), 
+        масштабирования(gluScaleImage). <a name=gluScaleImage52></a>Здесь мы рассмотрим 
+        только glDrawPixels. Все остальные функции работы с изображениями устроены 
+        похожим образом. Для того, чтобы отобразить графический файл в окне OpenGL, 
+        вы должны загрузить его в память, указать выравнивание, установить точку, 
+        с которой начинается вывод изображения, и вывести его на экран. Раздобудьте 
+        где-нибудь свою фотографию в формате BMP. Можете взять фотографию своей 
+        девушки. Создайте новый проект. Объявите глобальную переменную - 
+<pre>
+AUX_RGBImageRec *image
+</pre>
+ Перед вызовом функции auxMainLoop в функции main вставьте строку: 
+<pre>
+image = auxDIBImageLoad("photo.bmp"); 
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;      
+ Выравнивание устанавливается вызывом 
+        функции glPixelStorei <a 
+name=glPixelStore52></a>с параметром GL_UNPACK_ALIGNMENT и вторым параметром - целым
+        числом, которое указывает выравнивание. Изображения выводятся прямо на 
+        экран. Поэтому все происходит в двухмерных координатах. Позиция, с которой 
+        начинается вывод изображения, указывается при помощи функции glRasterPos2d(x,y). 
+        <a name=glRasterPos2d52></a>Также вы можете установить размер пикселя, 
+        вызвав функцию glPixelZoom. <a name=glPixelZoom52></a>Первый параметр 
+        этой функции - ширина, второй - высота пикселя. Я вызываю эту функцию 
+        с аргументами (1,1), что соответствует нормальному пикселю. Замените (1,1) 
+        на (3,2) и вы увидите, как картинка растянется в три раза по горизонтали 
+        и в два раза по вертикали. Это случилось, потому что теперь каждый пиксель 
+        изображения соответствует прямоугольнику 3х2 в окне. И наконец, вывод осуществляет 
+        функция glDrawPixels. Первые два параметра - это ширина и высота. Далее, 
+        вы указываете формат, в котором хранится информация в памяти, и тип элементов 
+        массива. Последним указывается массив данных. 
+      В функцию display вставьте следующий код: 
+<pre> 
+glRasterPos2d(-4.5,-3);                    // нижний левый угол
+glPixelZoom(1,1);
+glPixelStorei(GL_UNPACK_ALIGNMENT, 1);         // выравнивание
+glDrawPixels(image-&gt;sizeX, image-&gt;sizeY, // ширина и высота
+                GL_RGB, GL_UNSIGNED_BYTE,      // формат и тип
+                          image-&gt;data);     // сами данные
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Также в OpenGL имеется функция glBitmap для отображения битовых массивов. 
+        Битовый массив - это последовательность байт, которые кодируют картинку 
+        из двух цветов. Соответственно, каждый байт кодирует 8 пикселей. Среди 
+        прилагаемых программ вы найдете мою утилиту pcx_2bpp. Она читает pcx-файл 
+        формата один бит на пиксель и направляет на стандартный вывод массив на языке Си. 
+      <p> 
+
+<center><img src="chapter5/photo/release/photo.jpg"><br>
+Исходный файл смотрите <a href="chapter5/photo/photo.c">здесь</a>.
+Исполняемый файл <a href="chapter5/photo/release/photo.exe">здесь</a>.
+Моя фотография <a href="chapter5/bin/igor.bmp">здесь</a>.
+</center><br>    
+
+
+      <h2><a name=tth_sEc5.3>5.3</a>&nbsp;&nbsp;Упражнение: "Фон для игры Arcanoid"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Найдите красивый фон в формате BMP. Можете опять взять свою фотографию. 
+      Подложите этот bmp-файл в качестве фона в игру Arcanoid. Закомментируйте 
+      разрешение всех тестов, кроме GL_DEPTH_TEST, в функции main. Возможно, я уже 
+      говорил о том, что вы всегда должны помнить, что дополнительные параметры затормаживают 
+      создание объекта, поэтому устанавливайте их очень осторожно. Часть из них 
+      можно установить в функции main. Другие же лучше устанавливать и отменять 
+      непосредственно при создании объекта в функции display. 
+      
+
+<center><img src="chapter5/arcanoid/release/arcanoid.jpg"><br>
+Исходный файл смотрите <a href="chapter5/arcanoid/arcanoid.c">здесь</a>.
+Исполняемый файл <a href="chapter5/arcanoid/release/arcanoid.exe">здесь</a>.
+Звездное небо <a href="chapter5/bin/space.bmp">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc5.4>5.4</a>&nbsp;&nbsp;Создаем текстуру в памяти</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Одного вывода изображений недостаточно для создания полноценных трехмерных 
+      сцен. Часто возникает потребность накладывать изображение на трехмерные 
+      объекты и поворачивать/сдвигать их. Для этих целей существую текстуры. Также 
+      текстуры помогут вам покрыть весь объект в виде мозаики. Скажем, когда у 
+      вас имеется кирпичная стена, то вам не надо загружать изображение с кучей 
+      кирпичей. Достаточно загрузить один кирпич и указать, что эту текстуру нужно размножить 
+      по всей плоскости. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Сначала мы разберем создание и наложение текстур на плоскость. Затем 
+        рассмотрим наложение текстур на объекты, описанные в секции <a 
+href="chapter4.html">4.1</a>. И наконец, на все прочие, созданные из многоугольников; 
+        в частности, тор и чайник. 
+      <p>Для того, чтобы наложить текстуру на объект, вы должны: 
+      <ol type=1>
+        <p> 
+        <li>Загрузить графический файл в память 
+        <li>Создать имя-идентификатор текстуры 
+        <li>Сделать его активным 
+        <li>Создать саму текстуру в памяти 
+        <li>Установить параметры текстуры 
+        <li>Установить параметры взаимодействия текстуры с объектом 
+        <li>Связать координаты текстуры с объектом </li>
+      </ol>
+      <p>Первое вы уже научились делать в предыдущей секции. Создайте проект с 
+        именем Texture. Объявите следующие глобальные переменные: 
+      <pre>  
+unsigned int photo_tex;
+AUX_RGBImageRec* photo_image;
+
+
+unsigned int space_tex;
+AUX_RGBImageRec* space_image;
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Переменные photo_tex и space_tex будут служить идентификаторами текстур. 
+      А в photo_image и space_image мы загрузим bmp-файлы. Тут нужно отметить, 
+      что текстуры в OpenGL должны иметь размер 2<sup>n</sup> x 2<sup>m</sup>, 
+      где n и m целые числа. Это сделано для ускорения работы, т.к. 
+      сжимать или растягивать такие текстуры быстрее и удобней. Вы, конечно, можете 
+      загрузить изображение любого другого размера, но его придется масштабировать. 
+      На мой взгляд, это неправильно. Результат масшабирования вас может и не 
+      устроить. Так что я использую графические файлы с размером, кратным степени 
+      двойки. Мне удобнее отредактировать изображение в каком-нибудь графическом 
+      пакете, урезать его или наоборот дополнить, чем потом выяснять, почему оно 
+      искажается. Впрочем, тут многое зависит от конкретного случая. Художнику, 
+      который делает текстуры, все равно какого размера ее делать, поэтому легче 
+      попросить его сделать изображение с подходящими размерами. Вставьте следующий 
+      код в функцию main. 
+      <pre>photo_image = auxDIBImageLoad("photo.bmp");
+space_image = auxDIBImageLoad("space.bmp");
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Картинки возьмите из моей программы - Texture. Фотографию можете взять свою.;-) 
+      Только размер ее желательно оставить 512x512. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Теперь вы должны создать имя-идентификатор текстуры. Его нужно создавать, 
+        когда у вас в приложении используется более одной текстуры, чтобы была 
+        возможность как-то их различать. В противном случае, когда текстура только 
+        одна, идентификатор ей не нужен. В следующем примере, при наложение текстуры 
+        на сферу, у нас будет ровно одна текстура, и я покажу вызовы каких функций 
+        необязательны. А пока, я предполагаю, что вам нужно использовать несколько 
+        текстур. Кстати, я просматривал много примеров при написание книги. Среди 
+        них были примеры из широко известной Red Book, примеры из MSDN, из интернета 
+        и других источников, но все, что касалось текстур, работало только с одной 
+        текстурой. Для элементарной программы-примера, конечно, подойдет и одна 
+        тектура, а вот для серьезных приложений вряд ли. Мы хотим
+        написать серьезные приложения, поэтому нам придеться использовать
+        нескольких текстур. Функция <a 
+name=glGenTextures54></a>glGenTextures принимает на вход два параметра. Первый 
+        указывает количество имен-идентификаторов текстур, которые нужно создать. 
+        Второй параметр - указатель на массив элементов типа unsigned int. Количество 
+        элементов в массиве должно совпадать с числом, указанным в качестве первого 
+        параметра. Например, следующий код создает десять имен текстур. 
+      <pre>unsigned int names[10];
+glGenTetures(10, names);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Хранить идентификаторы текстур в массиве не всегда удобно. Такой способ 
+      подходит для хранения задних фонов или типов стен - кирпичная, каменная 
+      и т.п. В общем, в массиве хранят те элементы, между которыми есть что-то общее. 
+      В нашем случае, два изображения связаны, т.к. используюся 
+      в одном приложении, поэтому я создал два различных идентификатора. Так что 
+      добавьте следующий код в функцию main. 
+      <pre>glGenTextures(1, &amp;photo_tex);
+glGenTextures(1, &amp;space_tex);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Теперь мы привязываемся к текстуре фотографии, т.е. делаем ее активной. 
+      Для этого служит функция glBindTexture. <a name=glBindTexture54></a>Первый 
+      параметр должен быть <a name=GL\_TEXTURE\_2D54></a><a 
+name=GL\_TEXTURE\_1D54></a>GL_TEXTURE_2D или GL_TEXTURE_1D. Он показывает, с одномерным 
+      или двумерным изображением будем работать. Все примеры здесь касаются двумерных 
+      тектур. Для одномерной тектуры я просто не нашел красивого примера. Впрочем, 
+      в Red Book есть пример с одномерной текстурой. Там чайник разукрашивают 
+      красной лентой. Где взять эти примеры и многое другое смотрите в приложении 
+      'A'. Второй параметр glBindTexture - идентификатор, который мы создали выше 
+      при помощи glGenTextures. Теперь добавьте вызов этой функции в main. 
+      <pre>glBindTexture(GL_TEXTURE_2D, photo_tex);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Теперь мы должны создать саму текстуру в памяти. Массив байт в структуре 
+      AUX_RGBImageRec не является еще текстурой, потому что у текстуры много различных 
+      параметров. Создав текстуру, мы наделим ее определенными свойствами. Среди 
+      параметров текстуры вы указываете уровень детализации, способ масшабирования 
+      и связывания текстуры с объектом. Уровень детализации нужен для наложения 
+      текстуры на меньшие объекты, т.е. когда площадь на экране меньше размеров 
+      изображения. Нулевой уровень детализации соответствует исходному изображению 
+      размером 2<sup>n</sup>x2<sup>m</sup>, первый уровень - 2<sup>n-1</sup>x2<sup>m-1</sup>, 
+      k-ый уровень - 2<sup>n-k</sup>x2<sup>m-k</sup>. Число уровней 
+      соответствует min(n,m). Для создания текстуры имеется две функции glTexImage[1/2]D 
+      и gluBuild[1/2]DMipmaps. <a name=glTexImage2D54></a><a 
+name=gluBuild2DMipmaps54></a>
+      <pre>glTexImage2D(                 gluBuild2DMipmaps(
+  GLenum target,                 GLenum target,   
+  GLint lavel,                   GLint components,    
+  GLint components,              GLsizei width,
+  GLsizei width,                 GLsizei height,
+  GLsizei height,                GLenum format,
+  GLint border,                  GLenum type,
+  GLenum format,                 const GLvoid* pixels)        
+  GLenum type,
+  const GLvoid* pixels)
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Основное различие в том, что первая функция создает текстуру одного определенного 
+      уровня детализации и воспринимает только изображения , размер которых кратен 
+      степени двойки. Вторая функция более гибкая. Она генерирует текстуры всех 
+      уровней детализации. Также эта функция не требует, чтобы размер изображения 
+      был кратен степени двойки. Она сама сожмет/растянет изображение подходящим 
+      образом, хотя возможно окажется, что и не вполне подходящим. Я воспользуюсь 
+      функцией glTexImage2D. Первый параметр этой функции должен быть GL_TEXTURE_2D. 
+      Второй - уровень детализации. Нам нужно исходное изображение, поэтому уровень 
+      детализации - ноль. Третий параметр указывает количество компонентов цвета. 
+      У нас изображение хранится в формате RGB. Поэтому значение этого параметра 
+      равно трем. Четвертый и пятый параметры - ширина и высота изображения. Шестой 
+      - ширина границы; у нас гарницы не будет, поэтому значение этого параметра -
+      ноль. Далее, седьмой параметр - формат хранения пикселей в массиве - GL_RGB и тип - GL_UNSIGNED_BYTE. 
+      И наконец, восьмой параметр - указатель на массив данных. Еще вы должны вызвать функцию glPixelStorei 
+      и задать, что выравнивание в массиве данных идет по байту. Добавьте следующий 
+      код в функцию main. 
+      <pre>glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+             photo_image-&gt;sizeX,
+             photo_image-&gt;sizeY,
+             0, GL_RGB, GL_UNSIGNED_BYTE,
+             photo_image-&gt;data);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Аналогичный результат можно получить, вставив вызов gluBuild2DMipmaps с 
+      параметрами, указанными ниже. 
+      <pre>gluBuild2DMipmaps(GL_TEXTURE_2D, 3, 
+                  photo_image-&gt;sizeX,
+                  photo_image-&gt;sizeY,
+                  GL_RGB, GL_UNSIGNED_BYTE,
+                  photo_image-&gt;data);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Теперь нужно установить параметры текстуры. Для этого служит функция <a 
+name=glTexParameter54></a>
+      <pre>glTexParameter[if](GLenum target, GLenum pname, GLenum param)
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Первый параметр принимает значение GL_TEXTURE_1D или GL_TEXTURE_2D. Второй 
+       - pname - определяетя параметр текстуры, который вы будете изменять. 
+      И третий параметр - это устанавливаемое значение. Если вы воспользовались 
+      gluBuild2DMipmaps вместо glTexImage2D, то вам не надо устанавливать следующие 
+      параметры, т.к. уже сформированы текстуры всех уровней детализации, и OpenGL 
+      сможет подобрать текстуру нужного уровня, если площадь объекта не совпадает 
+      с площадью текстуры. В противном случае, вы должны добавить следующие строки: 
+      <pre>glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Вы указали, что для уменьшения и увеличения текстуры используется <a 
+name=GL\_NEAREST54></a><a name=GL\_LINEAR54></a>алгоритм GL_NEAREST. Это означает, 
+      что цветом пикселя объекта, на который накладывается текстура, становится 
+      цвет ближайшего пикселя элемента текстуры. Вместо GL_NEAREST можно указать 
+      GL_LINEAR, т.е. цвет элемента объекта будет вычисляться как среднее арифметическое 
+      четырех элементов текстуры. Имеются еще четыре алгоритма вычисления цвета 
+      элемента объекта. Их можно устанавливать, когда вы создали текстуру со всеми 
+      уровнями детализации, т.к. применяют алгоритмы GL_NEAREST и GL_LINEAR к 
+      одному или двум ближайшим уровням детализации. 
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+      Еще вы можете установить взаимодействие текстуры с объектом. Тут имеются 
+        два режима при использовании трех компонентов цвета. Первый режим, установленный 
+        по умолчанию, когда у вас учитывается цвет объекта и цвет текстуры. Результирующий 
+        цвет получается перемножением компонентов цвета текстуры на компоненты 
+        цвета объекта. Скажем, если цвет текстуры - (r,g,b), а цвет объекта, на 
+        который она накладывается, - (r<sub>0</sub>,g<sub>0</sub>,b<sub>0</sub>), 
+        то результирующим цветом будет - (r*r<sub>0</sub>,g*g<sub>0</sub>,b*b<sub>0</sub>). 
+        В случае, если цвет объекта черный - (0,0,0), то вы не увидите на нем 
+        текстуру, так как она вся будет черной. Второй режим взаимодействия, когда 
+        цвет объекта не учитывается. Результирующим цветом будет цвет текстуры. 
+        Эти параметры можно установить следующим образом. <a name=glTexEnv54></a>
+      <pre>glTexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE)
+glTexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL)
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      <a name=GL\_MODULATE54></a><a name=GL\_DECAL54></a>По умолчанию, как я уже 
+      сказал, является режим GL_MODULATE. Теперь сделайте активной текстуру space_tex. 
+      И повторите для нее то же самое. На этом заканчивается создание текстуры. 
+      Осталось связать координаты текстуры с координатами объекта. Отредактируйте функцию 
+      display так: 
+      <pre> glEnable(GL_TEXTURE_2D);
+ glColor3d(1,1,1);
+
+ glBindTexture(GL_TEXTURE_2D, space_tex );
+  glBegin(GL_QUADS);
+     glTexCoord2d(0,0); glVertex3d(-5,-5, -0.1);
+     glTexCoord2d(0,1); glVertex3d(-5, 5, -0.1);
+     glTexCoord2d(1,1); glVertex3d( 5, 5, -0.1);
+     glTexCoord2d(1,0); glVertex3d( 5,-5, -0.1);
+  glEnd();
+
+ glBindTexture(GL_TEXTURE_2D, photo_tex);
+   glBegin(GL_QUADS);
+     glTexCoord2d(0,0); glVertex2d(-4,-4);
+     glTexCoord2d(0,1); glVertex2d(-4, 4);
+     glTexCoord2d(1,1); glVertex2d( 4, 4);
+     glTexCoord2d(1,0); glVertex2d( 4,-4);
+ glEnd();
+
+ glDisable(GL_TEXTURE_2D);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Как вы, наверное, догадались, glTexCoord2d сопоставляет координаты текстуры 
+      вершинам четырехугольника. Скажу только, что нижний левый угол текстуры 
+      имеет координаты (0,0), а верхний правый - (1,1). 
+      <p> 
+
+<center><img src="chapter5/texture/release/texture.jpg"><br>
+Исходный файл смотрите <a href="chapter5/texture/texture.c">здесь</a>.
+Исполняемый файл <a href="chapter5/texture/release/texture.exe">здесь</a>.<br>
+Моя фотография <a href="chapter5/bin/photo.bmp">здесь</a>.
+Звездное небо <a href="chapter5/bin/space.bmp">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc5.5>5.5</a>&nbsp;&nbsp;Повторение тектуры</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      <a 
+name=GL\_REPEATE55></a><a name=GL\_CLAMP55></a>Размножить текстуру на плоскости 
+      не составляет большого труда. Давайте немного отредактируем программу из 
+      предыдущего раздела. Для того чтобы иметь возможность повторять текстуру, 
+      нужно установить параметр GL_REPEAT для ее S и T координат. S-координата 
+      текстуры - это горизонтальная координата, T-координата - вертикальная. Второй 
+      параметр, который может быть установлен для координат, - GL_CLAMP. Он гарантирует, 
+      что текстура не будет размножена. По умолчанию установлено GL_REPEAT. Но 
+      я все-таки приведу соответствующий код, чтобы вы представляли, как устанавливать 
+      этот параметр. В функцию main добавьте следующие строки: 
+      <pre>  
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+</pre>
+      Теперь отредактируйте функцию display. 
+      <pre>  
+void CALLBACK display(void)
+{
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+ glEnable(GL_TEXTURE_2D);
+ glColor3d(1,1,1);
+
+ glBindTexture(GL_TEXTURE_2D, space_tex );
+  glBegin(GL_QUADS);
+     glTexCoord2d(0,0); glVertex3d(-5,-5, -0.1);
+     glTexCoord2d(0,1); glVertex3d(-5, 5, -0.1);
+     glTexCoord2d(1,1); glVertex3d( 5, 5, -0.1);
+     glTexCoord2d(1,0); glVertex3d( 5,-5, -0.1);
+  glEnd();
+
+ glBindTexture(GL_TEXTURE_2D, photo_tex);
+   glBegin(GL_QUADS);
+     glTexCoord2d(0,0); glVertex2d(-4,-4);
+     glTexCoord2d(0,2); glVertex2d(-4, 4);
+     glTexCoord2d(3,2); glVertex2d( 4, 4);
+     glTexCoord2d(3,0); glVertex2d( 4,-4);
+ glEnd();
+
+ glDisable(GL_TEXTURE_2D);
+
+auxSwapBuffers();
+}
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      <a name=glTexCoord55></a>Функция glTexCoord привязывает координаты текстуры 
+        к вершинам объекта. Как я уже говорил, левый нижний угол текстуры имеет 
+        координату (0,0), а правый верхний - (1,1). Если вы указываете в качестве 
+        привязки значение больше единицы, то текстура повторяется. В нашем примере, 
+        координату (0,0) текстуры мы привязали к левой нижней вершине плоскости 
+        с координатой (-4,-4), а координату (3,2) текстуры к правой верхней вершине 
+        (4,4). Тем самым, мы получили размножение текстуры по горизонтали в количестве 
+        трех штук и по вертикали в количестве двух штук. Другие две вершины мы 
+        связали соответсвующим образом. Если там указать не те числа, то изображение 
+        наклонится. 
+      <p> 
+<center><img src="chapter5/repeat/release/repeat.jpg"><br>
+Исходный файл смотрите <a href="chapter5/repeat/repeat.c">здесь</a>.
+Исполняемый файл <a href="chapter5/repeat/release/repeat.exe">здесь</a>.<br>
+Моя фотография <a href="chapter5/bin/photo.bmp">здесь</a>.
+Звездное небо <a href="chapter5/bin/space.bmp">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc5.6>5.6</a>&nbsp;&nbsp;Упражнение: "Вращаем текстуру"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Завращайте плоскость с фотографией вокруг оси X и Y. Также пусть она равномерно 
+      колеблется вдоль оси Z от 3 до 7. 
+      <p> 
+<center><img src="chapter5/rotating/release/rotating.jpg"><br>
+Исходный файл смотрите <a href="chapter5/rotating/rotating.c">здесь</a>.
+Исполняемый файл <a href="chapter5/rotating/release/rotating.exe">здесь</a>.<br>
+Моя фотография <a href="chapter5/bin/photo.bmp">здесь</a>.
+Звездное небо <a href="chapter5/bin/space.bmp">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc5.7>5.7</a>&nbsp;&nbsp;Текстура на сфере</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Здесь я покажу, как работать с одной единственной текстурой и накладывать 
+      текстуры на сферы. Создайте новый проект с именем sphere. Добавьте глобальную 
+      переменную. 
+      <pre>AUX_RGBImageRec* photo_image;
+</pre>
+      В функции main загрузите изображение и создайте текстуру. Поскольку текстура 
+      у нас в этом приложении всего одна, то создавать идентификатор для нее не надо. 
+      <pre>void main()
+{
+    auxInitPosition( 50, 10, 400, 400);
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    auxInitWindow( "Shapes" );
+    auxIdleFunc(display);
+    auxReshapeFunc(resize);
+    
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+
+    photo_image = auxDIBImageLoad("photo.bmp");
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+                 photo_image-&gt;sizeX,
+                 photo_image-&gt;sizeY,
+                 0, GL_RGB, GL_UNSIGNED_BYTE,
+                 photo_image-&gt;data);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    auxMainLoop(display);
+}
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Отредактируйте функцию display. Здесь все вам знакомо см. 4.1, кроме gluQuadricTexture. <a name=gluQuadricTexture57></a>Эта 
+      функция разрешает или запрещает наложение текстуры на трехмерный объект. 
+      Второй параметр GL_TRUE или GL_FALSE. По умолчанию наложение текстуры запрещено. 
+      <pre>void CALLBACK display(void)
+{
+GLUquadricObj *quadObj; 
+
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+quadObj = gluNewQuadric(); 
+gluQuadricTexture(quadObj, GL_TRUE);
+gluQuadricDrawStyle(quadObj, GLU_FILL); 
+glColor3d(1,1,1);
+
+glRotated(5, 0,1,0);
+
+glPushMatrix();
+ glRotated(-90, 1,0,0);
+  gluSphere(quadObj, 3, 16, 16); 
+glPopMatrix(); 
+
+gluDeleteQuadric(quadObj);
+auxSwapBuffers();
+}
+</pre>
+      <p> 
+
+<center><img src="chapter5/shapes/release/shapes.jpg"><br>
+Исходный файл смотрите <a href="chapter5/shapes/shapes.c">здесь</a>.
+Исполняемый файл <a href="chapter5/shapes/release/shapes.exe">здесь</a>.<br>
+Моя фотография <a href="chapter5/bin/photo.bmp">здесь</a>.
+</center><br>    
+
+
+
+      <h2><a name=tth_sEc5.8>5.8</a>&nbsp;&nbsp;Упражнение "Текстуру в жизнь"</h2>
+      Наложите текстуру на цилиндр, конус, диски и частичный диск. В качестве изображения
+возьмите какую-нибудь мозаику, горошек и т.п., потому как что-нибудь осмысленное будет 
+смотреться не очень хорошо.
+      <p> 
+      <h2><a name=tth_sEc5.9>5.9</a>&nbsp;&nbsp;Текстура на чайнике</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Текстуру можно наложить на объект любой сложности. Для этого надо разрешить 
+      автоматически генерировать координаты текстуры - glEnable(GL_TEXTURE_GEN_S) 
+      и glEnable(GL_TEXTURE_GEN_T). Далее, вы должны установить один из трех алгоритмов 
+      генерации координат текстур. 
+      <ol type=1>
+        <p> 
+        <li>GL_OBJECT_LINEAR 
+        <li>GL_EYE_LINEAR 
+        <li>GL_SPHERE_MAP </li>
+      </ol>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Алгоритм генерации координат устанавливается с помощью функции glTexGeni. 
+        Первый параметр функции указывает тип координаты, для которой будет установлен 
+        алгоритм. GL_S -горизонтальная координата, GL_T - вертикальная. Второй 
+        параметр этой функции должен быть GL_TEXTURE_GEN_MODE. И третий параметр -
+        один из перечисленных выше алгоритмов. Создайте очередной проект с именем 
+        teapot. Отредактируйте функцию main, как в предыдущей программе, где мы 
+        накладывали изображение на сферу. Только добавьте там строчку glEnable(GL_AUTO_NORMAL), 
+        чтобы чайник лучше выглядел. Этот режим разрешает расчет векторов нормалей, 
+        что позволяет получать улучшенные изображения, однако занимает некоторое 
+        время. А функцию display отредактируйте, как показано ниже. 
+      <pre>void CALLBACK display(void)
+{
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+ glEnable(GL_TEXTURE_2D);
+ glEnable(GL_TEXTURE_GEN_S);
+ glEnable(GL_TEXTURE_GEN_T);
+
+ glColor3d(1,1,1);
+ 
+ glRotated(5,0,1,0);
+
+  glPushMatrix();
+    glTranslated(0,3,0);
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+    auxSolidTeapot(2);
+
+    glTranslated(0,-3,0);
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+    auxSolidTeapot(2);
+
+    glTranslated(0,-3,0);
+    glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+    auxSolidTeapot(2);
+  glPopMatrix();
+
+ glDisable(GL_TEXTURE_GEN_S);
+ glDisable(GL_TEXTURE_GEN_T);
+ glDisable(GL_TEXTURE_2D);
+
+auxSwapBuffers();
+}
+</pre>
+      <p>
+
+<center><img src="chapter5/teapot/release/teapot.jpg"><br>
+Исходный файл смотрите <a href="chapter5/teapot/teapot.c">здесь</a>.
+Исполняемый файл <a href="chapter5/teapot/release/teapot.exe">здесь</a>.<br>
+Моя фотография <a href="chapter5/bin/photo.bmp">здесь</a>.
+</center><br>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Конечно, фотография накладывается не самым лучшим образом. А что вы хотели? 
+        Машина сама сгенерировать правильно координаты на кривой поверхности 
+        не может. Тем не менее, если в качестве текстуры взять изображение в горошек, 
+        то оно довольно неплохо ляжет на чайник. Я не великий ходожник и горошек
+        в PaintBrush'e мне изобразить не удалось. Нет, не подумайте, что я совсем 
+        криворукий, просто, горошины у меня никак не хотели строиться в одну линию,
+       поэтому я нарисовал следующую картину - "Клеточки". И наложил эту текстуру на чайник.
+<center>
+<img src="chapter5/common/release/test.jpg"><br>
+<img src="chapter5/common/release/common.jpg"><br>
+Исходный файл смотрите <a href="chapter5/common/common.c">здесь</a>.
+Исполняемый файл <a href="chapter5/common/release/common.exe">здесь</a>.<br>
+
+</center><br>
+      
+      <p> 
+      <h2><a name=tth_sEc5.10>5.10</a>&nbsp;&nbsp;Упражнение "Текстуру на тор"</h2>
+   Сделайте такую же программу только для тора.
+    </td>
+  </tr>
+</table>
+</body>
+</html>

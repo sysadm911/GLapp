@@ -1,0 +1,711 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 36. Радиальное размытие и текстурный рендеринг</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe36.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 36. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 36. Радиальное размытие и текстурный рендеринг</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=36" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Radial Blur & Rendering To A Texture</b></font></a>
+<br>
+<br>
+</p>
+
+  <p class=textword>Привет! Меня зовут Дарио Корно (<b>Dario Corno</b>), еще меня 
+    знают как <b>rio of SpinningKids</b>. Я занимаюсь построением сцен с 1989 
+    года. Прежде всего, хочу объяснить, для чего я решил написать эту небольшую 
+    статью. Я бы хотел, чтобы все, пожелавшие скачать демонстрационную программу, 
+    смогли разобраться в ней и в эффектах, которые в ней реализованы.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Демонстрационные программы часто показывают, как путем простого, 
+    а иногда грубого программирования добиться неплохих художественных возможностей 
+    программы. Вы можете увидеть просто убойные эффекты в демонстрационных примерах, 
+    существующих на данный момент. Кучу таких программ вы найдете по адресу http://www.pouet.net 
+    или http://ftp.scene.org.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Теперь закончим со вступлением и приступим к изучению программы.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Я покажу, как создавать эффект «<b>eye candy» </b>(реализованный 
+    в программе), похожий на радиальное размытие. Иногда его относят к объемному 
+    освещению, но не верьте этому, это просто имитация радиального размытия! ;D</p>
+  <p class=textpreword> &nbsp; </p>
+  <p class=textword>Радиальное размытие обычно достигалось (когда еще не было 
+    аппаратного рендеринга) смазыванием каждого пикселя исходного изображения 
+    в направлении от центра размытия.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>На современной аппаратуре обеспечением пока довольно трудно 
+    реализовать размытие с помощью использования буфера цвета (по крайней мере, 
+    это относится ко всем «<b>gfx»</b>-видеокартам), поэтому для получения подобного 
+    эффекта мы пойдем на маленькую хитрость.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>И как плюс, при изучении построения эффекта радиального размытия 
+    вы научитесь простому способу текстурного рендеринга!</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>В качестве трехмерного объекта я выбрал пружину, поскольку 
+    это нетривиальная фигура, да и обычные кубы  мне уже порядком поднадоели :)</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Хочу заметить, что эта статья является скорее руководством 
+    по созданию эффектов. Я не буду слишком вдаваться в подробности программы. 
+    Постарайтесь больше понимать все сердцем :)</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Ниже приведены объявления переменных и необходимый заголовочный 
+    файл:</p>
+  <p class=textpreword> &nbsp; </p>
+  <p class=textpreword>#include &lt;math.h&gt;  // Нам потребуются некоторые математические 
+    операции</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>float    angle;          // Угол вращения спирали</p>
+  <p class=textpreword>float    vertexes[3][3]; // Массив трех вершин</p>
+  <p class=textpreword>float    normal[3];      // Массив нормали</p>
+  <p class=textpreword>Gluint  BlurTexture;     // Номер текстуры</p>
+  <p class=textpreword>&nbsp;</p>
+  <p class=textword>Функция <b>EmptyTexture()</b> создает пустую текстуру и возвращает 
+    ее номер. Нам потребуется выделить некоторую свободную память (а точнее 128*128*4 
+    беззнаковых целочисленных).</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>128*128 – размер текстуры (128 пикселей ширины и столько же 
+    высоты), цифра 4 означает, что для каждого пикселя нам нужно 4 байта для хранения 
+    компонент RED, GREEN, BLUE и ALPHA.</p>
+  <p class=textpreword> &nbsp; </p>
+  <p class=textpreword>GLuint EmptyTexture()     // Создание пустой текстуры</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  GLuint txtnumber;      // Идентификатор текстуры</p>
+  <p class=textpreword>  unsigned int* data;    // Указатель на хранимые данные</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  // Выделение памяти под массив пустой текстуры (128x128x4 
+    байт)</p>
+  <p class=textpreword>  data = (unsigned int*)new GLuint[((128 * 128)* 4 * sizeof(unsigned 
+    int))];</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>После выделения памяти нам нужно обнулить ее при помощи функции 
+    <b>ZeroMemory</b>, передав ей указатель (<b>data</b>) и размер обнуляемой 
+    памяти.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Хочу обратить ваше внимание на то, что характеристики <i>магнификации</i> 
+    (увеличения) и <i>минификации</i> (уменьшения) текстуры (это методы, применяемые 
+    для изменения размера текстуры до размера объекта, на который эта текстура 
+    «натягивается» - <i>прим. перев.</i>) устанавливаются параметром <b>GL_LINEAR</b> 
+    (определяющим цвет точки как среднее арифметическое всех элементов текстуры, 
+    входящих в отображаемый пиксел -<i> прим. перев.</i>). А параметр <b>GL_NEAREST</b> 
+    при растяжении текстуры дал ба нам не очень красивую картинку.</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>  // Очистка памяти массива</p>
+  <p class=textpreword>  ZeroMemory(data,((128 * 128)* 4 * sizeof(unsigned int)));</p>
+  <p class=textpreword>  glGenTextures(1, &amp;txtnumber);            // Создать 
+    1 текстуру</p>
+  <p class=textpreword>  glBindTexture(GL_TEXTURE_2D, txtnumber); // Связать текстуру</p>
+  <p class=textpreword>  // Построить текстуру по информации в data</p>
+  <p class=textpreword>  glTexImage2D(GL_TEXTURE_2D, 0, 4, 128, 128, 0,</p>
+  <p class=textpreword>      GL_RGBA, GL_UNSIGNED_BYTE, data);</p>
+  <p class=textpreword>  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+  <p class=textpreword>  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+  <p class=textpreword>  delete [] data;   // Удалить data</p>
+  <p class=textpreword>  return txtnumber; // Вернуть идентификатор текстуры</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Следующая функция нормализует длину векторов нормали. Векторы 
+    представлены массивом из 3-х элементов типа <b>float</b>, в котором 1-й элемент 
+    – это <b>X</b>, второй – <b>Y</b> и третий – <b>Z</b>. Нормализованный вектор 
+    (<b>Nv</b>) выражается через <b>Vn = (Vox / |Vo| , Voy / |Vo|, Voz / |Vo|)</b>, 
+    где <b>Vo</b> – исходный вектор, <b>|Vo|</b> - его длина, и <b>x</b>, <b>y</b>, 
+    <b>z</b> – его компоненты. В программе необходимо сделать следующее: вычислить 
+    длину исходного вектора: <b>sqrt(x^2 + y^2 + z^2)</b> ,где <b>x</b>,<b>y</b>,<b>z</b> 
+    - это 3 компоненты вектора.  Затем надо разделить все три компоненты вектора 
+    нормали на полученное значение длины.</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>// Преобразовать вектор нормали (3 координаты) в единичный 
+    вектор с единичной длиной</p>
+  <p class=textpreword>void ReduceToUnit(float vector[3]) {</p>
+  <p class=textpreword>  float length;      // Переменная для длины вектора</p>
+  <p class=textpreword>  // Вычисление длины вектора</p>
+  <p class=textpreword>  length = (float)sqrt((vector[0]*vector[0]) + (vector[1]*vector[1])</p>
+  <p class=textpreword>           + (vector[2]*vector[2]));</p>
+  <p class=textpreword>  // Предотвращение деления на нуль</p>
+  <p class=textpreword>  if(length == 0.0f)   length = 1.0f;</p>
+  <p class=textpreword>  vector[0] /= length;    // Деление всех трех элементов</p>
+  <p class=textpreword>  vector[1] /= length;    // на длину единичного вектора</p>
+  <p class=textpreword>  vector[2] /= length;    // нормали</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Следующая функция подсчитывает нормаль, заданную тремя вершинами 
+    (хранящимися в трех массивах типа <b>float</b>). У нас есть два параметра: 
+    <b>v[3][3]</b> и <b>out[3]</b>,  первый из них – матрица<b> </b>со значениями 
+    типа <b>float</b>, размерностью <b>m</b>=3 и <b>n</b>=3, где каждая строка 
+    из трех элементов является вершиной треугольника. <b>out</b> – это переменная, 
+    в которую мы поместим результат - вектор нормали.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Немного (простой) математики. Мы собираемся воспользоваться 
+    знаменитым векторным произведением, которое определяется как операция между 
+    двумя векторами, дающая в результате вектор, перпендикулярный обоим исходным 
+    векторам. Нормаль - это вектор, ортогональный к поверхности, но направленный 
+    в противоположную сторону (и имеющий нормализованную (единичную) длину). Теперь 
+    представьте себе, что два вектора расположены вдоль сторон одного треугольника, 
+    ортогональный вектор (полученный в результате умножения этих векторов) этих 
+    двух сторон треугольника является нормалью этого треугольника. </p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Осуществить это легче, чем понять.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Сначала найдем вектор, идущий от вершины 0 к вершине 1, затем 
+    вектор, идущий от вершины 1 к вершине 2, что просто осуществляется путем вычитания 
+    каждой компоненты (координаты) стартовой вершины из компоненты следующей вершины 
+    стороны треугольника (соответствующей искомому вектору) в порядке обхода треугольника. 
+    Так мы получим вектора сторон треугольника. А в результате векторного произведения 
+    этих двух векторов (<b>V</b>*<b>W</b>) получим вектор нормали треугольника 
+    (если быть точнее, - вектор нормали плоскости, образованной сторонами этого 
+    треугольника, так как известно, что для образования плоскости достаточно двух 
+    несовпадающих векторов – <i>прим.перев.</i>).</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Давайте взглянем на программу. </p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><b>V[0][]</b> – это первая вершина, <b>V[1][]</b> – это вторая 
+    вершина, <b>V[2][]</b> – это третья вершина. Каждая вершина состоит из: <b>V[][0]</b> 
+    – <b>x</b>-координата вершины, <b>V[][1]</b> – <b>y</b>-координата вершины, 
+    <b>V[][2]</b> – <b>z</b>-координата вершины.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Простым вычитанием всех соответствующих координат первой вершины 
+    из координат следующей мы получим ВЕКТОР от первой вершины к следующей. <b>v1[0]</b> 
+    = <b>v[0][0]</b> - <b>v[1][0]</b> - это выражение подсчитывает <b>X</b>-компоненту 
+    ВЕКТОРА, идущего от ВЕРШИНЫ <b>0</b> к вершине <b>1</b>. <b>v1[1]</b> = <b>v[0][1]</b> 
+    - <b>v[1][1] -</b> это выражение подсчитывает <b>Y</b>-компоненту, <b>v1[2]</b> 
+    = <b>v[0][2]</b> - <b>v[1][2] </b> подсчитывает <b>Z</b> компоненту и так 
+    далее.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Так мы получим два вектора, что даст нам возможность вычислить 
+    нормаль треугольника.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Вот формула векторного произведения:</p>
+  <p class=textpreword>out[x] = v1[y] * v2[z] - v1[z] * v2[y]          </p>
+  <p class=textpreword>out[y] = v1[z] * v2[x] - v1[x] * v2[z]</p>
+  <p class=textpreword>out[z] = v1[x] * v2[y] - v1[y] * v2[x]</p>
+  <p class=textword>&nbsp;</p>
+  <p class=textword>В итоге в массиве <b>out[]</b> у нас будет находиться нормаль 
+    треугольника.</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>void calcNormal(float v[3][3], float out[3])        </p>
+  <p class=textpreword>// Вычислить нормаль для четырехугольников используя 3 
+    точки</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  float v1[3],v2[3];      // Вектор 1 (x,y,z) &amp; Вектор 
+    2 (x,y,z)</p>
+  <p class=textpreword>  static const int x = 0  // Определение X-координаты</p>
+  <p class=textpreword>  static const int y = 1  // Определение Y-координаты</p>
+  <p class=textpreword>  static const int z = 2; // Определение Z-координаты</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  // Вычисление вектора между двумя точками вычитанием</p>
+  <p class=textpreword>  // x,y,z-координат одной точки из координат другой.</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  // Подсчет вектора из точки 1 в точку 0</p>
+  <p class=textpreword>  v1[x] = v[0][x] - v[1][x];  // Vector 1.x=Vertex[0].x-Vertex[1].x</p>
+  <p class=textpreword>  v1[y] = v[0][y] - v[1][y];  // Vector 1.y=Vertex[0].y-Vertex[1].y</p>
+  <p class=textpreword>  v1[z] = v[0][z] - v[1][z];  // Vector 1.z=Vertex[0].y-Vertex[1].z</p>
+  <p class=textpreword>  // Подсчет вектора из точки 2 в точку 1</p>
+  <p class=textpreword>  v2[x] = v[1][x] - v[2][x];  // Vector 2.x=Vertex[0].x-Vertex[1].x</p>
+  <p class=textpreword>  v2[y] = v[1][y] - v[2][y];  // Vector 2.y=Vertex[0].y-Vertex[1].y</p>
+  <p class=textpreword>  v2[z] = v[1][z] - v[2][z];  // Vector 2.z=Vertex[0].z-Vertex[1].z</p>
+  <p class=textpreword>  // Вычисление векторного произведения</p>
+  <p class=textpreword>  out[x] = v1[y]*v2[z] - v1[z]*v2[y];  // для Y - Z</p>
+  <p class=textpreword>  out[y] = v1[z]*v2[x] - v1[x]*v2[z];  // для X - Z</p>
+  <p class=textpreword>  out[z] = v1[x]*v2[y] - v1[y]*v2[x];  // для X - Y</p>
+  <p class=textpreword> &nbsp; </p>
+  <p class=textpreword>  ReduceToUnit(out);      // Нормализация векторов</p>
+  <p class=textpreword>}</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Следующая функция задает точку наблюдения с использованием 
+    функции <b>gluLookAt</b>. Мы разместим эту точку в точке (0,5,50), она будет 
+    направлена на точку (0,0,0)(центр сцены), при этом верхний вектор будет задан 
+    с направлением вверх (0,1,0)! ;D</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>void ProcessHelix()      // Рисование спирали (или пружины)</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  GLfloat x;      // x-координата спирали</p>
+  <p class=textpreword>  GLfloat y;      // y-координата спирали</p>
+  <p class=textpreword>  GLfloat z;      // z-координата спирали</p>
+  <p class=textpreword>  GLfloat phi;    // Угол</p>
+  <p class=textpreword>  GLfloat theta;  // Угол</p>
+  <p class=textpreword>  GLfloat v,u;    // Углы</p>
+  <p class=textpreword>  GLfloat r;      // Радиус скручивания</p>
+  <p class=textpreword>  int twists = 5; // пять витков</p>
+  <p class=textpreword>  // Задание цвета материала</p>
+  <p class=textpreword>  GLfloat glfMaterialColor[]={0.4f,0.2f,0.8f,1.0f};  </p>
+  <p class=textpreword>  // Настройка рассеянного освещения</p>
+  <p class=textpreword>  GLfloat specular[]={1.0f,1.0f,1.0f,1.0f};      </p>
+  <p class=textpreword>  glLoadIdentity();    // Сброс матрицы модели</p>
+  <p class=textpreword>  // Точка камеры (0,5,50) Центр сцены (0,0,0)</p>
+  <p class=textpreword>  // Верх но оси Y</p>
+  <p class=textpreword>  gluLookAt(0, 5, 50, 0, 0, 0, 0, 1, 0);</p>
+  <p class=textpreword>  glPushMatrix();      // Сохранение матрицы модели</p>
+  <p class=textpreword>  // Смещение позиции вывода на 50 единиц вглубь экрана</p>
+  <p class=textpreword>  glTranslatef(0,0,-50);    </p>
+  <p class=textpreword>  glRotatef(angle/2.0f,1,0,0);  // Поворот на angle/2 относительно 
+    X</p>
+  <p class=textpreword>  glRotatef(angle/3.0f,0,1,0);  // Поворот на angle/3 относительно 
+    Y</p>
+  <p class=textpreword>  glMaterialfv(GL_FRONT_AND_BACK,</p>
+  <p class=textpreword>      GL_AMBIENT_AND_DIFFUSE, glfMaterialColor);</p>
+  <p class=textpreword>  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,specular);</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Далее займемся подсчетом формулы спирали и визуализацией пружины. 
+    Это совсем несложно, и я не хотел бы останавливаться на этих пунктах, так 
+    как «соль» данного урока совсем в другом. Участок программы, отвечающий за 
+    спираль, заимствован у друзей из «Listen Software» (и несколько оптимизирован). 
+    Он написан наиболее простым и не самым быстрым способом. Использование массивов 
+    вершин не делает его быстрее.</p>
+  <p class=textword> &nbsp; </p>
+  <p class=textpreword>  r=1.5f;        // Радиус</p>
+  <p class=textpreword>  glBegin(GL_QUADS);    // Начать рисовать четырехугольник</p>
+  <p class=textpreword>  for(phi=0; phi &lt;= 360; phi+=20.0)  // 360 градусов 
+    шагами по 20</p>
+  <p class=textpreword>  {// 360 градусов * количество_витков шагами по 20</p>
+  <p class=textpreword>   for(theta=0; theta&lt;=360*twists; theta+=20.0)</p>
+  <p class=textpreword>    {// Подсчет угла первой точки  (0)</p>
+  <p class=textpreword>    v=(phi/180.0f*3.142f);</p>
+  <p class=textpreword>    // Подсчет угла первой точки  (0)</p>
+  <p class=textpreword>    u=(theta/180.0f*3.142f);</p>
+  <p class=textpreword>    // Подсчет x-позиции (первая точка)</p>
+  <p class=textpreword>    x=float(cos(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет y-позиции (первая точка)</p>
+  <p class=textpreword>    y=float(sin(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет z-позиции (первая точка)</p>
+  <p class=textpreword>    z=float((( u-(2.0f*3.142f)) + sin(v) ) * r);</p>
+  <p class=textpreword>    vertexes[0][0]=x;  // x первой вершины</p>
+  <p class=textpreword>    vertexes[0][1]=y;  // y первой вершины</p>
+  <p class=textpreword>    vertexes[0][2]=z;  // z первой вершины</p>
+  <p class=textpreword>    // Подсчет угла второй точки (0)</p>
+  <p class=textpreword>    v=(phi/180.0f*3.142f);  </p>
+  <p class=textpreword>    // Подсчет угла второй точки (20)</p>
+  <p class=textpreword>    u=((theta+20)/180.0f*3.142f);  </p>
+  <p class=textpreword>    // Подсчет x-позиции (вторая точка)    </p>
+  <p class=textpreword>    x=float(cos(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет y-позиции (вторая точка)  </p>
+  <p class=textpreword>    y=float(sin(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет z-позиции (вторая точка)</p>
+  <p class=textpreword>    z=float((( u-(2.0f*3.142f)) + sin(v) ) * r);</p>
+  <p class=textpreword>    vertexes[1][0]=x;  // x второй вершины</p>
+  <p class=textpreword>    vertexes[1][1]=y;  // y второй вершины</p>
+  <p class=textpreword>    vertexes[1][2]=z;  // z второй вершины</p>
+  <p class=textpreword>    // Подсчет угла третьей точки  ( 20 )</p>
+  <p class=textpreword>    v=((phi+20)/180.0f*3.142f);</p>
+  <p class=textpreword>    // Подсчет угла третьей точки  ( 20 )</p>
+  <p class=textpreword>    u=((theta+20)/180.0f*3.142f);</p>
+  <p class=textpreword>    // Подсчет x-позиции (третья точка)</p>
+  <p class=textpreword>    x=float(cos(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет y-позиции (третья точка)</p>
+  <p class=textpreword>    y=float(sin(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет z-позиции (третья точка)</p>
+  <p class=textpreword>    z=float((( u-(2.0f*3.142f)) + sin(v) ) * r);</p>
+  <p class=textpreword>    vertexes[2][0]=x;  // x третьей вершины</p>
+  <p class=textpreword>    vertexes[2][1]=y;  // y третьей вершины</p>
+  <p class=textpreword>    vertexes[2][2]=z;  // z третьей вершины</p>
+  <p class=textpreword>    // Подсчет угла четвертой точки (20)</p>
+  <p class=textpreword>    v=((phi+20)/180.0f*3.142f);</p>
+  <p class=textpreword>    // Подсчет угла четвертой точки (0)</p>
+  <p class=textpreword>    u=((theta)/180.0f*3.142f); </p>
+  <p class=textpreword>    // Подсчет x-позиции (четвертая точка)</p>
+  <p class=textpreword>    x=float(cos(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет y-позиции (четвертая точка)</p>
+  <p class=textpreword>    y=float(sin(u)*(2.0f+cos(v) ))*r;</p>
+  <p class=textpreword>    // Подсчет z-позиции (четвертая точка)</p>
+  <p class=textpreword>    z=float((( u-(2.0f*3.142f)) + sin(v) ) * r);</p>
+  <p class=textpreword>    vertexes[3][0]=x;  // x четвертой вершины</p>
+  <p class=textpreword>    vertexes[3][1]=y;  // y четвертой вершины</p>
+  <p class=textpreword>    vertexes[3][2]=z;  // z четвертой вершины</p>
+  <p class=textpreword>    // Вычисление нормали четырехугольника</p>
+  <p class=textpreword>    calcNormal(vertexes,normal);</p>
+  <p class=textpreword>    // Установка нормали</p>
+  <p class=textpreword>    glNormal3f(normal[0],normal[1],normal[2]);</p>
+  <p class=textpreword>    // Визуализация четырехугольника</p>
+  <p class=textpreword>  glVertex3f(vertexes[0][0],vertexes[0][1],vertexes[0][2]);</p>
+  <p class=textpreword>  glVertex3f(vertexes[1][0],vertexes[1][1],vertexes[1][2]);</p>
+  <p class=textpreword>  glVertex3f(vertexes[2][0],vertexes[2][1],vertexes[2][2]);</p>
+  <p class=textpreword>  glVertex3f(vertexes[3][0],vertexes[3][1],vertexes[3][2]);</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>  glEnd();       // Конец визуализации четырехугольника</p>
+  <p class=textpreword>  glPopMatrix(); // Восстанавливаем матрицу</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Две функции (<b>ViewOrtho</b> и <b>ViewPerspective</b>) написаны 
+    для упрощения рисования в ортогональной проекции и возврата перспективную.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Функция <b>ViewOrtho</b> выбирает текущую матрицу проекции 
+    и сохраняет ее копию в стеке системы OpenGL. Затем в матрицу проекции грузится 
+    единичная матрица, и устанавливается ортогональный просмотр при текущем разрешении 
+    экрана.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>После этого мы получим возможность рисовать в 2D-координатах 
+    от 0,0 в верхнем левом углу и 640,480  нижнем правом углу экрана.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>И в конце, делается активной матрица модели для визуализации.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Функция<b> ViewPerspective</b> выбирает текущую матрицу проекции 
+    и восстанавливает из стека «неортогональную» матрицу проекции, которая была 
+    сохранена функцией<b> ViewOrtho</b>. Потом также выбирается с матрица модели, 
+    чтобы мы могли заняться визуализацией.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Советую применять эти две процедуры, позволяющие легко переключаться 
+    между 2D и 3D-рисованием и не волноваться об искажениях матрицы проекции и 
+    матрицы модели.</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>void ViewOrtho()      // Установка ортогонального вида</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  glMatrixMode(GL_PROJECTION);  // Выбор матрицы проекции</p>
+  <p class=textpreword>  glPushMatrix();      // Сохранить матрицу</p>
+  <p class=textpreword>  glLoadIdentity();    // Сбросить матрицу</p>
+  <p class=textpreword>  glOrtho( 0, 640 , 480 , 0, -1, 1 );  // Ортогональный 
+    режим (640x480)</p>
+  <p class=textpreword>  glMatrixMode(GL_MODELVIEW);  // Выбор матрицы модели</p>
+  <p class=textpreword>  glPushMatrix();      // Сохранить матрицу</p>
+  <p class=textpreword>  glLoadIdentity();    // Сбросить матрицу</p>
+  <p class=textpreword>}</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>void ViewPerspective()           // Установка вида перспективы</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  glMatrixMode( GL_PROJECTION ); // Выбор матрицы проекции</p>
+  <p class=textpreword>  glPopMatrix();                 // Восстановить матрицу</p>
+  <p class=textpreword>  glMatrixMode( GL_MODELVIEW );  // Выбрать матрицу вида</p>
+  <p class=textpreword>  glPopMatrix();                 // Восстановить матрицу</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Ну а теперь будем учиться «подделывать» эффект размытия.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Нам требуется нарисовать сцену размытой от центра во всех 
+    направлениях. Способ рисования не должен понизить быстродействие. Непосредственно 
+    считывать и записывать пиксели мы не можем, и если мы хотим сохранить совместимость 
+    с большинством видеокарт, различные специфические возможности видеокарт также 
+    неприменимы.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Так неужели все понапрасну …?</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Ну нет, решение совсем близко. OpenGL дает нам возможность 
+    «размытия» текстур. Конечно, это не реальное размытие, просто в процессе масштабирования 
+    текстуры выполняется линейная фильтрация ее изображения, и, если напрячь воображение, 
+    результат будет похож на «размытие Гаусса».</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Так что же произойдет, если мы поместим много растянутых текстур  
+    прямо сверху на 3D-сцену и затем промасштабируем их?</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Ответ вы уже знаете …– радиальное размытие!</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Здесь у нас три проблемы: как в реальном времени мы будем 
+    создавать текстуры и как мы будем точно совмещать 3D-объект и текстуру?</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Решение проще, чем вы себе представляете!</p>
+  <p class=textword>&nbsp;</p>
+  <p class=textword><b><u>Проблема первая: текстурный рендеринг.</u></b></p>
+  <p class=textword><b> &nbsp; </b></p>
+  <p class=textword>Она просто решается форматом пикселов фонового буфера. Визуализация 
+    текстуры (да и визуализация вообще) без использования фонового буфера очень 
+    неприятна для созерцания!</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Визуализация текстуры производится всего одной функцией! Нам 
+    надо нарисовать наш объект и затем скопировать результат (ПЕРЕД ТЕМ КАК ПЕРЕКЛЮЧИТЬ 
+    РАБОЧИЙ И ФОНОВЫЙ БУФЕР в текстуру с использованием функции glCopytexSubImage.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><b><u>Проблема вторая: подгонка текстуры точно на передней 
+    стороне 3D-объекта.</u></b></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Нам известно, что если мы поменяем параметры области просмотра 
+    без установки правильной перспективы, у нас получится растянутая визуализация 
+    наших объектов. Например, если мы установим слишком широкую область просмотра 
+    (экран), визуализация будет растянута по вертикали.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Решением этой проблемы будет во-первых то, что надо установить 
+    режим вида OpenGL, равной размеру нашей текстуры (128х128). После визуализации 
+    нашего объекта в изображение текстуры мы визуализируем эту текстуру в текущем 
+    разрешении OpenGL-экрана. Таким образом, OpenGL сначала переносит уменьшенную 
+    копию объекта в текстуру, затем растягивает ее на весь экран. Вывод текстуры 
+    происходит поверх всего экрана и поверх нашего 3D-объекта в том числе. Надеюсь, 
+    я ничего не забыл. Еще небольшое уточнение… Если вы возьмете содержимое экрана 
+    размером 640х480 и затем ужмете его до рисунка в 256х256 пикселей, то его 
+    также можно будет использовать в качестве текстуры экрана и растянуть на 640х480 
+    пикселей. Качество окажется, скорее всего, не очень, но смотреться будет как 
+    исходное 640х480 изображение.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Забавно! Эта функция в самом деле совсем несложная и является 
+    одним из моих самых любимых «дизайнерских трюков». Она устанавливает размер 
+    области просмотра (или внутреннего окна) OpenGL равным размеру нашей текстуры 
+    (128х128), или нашего массива <b>BlurTexture</b>, в котором эта текстура хранится. 
+    Затем вызывается функция, рисующая спираль (наш 3D-объект). Спираль будет 
+    рисоваться в окне в 128х128 и поэтому будет иметь соответствующие размеры.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>После того, как в 128х128-области визуализируется спираль, 
+    мы подключаем <b>BlurTexture</b> и копируем буфера цвета из области просмотра 
+    при помощи функции <b>glCopyTexImage2D</b>.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Параметры определяются следующим образом:</p>
+  <p class=textword>Слово <b>GL_TEXTURE_2D</b> показывает, что мы используем двумерную 
+    текстуру. 0 - уровень мип-мапа, с которым мы совершаем копирование буфера, 
+    это значение по умолчанию. Слово <b>GL_LUMINANCE</b> определяет формат копируемых 
+    данных. Я использовал <b>GL_LUMINANCE</b>, поскольку с этим результат гораздо 
+    красивее, это значение позволяет копировать в текстуру лишь светящуюся часть 
+    буфера. Тут же могут быть использованы значения <b>GL_ALPHA</b>, <b>GL_RGB</b>, 
+    <b>GL_INTENSITY</b> и так далее.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Следующие два параметра указывают OpenGL на угол экрана, с 
+    которого начнется копирование данных (0,0). Далее идут ширина и высота копируемого 
+    прямоугольника экрана. И последний параметр необходим, если мы хотим рамку, 
+    которая нам не нужна.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Теперь, когда у нас есть копия буфера цвета (с уменьшенной 
+    спиралью) в массиве <b>BlurTexture</b>, мы можем очистить буфер и вернуть 
+    области просмотра ее естественные размеры (640х480 – во весь экран).</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><b><u>ВАЖНОЕ ЗАМЕЧАНИЕ:</u></b></p>
+  <p class=textword>Этот трюк возможен лишь при поддержке двойной буферизации 
+    форматом пикселя. Причиной данного условия является то, что все эти подготовительные 
+    процедуры скрыты от пользователя, поскольку полностью совершаются в фоновом 
+    буфере.</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>void RenderToTexture()    // Визуализация в текстуру</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  // Изменить область просмотра (в соответствии с размером 
+    текстуры)</p>
+  <p class=textpreword>  glViewport(0,0,128,128); </p>
+  <p class=textpreword>  ProcessHelix();    // Нарисовать спираль</p>
+  <p class=textpreword>  glBindTexture(GL_TEXTURE_2D,BlurTexture); // Подключить 
+    нашу текстуру</p>
+  <p class=textpreword>  // Копирование области просмотра в текстуру (от 0,0 до 
+    128,128... без рамки)</p>
+  <p class=textpreword>  glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 0, 0, 
+    128, 128, 0);</p>
+  <p class=textpreword>  glClearColor(0.0f, 0.0f, 0.5f, 0.5); // Цвет фона</p>
+  <p class=textpreword>  // Очистка экрана и фоновом буфера</p>
+  <p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); </p>
+  <p class=textpreword>  glViewport(0 , 0,640 ,480);// Область просмотра = (0,0 
+    - 640x480)</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Функция просто рисует несколько смешенных полигонов-прямоугольников 
+    на переднем плане нашей 3D-сцены, с использованием текстуры<b> BlurTexture</b>, 
+    которую мы уже подготовили. Путем постепенного изменения прозрачности (альфа) 
+    полигона и масштабирования текстуры у нас получится нечто,  похожее на радиальное 
+    размытие.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>В первую очередь я отключаю флаги GEN_S и GEN_T (я фанатею 
+    по сферическому наложению, и мои программы обычно их включают :P).</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Включаем 2D-текстурирование, отключаем проверку глубины, выбираем 
+    соответствующую функцию смешивания, включаем смешивание и подключаем <b>BlurTexture</b>.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Следующее, что мы делаем, это переключаемся на ортогональный 
+    вид сцены, что упрощает рисование полигонов, которые точно совпадают с размерами 
+    экрана. Это выстроит текстуры поверх 3D-объекта (с постепенным растяжением 
+    текстуры до размеров экрана). Таким образом, проблема два решена. Два зайца 
+    одной выстрелом! (первый «заяц» - рисование полигона в нужном месте экрана, 
+    второй «заяц» - вывод текстуры также в требуемом месте над «размываемой» спиралью, 
+    «выстрел» - переход на ортогональный вид, дающий возможность работать с обычными 
+    2D-координатами – <i>прим. перев.</i>).</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>void DrawBlur(int times, float inc)  // вывод размытого 
+    изображения</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  float spost = 0.0f;    // Начальное смещение координат</p>
+  <p class=textpreword>  float alphainc = 0.9f / times;  // Скорость уменьшения 
+    прозрачности</p>
+  <p class=textpreword>  float alpha = 0.2f;    // Начальное значение прозрачности</p>
+  <p class=textpreword>  // Отключить автоопределение координат текстуры</p>
+  <p class=textpreword>  glDisable(GL_TEXTURE_GEN_S);</p>
+  <p class=textpreword>  glDisable(GL_TEXTURE_GEN_T);</p>
+  <p class=textpreword>  glEnable(GL_TEXTURE_2D);  // Включить наложение 2D-текстур</p>
+  <p class=textpreword>  glDisable(GL_DEPTH_TEST); // Отключение проверки глубины</p>
+  <p class=textpreword>  glBlendFunc(GL_SRC_ALPHA,GL_ONE);// Выбор режима смешивание</p>
+  <p class=textpreword>  glEnable(GL_BLEND);    // Разрешить смешивание</p>
+  <p class=textpreword>  glBindTexture(GL_TEXTURE_2D,BlurTexture);// Подключить 
+    текстуру размытия</p>
+  <p class=textpreword>  ViewOrtho();      // переключение на ортогональный вид</p>
+  <p class=textpreword>  alphainc = alpha / times;  // alphainc=0.2f / число_раз 
+    визуализации размытия</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Мы много раз выводим рисунок текстуры для создания эффекта 
+    размытия, масштабируя его изменением координат текстуры, и тем самым увеличивая 
+    степень размытия. Всего рисуется 25 прямоугольников с текстурой, растягиваемой 
+    на 1.015 за каждый проход цикла.</p>
+  <p class=textword> &nbsp; </p>
+  <p class=textpreword>  glBegin(GL_QUADS);    // Рисуем прямоугольники</p>
+  <p class=textpreword>  for (int num = 0;num &lt; times;num++)// Количество походов 
+    = times  </p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    // Установить значение alpha (начальное = 0.2)</p>
+  <p class=textpreword>    glColor4f(1.0f, 1.0f, 1.0f, alpha);</p>
+  <p class=textpreword>    glTexCoord2f(0+spost,1-spost);  // Координаты текстуры  
+    (0,1)</p>
+  <p class=textpreword>    glVertex2f(0,0);    // Первая вершина(0,0)</p>
+  <p class=textpreword>    glTexCoord2f(0+spost,0+spost);  // Координаты текстуры  
+    (0,0)</p>
+  <p class=textpreword>    glVertex2f(0,480);  // Вторая вершина(0,480)</p>
+  <p class=textpreword>    glTexCoord2f(1-spost,0+spost);  // Координаты текстуры  
+    (1,0)</p>
+  <p class=textpreword>    glVertex2f(640,480);// Третья вершина (640,480)</p>
+  <p class=textpreword>    glTexCoord2f(1-spost,1-spost);  // Координаты текстуры  
+    (1,1)</p>
+  <p class=textpreword>    glVertex2f(640,0);  // Четвертая вершина (640,0)</p>
+  <p class=textpreword>    // Увеличение spost (Приближение к центру текстуры)</p>
+  <p class=textpreword>    spost += inc;</p>
+  <p class=textpreword>    // Уменьшение alpha (постепенное затухание рисунка)</p>
+  <p class=textpreword>    alpha = alpha - alphainc;</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>  glEnd();        // Конец рисования</p>
+  <p class=textpreword>  ViewPerspective();        // Назад к перспективному виду</p>
+  <p class=textpreword>  glEnable(GL_DEPTH_TEST);  // Включить проверку глубины</p>
+  <p class=textpreword>  glDisable(GL_TEXTURE_2D); // Отключить 2D-текстурирование</p>
+  <p class=textpreword>  glDisable(GL_BLEND);      // Отключить смешивание</p>
+  <p class=textpreword>  glBindTexture(GL_TEXTURE_2D,0); // Отвязать текстуру</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>И вуаля: самая короткая функция <b>Draw</b>, когда-либо виданная, 
+    дающая возможность увидеть превосходный визуальный эффект. </p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Вызывается функция <b>RenderToTexture</b>. Здесь один раз 
+    рисуется растянутая пружина маленького размера, благодаря изменению параметров 
+    области вывода. Растянутая пружина копируется в нашу текстуру, затем буфер 
+    очищается.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Затем мы рисуем «настоящую» пружину (трехмерный объект, который 
+    вы видите на экране) при помощи функции <b>ProcessHelix()</b>.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Наконец, мы рисуем последовательность «смешено-размазанных» 
+    полигонов-прямоугольников спереди пружины. То есть текстурированные прямоугольники 
+    будут растянуты и размазаны по изображению реальной 3D-пружины.</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textpreword>void Draw (void)      // Визуализация 3D-сцены</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  glClearColor(0.0f, 0.0f, 0.0f, 0.5);// Очистка черным 
+    цветом</p>
+  <p class=textpreword>  // Очистка экрана и фонового буфера</p>
+  <p class=textpreword>  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);</p>
+  <p class=textpreword>  glLoadIdentity();   // Сброс вида</p>
+  <p class=textpreword>  RenderToTexture();  // Визуализация в текстуру</p>
+  <p class=textpreword>  ProcessHelix();     // Рисование спирали</p>
+  <p class=textpreword>  DrawBlur(25,0.02f); // Эффект размытия</p>
+  <p class=textpreword>  glFlush ();         // «Сброс» конвейера OpenGL</p>
+  <p class=textpreword>}</p>
+  <p class=textword > &nbsp; </p>
+  <p class=textword>Надеюсь, данное руководство вам понравилось, хотя оно больше 
+    ничему и не учит, кроме визуализации в текстуру, но определенно может добавить 
+    красивый эффект в ваши 3D-программы.</p>
+  <p class=textword><br>
+    Со всеми комментариями и предложениями по улучшению реализации этого эффекта 
+    прошу слать письма на rio@spinningkids.org. (а если вы хотите получить исправленную 
+    и улучшенную версию программы, пишите на lake@tut.by, будет интересно пообщаться 
+    :) - <i>прим. перев.</i> ).</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Вы вольны использовать этот код бесплатно, тем не менее, если 
+    вы собираетесь использовать его в своих разработках, отметьте это и попытайтесь 
+    понять, как он работает, только так и никак иначе. Кроме того, если вы будете 
+    использовать этот код в своих коммерческих разработках (разработки, за которые 
+    вы потребуете плату), пожалуйста, выделите мне некоторый кредит.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>И еще я хочу оставить вам всем небольшой список заданий для 
+    практики (домашнее задание) :D</p>
+  <p class=textword>1) Переделайте функцию <b>DrawBlur</b> для получения горизонтального 
+    размытия, вертикального размытия и каких-нибудь других интересных эффектов 
+    (круговое размытие, например).</p>
+  <p class=textword>2) Поменяйте параметры функции <b>DrawBlur</b> (увеличьте 
+    или уменьшите), чтобы получился красивый световой эффект под вашу музыку.</p>
+  <p class=textword>3) Поиграйте с функцией <b>DrawBlur</b>, нашей небольшой текстурой 
+    и значением GL_LUMINANCE (крутой блеск!).</p>
+  <p class=textword>4) Симитируйте объемные тени при помощи темных текстур взамен 
+    светящихся.</p>
+  <p class=textword> &nbsp; </p>
+  <p class=textword>Ок. Теперь, должно быть, все.</p>
+  <p class=textword> &nbsp; </p>
+  <p class=textword>Посетите мой сайт на http://www.spinningkids.org/rio, где 
+    есть много подобных статей, и со временем будет больше.</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Dario Corno </b></font><br>
+</p>  
+</div>
+<div id="end">
+
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;9 августа 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:lake@tut.by"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Александр Попович</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

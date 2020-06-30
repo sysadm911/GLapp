@@ -1,0 +1,1202 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<meta name="subject" content="programming games">
+<title>Народный учебник по OpenGL</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body background="t006.jpg" bgcolor="#A7ABC2"
+link="#800080" vlink="#800080" alink="#0000FF">
+<!-- SpyLOG v2 f:0210 --> 
+<script language="javascript"> 
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1; 
+bv=Math.round(parseFloat(nv.appVersion)*100); 
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y=""; 
+y+="<img src='http://"+u+"/cnt?"+z+ 
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>"; 
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript> 
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1 > 
+</noscript><script language="javascript1.2"><!-- 
+if(!n) { d.write("--"+">"); }//--></script> 
+<!-- SpyLOG -->
+<script language="JavaScript">
+<!--
+
+	var yes_color_m=0;
+
+	if ((navigator.appName.indexOf('Microsoft')>=0) && (parseInt(navigator.appVersion) >= 4))
+		yes_color_m=1;
+
+	function event_over
+	( obj, txt )
+	{
+		if ( yes_color_m==1 ) obj.style.color = 0x0000FF;
+		//window.status=txt;
+		return false;
+	}
+
+	function event_out
+	( obj )
+	{
+		if ( yes_color_m==1 ) obj.style.color = 0x800080;
+		//window.status="";
+		return false;
+	}
+
+	function event_click
+	( obj )
+	{
+		if ( document.form1.new_win.checked==true )
+		{
+			window.open(obj.href,"_blank");
+			return false;
+		}
+		else
+		{
+			window.location.href=obj.hrf;
+			return true;
+		}
+	}
+
+// Sets cookie values. Expiration date is optional
+
+	function setCookie(name, value, expire)
+	{
+		var new_cookie;
+
+		 new_cookie=name+"="+escape(value)+((expire == null)?"":(";expires="+expire.toGMTString()));
+		 document.cookie = new_cookie;
+	}
+
+	function getCookie(Name)
+	{
+		  var search= Name + "=" ;
+		  if ( document.cookie.length > 0 )
+		  {	// if there are any cookies
+			offset=document.cookie.indexOf(search)
+			if (offset != -1)
+			{ // if cookie exists
+				offset += search.length;
+				// set index of beginning of value
+				end = document.cookie.indexOf(";", offset)
+				// set index of end of cookie value
+				if ( end == -1 )	end = document.cookie.length;
+				return unescape(document.cookie.substring(offset, end));
+			}
+		  }
+		  return null;
+	}
+
+	var new_win_cookie="NewWinOpenGL";
+
+	function set_new_win()
+	{
+	  var today = new Date();
+	  var expires = new Date();
+	  expires.setTime(today.getTime() + 100*60*60*24*365);
+	  setCookie(new_win_cookie, document.form1.new_win.checked==true?"Y":"N", expires);
+	  return true;
+	}
+
+	function get_new_win()
+	{
+	  var value=getCookie(new_win_cookie);
+	  if (value==null)
+	  {
+		set_new_win();
+	  }
+	  else
+	  	document.form1.new_win.checked=value=="Y"?true:false;
+	}
+
+	var NeHePrint_cookie="NeHePrint";
+
+	function set_NeHePrint()
+	{
+	  var today = new Date();
+	  var expires = new Date();
+	  expires.setTime(today.getTime() + 100*60*60*24*365);
+	  setCookie(NeHePrint_cookie, document.form1.NeHePrint.checked==true?"Y":"N", expires);
+	  return true;
+	}
+
+	function get_NeHePrint()
+	{
+	  var value=getCookie(NeHePrint_cookie);
+	  if (value==null)
+	  {
+	  	document.form1.NeHePrint.checked=false;
+		set_NeHePrint();
+	  }
+	  else
+	  	document.form1.NeHePrint.checked=value=="Y"?true:false;
+	}
+
+//-->
+</script>
+
+
+<div align="center"><center>
+<table border="0" cellpadding="10" cellspacing="1" width="750">
+    <tr>
+    <td width="150" align="center" valign="center">
+	<img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+    </td>
+    <td align="center" valign="top">
+	<img src="title-pmg.gif" WIDTH=483 HEIGHT=43 border="0" ALT="Программирование магических игр" align="top"><br>
+    <a href="../../index.html"
+    onmouseover=" return event_over(this,'Оглавление разделов.')  "
+    onmouseout=" return event_out(this) ">
+    <font class="link"><b>Оглавление</b></font></a>
+    <font class="link">|</font>
+    <a href="../articles.htm"
+    onmouseover=" return event_over(this,'Перечень статей.')  "
+    onmouseout=" return event_out(this) ">
+    <font class="link"><b>Статьи</b></font></a>
+    <font class="link">|</font>
+    <a href="../links.htm"
+    onmouseover=" return event_over(this,'Навигатор по WEB.')  "
+    onmouseout=" return event_out(this) ">
+    <font class="link"><b>Ссылки</b></font></a>
+    <font class="link">|</font>
+    <a href="../books.htm"
+    onmouseover=" return event_over(this,'Книги, книги, и еще раз КНИГИ!')  "
+    onmouseout=" return event_out(this) ">
+    <font class="link"><b>Книги</b></font></a>
+    <font class="link">|</font>
+    <a href="../download.htm"
+    onmouseover=" return event_over(this,'Перечень архивных файлов.')  "
+    onmouseout=" return event_out(this) ">
+    <font class="link"><b>Архивы</b></font></a>
+    <font class="link">|</font>
+    <a href="../trans.htm"
+    onmouseover=" return event_over(this,'Переводы.')  "
+    onmouseout=" return event_out(this) ">
+    <font class="link"><b>Переводы</b></font></a>
+    </td>
+    <td width="150">&nbsp;
+    </td>
+    </tr>
+    </tr>
+
+</table>
+
+<table border="0" cellpadding="10" cellspacing="1" width="750">
+    <tr>
+    <td width="50" align="center" valign="center">&nbsp;
+    </td>
+    <td align="center" valign="center">
+	      <p align="center"><font class="headbig">Народный учебник по OpenGL</font> </p>
+<p class="rem2" align="justify">	      
+Здесь опубликованы уроки по OpenGL (переводы с английского).
+Оригинальные уроки на сайте:</font> 
+<a href="http://nehe.gamedev.net/" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) "> <font class="link">NeHe Productions!</font></a>
+ © Jeff Molofee (NeHe).
+Исходный код с русскими комментариями некоторых из переведенных уроков:
+<a href="nehesrc.zip"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>nehesrc.zip</b></font></a>
+<font class="info">(471 Kb)</font>.
+Все переведенные уроки:
+<a href="nehehtml.zip"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>nehehtml.zip</b></font></a>.
+<font class="info">(453 Kb)</font>.<br><br>
+<strong>Кто хочет участвовать в переводе "Народного учебника по OpenGL" обращайтесь к
+<a href="mailto:pmg-ru@narod.ru"
+onmouseover=" return event_over(this,'Редактор перевода.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>редактору перевода</b></font></a>
+</strong>.
+</p>
+        <form name="form1">
+	<input type="checkbox" name="new_win" checked onclick=" return set_new_win()">
+	<font class="rem1">Открывать новое окно.</font>
+	<input type="checkbox" name="NeHePrint" checked onclick=" return set_NeHePrint()">
+	<font class="rem1">Версии для печати.</font>
+	</form>
+<script language="JavaScript">
+<!--
+	get_new_win();
+	get_NeHePrint();
+//-->
+</script>
+	</p>
+    </td>
+    <td width="50">&nbsp;</td>
+    </tr>
+
+</table>
+
+<table border="0" cellpadding="10" cellspacing="1" width="750">
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe01.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 1. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe01.htm"
+        onmouseover=" return event_over(this,'Урок 1. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 1. Инициализация в Windows</font></a>
+        <p class="rem">
+        Инициализация OpenGL в полноэкранном режиме для Windows.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">6 марта 2001<br>31.6Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe02.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 2. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe02.htm"
+        onmouseover=" return event_over(this,'Урок 2. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 2. Отображение полигонов</font></a>
+        <p class="rem">
+        Вывод треугольников и прямоугольников.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">26 марта 2001<br>12.7Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe03.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 3. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe03.htm"
+        onmouseover=" return event_over(this,'Урок 3. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 3. Отображение цветов</font></a>
+        <p class="rem">
+        Закраска фигур различными цветами.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">27 марта 2001<br>11.6Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe04.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 4. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe04.htm"
+        onmouseover=" return event_over(this,'Урок 4. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 4. Вращение полигонов</font></a>
+        <p class="rem">
+        Вращение фигур вдоль их осей.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">21 сентября 2001<br>16.8Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe05.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 5. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe05.htm"
+        onmouseover=" return event_over(this,'Урок 5. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 5. Создание фигур в 3D</font></a>
+        <p class="rem">
+        Создание объемных фигур: пирамида и квадрат.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">12 сентября 2001<br>21.2Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe06.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 6. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe06.htm"
+        onmouseover=" return event_over(this,'Урок 6. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 6. Наложение текстуры</font></a>
+        <p class="rem">
+        Создание текстурированого куба.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">13 сентября 2001<br>22.1Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+        
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe07.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 7. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe07.htm"
+        onmouseover=" return event_over(this,'Урок 7. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 7. Режимы фильтрации текстур, освещение и обработка клавиатуры.</font></a>
+        <p class="rem">
+        Три разных режима фильтрации текстру, простейшие освещение и обработка нажатия/отжатия клавиш.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">22 апреля 2002<br>66.4Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe08.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 8. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe08.htm"
+        onmouseover=" return event_over(this,'Урок 8. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 8. Смешивание.</font></a>
+        <p class="rem">
+        Полупрозрачный ящик как пример одного из вариантов смешивания.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">27 февраля 2002<br>26.2Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe09.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 9. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe09.htm"
+        onmouseover=" return event_over(this,'Урок 9. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 9. Передвижение изображений в 3D</font></a>
+        <p class="rem">
+        Манипуляции с черно-белым изображением (закраска, смешивание, перемещение и вращение в 3D).
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">19 октября 2001<br>30.5Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe10.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 10. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe10.htm"
+        onmouseover=" return event_over(this,'Урок 10. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 10. Загрузка и перемещение в трехмерном мире.</font></a>
+        <p class="rem">
+        Загрузка простенького уровня и перемещение камеры в нем.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">8 января 2002<br>36.2Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+</table>
+<table border="0" cellpadding="10" cellspacing="1" width="750">
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe11.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 11. OpenGL">
+        </td>
+              <td valign="top" width="65%"> <a href="nehe11.htm"
+        onmouseover=" return event_over(this,'Урок 11. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) "> <font class="linkbig">Урок 11. Эффект 
+                "флага" на OpenGL.</font></a> 
+                <p class="rem"> Эффект развевающейся картинки с помощью сетки 
+                  и синуса.
+              </td>
+              <td valign="middle" width="20%" align="center"> <font class="info">25 
+                января 2002<br>
+                27.6Kb</font></td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe12.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 12. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe12.htm"
+        onmouseover=" return event_over(this,'Урок 12. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 12. Использование cписков отображения</font></a>
+        <p class="rem">
+        Построение Q-Bert пирамиды с помощью списка отображения.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">25 сентября 2001<br>31.6Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe13.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 13. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe13.htm"
+        onmouseover=" return event_over(this,'Урок 13. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 13. Растровые шрифты.</font></a>
+        <p class="rem">
+        Использование TrueType шрифтов в Вашей программе с OpenGL.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">29 июля 2002<br>35.2Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe14.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 14. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe14.htm"
+        onmouseover=" return event_over(this,'Урок 14. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 14. Векторные шрифты.</font></a>
+        <p class="rem">
+        Вывод векторных шрифтов с помощью WGL-функции из Windows API.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">15 февраля 2002<br>46.7Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe15.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 15. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe15.htm"
+        onmouseover=" return event_over(this,'Урок 15. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 15. Текстурные шрифты.</font></a>
+        <p class="rem">
+        Специальные шрифты с наложением текстуры. Автогенерация текстурных координат.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">30 июля 2002<br>28.3Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe16.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 16. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe16.htm"
+        onmouseover=" return event_over(this,'Урок 16. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 16. Эффект тумана на OpenGL.</font></a>
+        <p class="rem">
+        Туман, туман, туман, кругом туман и какой-то ящик ;) ...
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">28 января 2002<br>17.7Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe17.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 17. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe17.htm"
+        onmouseover=" return event_over(this,'Урок 17. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 17. Двухмерные шрифты из текстур.</font></a>
+        <p class="rem">
+        Шрифт, который создается с помощью текстуры, на которой нарисованы буквы из шрифта.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">15 февраля 2002<br>63.2Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe18.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 18. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe18.htm"
+        onmouseover=" return event_over(this,'Урок 18. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 18. Квадратирование.</font></a>
+        <p class="rem">
+        Рисование геометрических примитивов (цилиндр, диск, сфера) с помощью Glut.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">1 марта 2002<br>28.8Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe19.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 19. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe19.htm"
+        onmouseover=" return event_over(this,'Урок 19. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 19. Машина моделирования частиц с использованием полосок из треугольников.</font></a>
+        <p class="rem">
+        Фонтан из текстур, как пример системы материальных частиц.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">9 августа 2002<br>62.1Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe20.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 20. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe20.htm"
+        onmouseover=" return event_over(this,'Урок 20. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 20. Маскирование.</font></a>
+        <p class="rem">
+        Использование маски изображения для создания действительной прозрачности при выводе текстур.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">3 сентября 2002<br>44.2Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+</table>
+
+<table border="0" cellpadding="10" cellspacing="1" width="750">
+
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe21.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 21. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe21.htm"
+        onmouseover=" return event_over(this,'Урок 21. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 21. Lines, Antialiasing, Timing, Ortho View And Simple Sounds.</font></a>
+        <p class="rem">
+        Идет перевод урока. Sergey Anisimov.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">8798<br>7546</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe22.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 22. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe22.htm"
+        onmouseover=" return event_over(this,'Урок 22. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 22. Наложение микрорельефа методом тиснения, мультитекстурирование и использование расширений OpenGL.</font></a>
+        <p class="rem">
+        Вроде бы обычный куб, но с микрорельефом. Возможно это Вам покажет не таким простым делом.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">5 ноября 2002<br>106Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe23.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 23. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe23.htm"
+        onmouseover=" return event_over(this,'Урок 23. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 23. Sphere Mapping Quadrics In OpenGL.</font></a>
+        <p class="rem">
+        Идет перевод урока. Vasily Chernikov.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">yjtuytyu<br>trdgtr</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe24.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 24. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe24.htm"
+        onmouseover=" return event_over(this,'Урок 24. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 24. Лексемы, Расширения, Вырезка и Загрузка TGA</font></a>
+        <p class="rem">
+        В этом уроке вы поймете как вывести список доступных расширений вашей видеокарты с прокруткой
+        в окне. Плюс загрузка и работа с TGA.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">20 ноября 2002<br>67.4Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe25.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 25. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe25.htm"
+        onmouseover=" return event_over(this,'Урок 25. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 25. Morphing & Loading Objects From A File.</font></a>
+        <p class="rem">
+        Идет перевод урока. Denis Popov.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe26.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 26. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe26.htm"
+        onmouseover=" return event_over(this,'Урок 26. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 26. Реалистичное отражение с использование буфера шаблона и отсечения.</font></a>
+        <p class="rem">
+        Буфер шаблона и смешивание в борьбе за получение реалистичных теней.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">29 июля 2002<br>55.7Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe27.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 27. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe27.htm"
+        onmouseover=" return event_over(this,'Урок 27. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 27. Shadows.</font></a>
+        <p class="rem">
+	Идет перевод урока. nap.        
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+<!---    
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe28.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 28. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe28.htm"
+        onmouseover=" return event_over(this,'Урок 28. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 28. Bezier Patches.</font></a>
+        <p class="rem">
+        Идет перевод урока. Mike Peleah.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+//-->
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe29.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 29. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe29.htm"
+        onmouseover=" return event_over(this,'Урок 29. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 29. Blitter Function, RAW Texture Loading.</font></a>
+        <p class="rem">
+        Идет перевод урока. Alexey Vesyoliy.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+</table>
+<table border="0" cellpadding="10" cellspacing="1" width="750">
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe30.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 30. OpenGL">
+        </td>
+              <td valign="top" width="65%"> <a href="nehe30.htm"
+        onmouseover=" return event_over(this,'Урок 30. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) "> <font class="linkbig">Урок 30. Определение 
+                столкновений и моделирование законов физики.</font></a> 
+                <p class="rem"> Как найти столкновения между плоскостью, цилиндром, 
+                  и сферой. Как иммитировать физику, взрывы.
+              </td>
+              <td valign="middle" width="20%" align="center"> 
+                <div align="center"><font class="comment">21 декабря 2001</font><font class="info"><br>
+                  81.0Kb</font></div>
+              </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe31.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 31. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe31.htm"
+        onmouseover=" return event_over(this,'Урок 31. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 31. Визуализация моделей Milkshape 3D</font></a>
+        <p class="rem">
+        Описание как вывести произвольные 3D модели сохраненные в простом формате.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">22 апреля 2002<br>42.9Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe33.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 33. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe33.htm"
+        onmouseover=" return event_over(this,'Урок 33. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 33. Loading Uncompressed and RunLength Encoded TGA images.</font></a>
+        <p class="rem">
+        Идет перевод урока. Vlad Tushevskij.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe34.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 34. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe34.htm"
+        onmouseover=" return event_over(this,'Урок 34. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 34. Beautiful Landscapes By Means Of Height Mapping.</font></a>
+        <p class="rem">
+        Идет перевод урока. Vlad Tushevskij.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+    
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+	<img src="nehe35.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 35. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe35.htm"
+        onmouseover=" return event_over(this,'Урок 35. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 35. Playing AVI Files In OpenGL.</font></a>
+        <p class="rem">
+        Идет перевод урока. Vlad Tushevskij.
+        </td>
+        <td valign="middle" width="20%" align="center">
+	<font class="info">??<br>??</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehe36.jpg" align="left" hspace="0" width="80" height="60" alt="Урок 36. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehe36.htm"
+        onmouseover=" return event_over(this,'Урок 36. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок 36. Радиальное размытие и текстурный рендеринг</font></a>
+        <p class="rem">
+        Очень интересный способ извлечения из OpenGL не свойственных ему возможностей!
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">9 августа 2002<br>45.3Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+    <td align="center" valign="center">
+	      <p align="center"><font class="title">
+	      Уроки, которые не опубликованы на сайте NeHe, но которые базируются на его уроках.</font> </p>
+    </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+    <tr>
+    <td>
+    <table width="650" align="center" valign="top">
+    <tr>
+        <td valign="middle" width="15%" align="center">
+		<img src="nehex1.jpg" align="left" hspace="0" width="80" height="60" alt="Урок X1. OpenGL">
+        </td>
+        <td valign="top" width="65%">
+        <a href="nehex1.htm"
+        onmouseover=" return event_over(this,'Урок X1. OpenGL')  "
+        onmouseout=" return event_out(this) "
+        onclick=" return event_click(this) ">
+        <font class="linkbig">Урок X1. Улучшенная обработка ввода с использованием DirectInput и Windows.</font></a>
+        <p class="rem">
+        Вы думали, что DirectInput и OpenGL две вещи несовместные, ан, нет, даже очень дружат.
+        </td>
+        <td valign="middle" width="20%" align="center">
+		<font class="info">25 октября 2002<br>45.9Kb</font>
+        </td>
+    </tr>
+    </table>
+    </td>
+    </tr>
+
+
+</table>
+
+
+    <p class="rem1"> &nbsp;<u><b>Всего 39 уроков на английском языке, из них 27 переведены на русский язык, 8 переводятся.</b></u></p>
+    <p> 
+	<a href="mailto:pmg-ru@narod.ru"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Сергей Анисимов</b></font>,</a> 
+	<a href="mailto:vech2001@mail.ru"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Vasily Chernikov</b></font>,</a> 
+	<a href="mailto:f1inch@pisem.net"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Евгений Борисов</b></font>,</a> 
+	<a href="mailto:mmax@cmail.ru"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Макс Махоткин</b></font>,</a> 
+      <a href="mailto:mike@bsu.ru"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Mike Samsonov</b></font>,</a><br> 
+      <a href="mailto:timurs@khsu.khakasnet.ru"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Тимур Салихов</b></font></a>, 
+      <a href="mailto:cupper@nashi.spb.ru"
+onMouseOver=" return event_over(this,'Почта переводчику')  "
+onMouseOut=" return event_out(this) "><font class="link"><b>Cupper</b></font></a>,
+      <a href="mailto:n_vova@mail.ru"
+onMouseOver=" return event_over(this,'Почта переводчику')  "
+onMouseOut=" return event_out(this) "><font class="link"><b>Владимир Намхоев</b></font></a>,
+      <a href="mailto:den_popov@xaker.ru"
+onMouseOver=" return event_over(this,'Почта переводчику')  "
+onMouseOut=" return event_out(this) "><font class="link"><b>Popov Denis</b></font></a>,
+      <a href="mailto:1b@ezmail.ru"
+onMouseOver=" return event_over(this,'Почта переводчику')  "
+onMouseOut=" return event_out(this) "><font class="link"><b>Vlad Tushevskij</b></font></a>,<br >
+      <a href="mailto:lake@tut.by"
+onmouseover=" return event_over(this,'Почта переводчику.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Александр Попович</b></font></a>, 
+      <a href="mailto:prvv1@uic.nnov.ru"
+onMouseOver=" return event_over(this,'Почта переводчику')  "
+onMouseOut=" return event_out(this) "><font class="link"><b>Валерий Провалов</b></font></a>,
+      <a href="mailto:okulov_alexey@mail.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Alexey Okulov</b></font></a>,
+<font class="comment">и</font> 
+       <a href="mailto:andron-eiu@mail.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Andrew Aseev</b></font></a> 
+      <br>
+      <br>
+      <a href="http://pmg-ru.narod.ru"
+onmouseover=" return event_over(this,'PMG.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>PMG</b></font></a> 
+      <font class="comment">&nbsp; 20 ноября 2002 &nbsp; (c) &nbsp;</font><a href="mailto:pmg-ru@narod.ru"
+onmouseover=" return event_over(this,'Почта автору.')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Сергей Анисимов</b></font></a>
+ </p>
+
+<script language="javascript"> 
+d=document;rn=Math.random(); 
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?"; 
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y); 
+</script><noscript> 
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank> 
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a> 
+</noscript>
+
+</center></div>
+
+</body>
+</html>

@@ -1,0 +1,699 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 31. Визуализация моделей Milkshape 3D</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe31.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 31. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 31. Визуализация моделей Milkshape 3D</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=31" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Model Loading</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>В качестве источника этого проекта я взял PortaLib3D, библиотеку, 
+  которую я написал, чтобы тем, кто ей пользуется, было легко отображать модели, 
+  используя очень маленькую часть дополнительного кода. И хотя вы, конечно, можете 
+  доверить все библиотеке, вы должны понимать, что она делает, в этом вам и поможет 
+  данный урок.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Часть PortaLib3D включенная здесь содержит мое авторское право. 
+  Это не значит, что этот код не может быть использован вами - это значит, что 
+  если вы вырежете и вставите в свой проект часть кода, то вам придется сослаться 
+  на меня. Это все. Если вы сами разберете и переделаете код (то, что вы сделаете, 
+  если вы не используете библиотеку, и если вы не изучаете, что-то простое типа 
+  'вырезать и вставить код'!), тогда вы освободитесь от обязательств. Давайте 
+  посмотрим, в коде нет ничего особенного! Ок, перейдем к кое-чему более интересному!</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Основной OpenGL код.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Основной OpenGL код в файле Lesson31.cpp. Он, почти совпадает 
+  с уроком 6, с небольшими изменениями в секции загрузки текстур и рисования. 
+  Мы обсудим изменения позже.</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Milkshape 3D</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Модель, которую использованная в примере разработана в Milkshape 
+  3D. Причина, по которой я использую ее в том, что этот пакет для моделирования 
+  чертовски хорош, и имеет свой собственный формат файлов, в котором легко разобраться 
+  и понять. В дальнейшем я планирую включить поддержку загрузки формата Anim8or, 
+  потому что он бесплатный и,  конечно, загрузку 3DS.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Тем не менее, самое важное в формате файла, который здесь будет 
+  кратко обсуждаться, не просто загрузка модели. Вы должны создать свою собственную  
+  структуру, которая будет удобна для хранения данных, и потом читать файл в нее. 
+  Поэтому, в начале, обсудим структуры, необходимые для модели.</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Структуры данных модели</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Вот структуры данных модели представленные в классе Model в 
+  Model.h. Первое и самое важное, что нам надо - это вершины:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Структура для вершины</p>
+<p class=textpreword>struct Vertex</p>
+<p class=textpreword>{</p>
+<p class=textpreword>       char m_boneID;       // Для скелетной анимации</p>
+<p class=textpreword>       <span
+lang=EN-US>float m_location[3];</span></p>
+<p class=textpreword>};</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>// Используемые вершины</p>
+<p class=textpreword>int m_numVertices;</p>
+<p class=textpreword><span lang=EN-US>Vertex *m_pVertices;</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Сейчас вы можете не обращать на переменную m_boneID внимания 
+  - рассмотрим ее в следующих уроках! Массив m_location представляет собой координаты 
+  точек (X, Y, Z). Две переменные хранят количество вершин и сами вершины в динамическом 
+  массиве, который создается загрузчиком.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Дальше нам надо сгруппировать вершины в треугольники:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Структура треугольника</p>
+<p class=textpreword>struct Triangle</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>float m_vertexNormals[3][3];</p>
+<p class=textpreword><span>       </span>float m_s[3], m_t[3];</p>
+<p class=textpreword><span>       </span>int m_vertexIndices[3];</p>
+<p class=textpreword>};</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>// Используемые треугольники</p>
+<p class=textpreword>int m_numTriangles;</p>
+<p class=textpreword><span lang=EN-US>Triangle *m_pTriangles;</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь 3 вершины составляют треугольник и хранятся в m_vertexIndices. 
+  Это смещения в массиве m_pVertices. При этом каждая вершина содержится в списке 
+  только один раз, что позволят сократить место в памяти (и в вычислениях, когда 
+  мы потом будем рассматривать анимацию). m_s и m_t - это координаты (s, t) в 
+  текстуре для каждой из 3-х вершин. Текстура используется только одна для данной 
+  сетки (которые будут описаны ниже). Наконец, у нас есть член m_vertexNormals, 
+  в котором хранится нормали к каждой из 3-х вершин. Каждая нормаль имеет 3 вещественные 
+  координаты, описывающие вектор.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Следующая структура, которую мы рассмотрим в модели, это сетка 
+  (mesh). Сетка - это группа треугольников, к которым применен одинаковый материал. 
+  Набор сеток составляет целую модель. Вот структура сетки:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>// </span>Сетка<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US>struct Mesh</span></p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>int m_materialIndex;</p>
+<p class=textpreword><span>       </span>int m_numTriangles;</p>
+<p class=textpreword><span>       </span>int *m_pTriangleIndices;</p>
+<p class=textpreword>};</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>// Используемые сетки</p>
+<p class=textpreword>int m_numMeshes;</p>
+<p class=textpreword><span lang=EN-US>Mesh *m_pMeshes;</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>На этот раз у нас есть m_pTriangleIndices, в котором хранится 
+  треугольники в сетке, в точности так же, как треугольники хранят индексы своих 
+  вершин. Этот массив будет выделен динамически, потому что количество треугольников 
+  в сетке в начала не известно, и определяется из m_num_Triangles. Наконец, m_materialIndex 
+  - это индекс материала (текстура и коэффициент освещения) используемый для сетки. 
+  я покажу структуру материала ниже:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Свойства материала</p>
+<p class=textpreword>struct Material</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>float m_ambient[4], m_diffuse[4], m_specular[4], 
+  m_emissive[4];</p>
+<p class=textpreword><span>       </span>float m_shininess;</p>
+<p class=textpreword><span>       </span>GLuint m_texture;</p>
+<p class=textpreword><span>       </span>char *m_pTextureFilename;</p>
+<p class=textpreword>};</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>// Используемые материалы</p>
+<p class=textpreword>int m_numMaterials;</p>
+<p class=textpreword><span lang=EN-US>Material *m_pMaterials;</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Здесь есть все стандартные коэффициенты освещения в таком же 
+  формате, как и в OpenGL: окружающий, рассеивающий, отражающий, испускающий и 
+  блестящий. У нас так же есть объект текстуры m_texture и имя файла (динамически 
+  располагаемое) текстуры, которые могут быть выгружены, если контекст OpenGL 
+  упадет.</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Код - загрузка модели</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь займемся загрузкой модели. Вы увидите, что это чистая 
+  виртуальная функция, названная loadModelData, которая в качестве параметра имеет 
+  имя файла модели. Все что мы сделаем - это создадим производный класс MilkshapeModel, 
+  который использует эту функцию, которая заполняет защищенные структуры данных, 
+  упомянутые выше. Теперь посмотрим на функцию:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>bool MilkshapeModel::loadModelData( const 
+  char *filename )</span></p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>ifstream inputFile( filename, ios::in 
+  | ios::binary | ios::nocreate );</p>
+<p class=textpreword><span>       </span>if ( inputFile.fail())</p>
+<p class=textpreword><span>       </span>       return false; // &quot;Не можем 
+  открыть файл с моделью.&quot;</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Для начала мы открыли файл. Это бинарный файл, поэтому используем 
+  ios::binary. Если файл не найден, функция возвратит false, что говорит об ошибке.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>inputFile.seekg( 0, ios::end );</span></p>
+<p class=textpreword><span>       </span>long fileSize = inputFile.tellg();</p>
+<p class=textpreword><span>       </span>inputFile.seekg( 0, ios::beg );</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Код дальше определяет размер файла в байтах.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>byte *pBuffer = new byte[fileSize];</span></p>
+<p class=textpreword><span>       </span>inputFile.read( pBuffer, fileSize );</p>
+<p class=textpreword><span>       </span>inputFile.close();</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Затем файл читается во временный буфер целиком.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>const byte *pPtr = pBuffer;</span></p>
+<p class=textpreword><span>       </span>MS3DHeader *pHeader = ( MS3DHeader* )pPtr;</p>
+<p class=textpreword><span>       </span>pPtr += sizeof( MS3DHeader );</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>if ( strncmp( pHeader-&gt;m_ID, &quot;MS3D000000&quot;, 
+  10 ) != 0 )</p>
+<p class=textpreword><span>       </span>       return false; // &quot;Не настоящий<span lang=EN-US> 
+  Milkshape3D </span>файл<span lang=EN-US>.&quot;</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>if ( pHeader-&gt;m_version &lt; 3 || 
+  pHeader-&gt;m_version &gt; 4 )</p>
+          <p class=textpreword><span>       </span>       return false; // &quot;Не поддерживаемая 
+            версия.<br>
+            <span>       </span>       <span>       </span>       //   Поддерживается 
+            только Milkshape3D версии 1.3 и 1.4.&quot;</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь указатель pPtr будет указывать на текущую позицию. Сохраняем 
+  указатель на заголовок и устанавливаем pPtr на конец заголовка.  Вы, наверное, 
+  заметили несколько структур MS3D, которые мы использовали. Они объявлены в начале 
+  MilkshapeModel.cpp и идут прямо из спецификации формата файла. Поля в заголовке 
+  проверяются, что бы убедиться, в правильности загружаемого файла.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>int nVertices = *( word* )pPtr;</span></p>
+<p class=textpreword><span>       </span>m_numVertices = nVertices;</p>
+<p class=textpreword><span>       </span>m_pVertices = new Vertex[nVertices];</p>
+<p class=textpreword><span>       </span>pPtr += sizeof( word );</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>int i;</p>
+<p class=textpreword><span>       </span>for ( i = 0; i &lt; nVertices; i++ )</p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword><span>       </span>       MS3DVertex *pVertex = ( MS3DVertex* 
+  )pPtr;</p>
+<p class=textpreword><span>       </span>       m_pVertices[i].m_boneID = pVertex-&gt;m_boneID;</p>
+<p class=textpreword><span>       </span>       memcpy( m_pVertices[i].m_location, 
+  pVertex-&gt;m_vertex, sizeof( float )*3 );</p>
+<p class=textpreword><span>       </span>       pPtr += sizeof( MS3DVertex );</p>
+<p class=textpreword><span>       </span>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Текст выше читает каждую структуру вершины из файла. Начальная 
+  память для модели выделяется для вершин, а затем каждая вершина копируется, 
+  пока не будут обработаны все. В функции используются несколько вызовов memcpy 
+  которая просто копирует содержимое маленьких массивов. Член m_boneID пока по-прежнему 
+  игнорируется - он для скелетной анимации!</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>int nTriangles = *( word* )pPtr;</span></p>
+<p class=textpreword><span>       </span>m_numTriangles = nTriangles;</p>
+<p class=textpreword><span>       </span>m_pTriangles = new Triangle[nTriangles];</p>
+<p class=textpreword><span>       </span>pPtr += sizeof( word );</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>for ( i = 0; i &lt; nTriangles; i++ )</p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword><span>       </span>       MS3DTriangle *pTriangle = ( MS3DTriangle* 
+  )pPtr;</p>
+          <p class=textpreword><span>       </span>       int vertexIndices[3] = { pTriangle-&gt;m_vertexIndices[0],<br>
+            <span>       </span>       <span>       </span>       pTriangle-&gt;m_vertexIndices[1], 
+            pTriangle-&gt;m_vertexIndices[2] };</p>
+          <p class=textpreword><span>       </span>       float t[3] = { 1.0f-pTriangle-&gt;m_t[0], 
+            1.0f-pTriangle-&gt;m_t[1],<br>
+            <span>       </span>       <span>       </span>       1.0f-pTriangle-&gt;m_t[2] 
+            };</p>
+          <p class=textpreword><span>       </span>       memcpy( m_pTriangles[i].m_vertexNormals, 
+            pTriangle-&gt;m_vertexNormals,<br>
+            <span>       </span>       <span>       </span>       sizeof( float 
+            )*3*3 );</p>
+<p class=textpreword><span>       </span>       memcpy( m_pTriangles[i].m_s, pTriangle-&gt;m_s, 
+  sizeof( float )*3 );</p>
+<p class=textpreword><span>       </span>       memcpy( m_pTriangles[i].m_t, t, 
+  sizeof( float )*3 );</p>
+<p class=textpreword><span>       </span>       memcpy( m_pTriangles[i].m_vertexIndices, 
+  vertexIndices, sizeof( int )*3 );</p>
+<p class=textpreword><span>       </span>       pPtr += sizeof( MS3DTriangle );</p>
+<p class=textpreword><span>       </span>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Так же как и для вершин, эта часть функции сохраняет все треугольники 
+  модели. Пока что она включает просто копирование массивов из одной структуры 
+  в другую, и вы увидите разницу между массивом vertexIndeces и t-массивами. В 
+  файле номера вершин хранятся как массив переменных типа word, в модели это переменные 
+  типа int для согласованности и простоты (при этом противное приведение не нужно). 
+  Итак просто нужно привести 3 значения к типу int. Все значения t  задаются как 
+  1.0 - (оригинальное значение).  Причина этого в том, что OpenGL использует левую 
+  нижнюю систему координат, тогда как Milkshape использует правую верхнюю систему 
+  координат (прим.: имеется в виду расположение точки центра системы координат 
+  и ориентация) для работы с текстурой. Это меняет направление оси y.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>int nGroups = *( word* )pPtr;</span></p>
+<p class=textpreword><span>       </span>m_numMeshes = nGroups;</p>
+<p class=textpreword><span>       </span>m_pMeshes = new Mesh[nGroups];</p>
+<p class=textpreword><span>       </span>pPtr += sizeof( word );</p>
+<p class=textpreword><span>       </span>for ( i = 0; i &lt; nGroups; i++ )</p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword><span>       </span>       pPtr += sizeof( byte );     // 
+  Флаги<span
+lang=EN-US></span></p>
+<p class=textpreword><span>       </span>       pPtr += 32;           // Имя</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>       word nTriangles = *( word* )pPtr;</p>
+<p class=textpreword><span>       </span>       pPtr += sizeof( word );</p>
+<p class=textpreword><span>       </span>       int *pTriangleIndices = new int[nTriangles];</p>
+<p class=textpreword><span>       </span>       for ( int j = 0; j &lt; nTriangles; 
+  j++ )</p>
+<p class=textpreword><span>       </span>       {</p>
+<p class=textpreword><span>             </span>       pTriangleIndices[j] = *( 
+  word* )pPtr;</p>
+<p class=textpreword><span>             </span>       pPtr += sizeof( word );</p>
+<p class=textpreword><span>       </span>       }</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>       char materialIndex = *( char* 
+  )pPtr;</p>
+<p class=textpreword><span>       </span>       pPtr += sizeof( char );</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>       m_pMeshes[i].m_materialIndex = 
+  materialIndex;</p>
+<p class=textpreword><span>       </span>       m_pMeshes[i].m_numTriangles = 
+  nTriangles;</p>
+<p class=textpreword><span>       </span>       m_pMeshes[i].m_pTriangleIndices 
+  = pTriangleIndices;</p>
+<p class=textpreword><span>       </span>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Текст выше загружает данные структуры сетки (в Milkshape3D они 
+  называется группами &quot;groups&quot;). Так как число треугольников меняется 
+  от сетки к сетке, нет никакой стандартной структуры чтения. Поэтому берется 
+  поле за полем. Память для индексов треугольников выделяется динамически внутри 
+  сетки и читается по очереди.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>int nMaterials = *( word* )pPtr;</span></p>
+<p class=textpreword><span>       </span>m_numMaterials = nMaterials;</p>
+<p class=textpreword><span>       </span>m_pMaterials = new Material[nMaterials];</p>
+<p class=textpreword><span>       </span>pPtr += sizeof( word );</p>
+<p class=textpreword><span>       </span>for ( i = 0; i &lt; nMaterials; i++ )</p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textpreword><span>       </span>       MS3DMaterial *pMaterial = ( MS3DMaterial* 
+  )pPtr;</p>
+<p class=textpreword><span>       </span>       memcpy( m_pMaterials[i].m_ambient, 
+  pMaterial-&gt;m_ambient, sizeof( float )*4 );</p>
+<p class=textpreword><span>       </span>       memcpy( m_pMaterials[i].m_diffuse, 
+  pMaterial-&gt;m_diffuse, sizeof( float )*4 );</p>
+          <p class=textpreword><span>       </span>       memcpy( m_pMaterials[i].m_specular, 
+            pMaterial-&gt;m_specular,<br>
+            <span>       </span>       <span>       </span>       sizeof( float 
+            )*4 );</p>
+          <p class=textpreword><span>       </span>       memcpy( m_pMaterials[i].m_emissive, 
+            pMaterial-&gt;m_emissive,<br>
+            <span>       </span>       <span>       </span>       sizeof( float 
+            )*4 );</p>
+<p class=textpreword><span>       </span>       m_pMaterials[i].m_shininess = 
+  pMaterial-&gt;m_shininess;</p>
+          <p class=textpreword><span>       </span>       m_pMaterials[i].m_pTextureFilename 
+            = new char[strlen(<br>
+            <span>       </span>       <span>       </span>       pMaterial-&gt;m_texture 
+            )+1];</p>
+<p class=textpreword><span>       </span>       strcpy( m_pMaterials[i].m_pTextureFilename, 
+  pMaterial-&gt;m_texture );</p>
+<p class=textpreword><span>       </span>       pPtr += sizeof( MS3DMaterial );</p>
+<p class=textpreword><span>       </span>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       reloadTextures();</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Наконец, из буфера берется информация о материале. Это происходит 
+  так же, как и раньше, копированием каждого коэффициента освещения в новую структуру. 
+  Так же выделяется новая память для названия файла, содержащего текстуру, и оно 
+  копируется в эту память. Последний вызов reloadTextures используется собственно 
+  для загрузки текстур и привязки ее к объекту текстуры OpenGL. Эта функция из 
+  базового класса Model описывается ниже.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>delete[] pBuffer;</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>return true;</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Последний фрагмент освобождает память временного буфера, когда 
+  вся информация уже скопирована и работа</p>
+<p class=textword>процедуры завершена успешно.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Итак, в данный момент, защищенные члены класса Model заполнены 
+  информацией о модели. Заметьте, что это только код для MilkshapeModel, потому 
+  что все это относилось к специфике Milkshape3D. Теперь, перед тем как можно 
+  будет нарисовать модель, необходимо загрузить текстуры для всех материалов. 
+  Это мы сделаем в следующем куске кода:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>void Model::reloadTextures()</span></p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>for ( int i = 0; i &lt; m_numMaterials; 
+  i++ )</p>
+<p class=textpreword><span>       </span>       if ( strlen( m_pMaterials[i].m_pTextureFilename 
+  ) &gt; 0 )</p>
+<p class=textpreword><span>             </span>       m_pMaterials[i].m_texture 
+  = LoadGLTexture( m_pMaterials[i].m_pTextureFilename );</p>
+<p class=textpreword><span>       </span>       else</p>
+<p class=textpreword><span>             </span>       m_pMaterials[i].m_texture 
+  = 0;</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Для каждого материала, текстура загружается, используя функцию 
+  из основных уроков NeHe (слегка измененных в отличие от предыдущих версий). 
+  Если имя файла с текстурой - пустая строка, то текстура не загружается, но взамен 
+  текстуре объекта присваивается 0, что означает, что нет никакой текстуры.</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Код - рисование модели</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь можем начать код, рисующий модель! Теперь это совсем  
+  не сложно, когда у нас есть аккуратно расположенные структуры данных в памяти.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>void Model::draw()</span></p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>       </span>GLboolean texEnabled = glIsEnabled( GL_TEXTURE_2D 
+  );</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Эта часть сохраняет состояние отображения текстур в OpenGL, 
+  поэтому функция не нарушит его. Заметьте, что она не сохраняет так же свойства 
+  материала.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь цикл рисования каждой сетки по отдельности:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>// </span>Рисовать по группам<span lang=EN-US></span></p>
+<p class=textpreword><span>       </span>for ( int i = 0; i &lt; m_numMeshes; 
+  i++ )</p>
+<p class=textpreword><span>       </span>{</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>m_pMeshes[i] будет использован для ссылки на текущую сетку. 
+  Теперь, каждая сетка имеет свои свойства материала, поэтому мы устанавливаем 
+  соответствующее состояние OpenGL. Если, однако, <span lang=EN-US>materialIndex</span><span
+lang=EN-US> </span>сетки равен -1, это значит, что материала для такой сетки нет, 
+  и она рисуется в стандартном виде OpenGL.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>              <span lang=EN-US>int materialIndex = m_pMeshes[i].m_materialIndex;</span></p>
+<p class=textpreword><span>       </span>       if ( materialIndex &gt;= 0 )</p>
+<p class=textpreword><span>       </span>       {</p>
+          <p class=textpreword><span>             </span>       glMaterialfv( GL_FRONT, 
+            GL_AMBIENT,<br>
+            <span>       </span>       <span>       </span>       <span>       
+            </span>       m_pMaterials[materialIndex].m_ambient );</p>
+          <p class=textpreword><span>             </span>       glMaterialfv( GL_FRONT, 
+            GL_DIFFUSE,<br>
+            <span>       </span>       <span>       </span>       <span>       
+            </span>       m_pMaterials[materialIndex].m_diffuse );</p>
+          <p class=textpreword><span>             </span>       glMaterialfv( GL_FRONT, 
+            GL_SPECULAR,<br>
+            <span>       </span>       <span>       </span>       <span>       
+            </span>       m_pMaterials[materialIndex].m_specular );</p>
+          <p class=textpreword><span>             </span>       glMaterialfv( GL_FRONT, 
+            GL_EMISSION,<br>
+            <span>       </span>       <span>       </span>       <span>       
+            </span>       m_pMaterials[materialIndex].m_emissive );</p>
+          <p class=textpreword><span>             </span>       glMaterialf( GL_FRONT, GL_SHININESS,<br>
+            <span>       </span>       <span>       </span>       <span>       
+            </span>       m_pMaterials[materialIndex].m_shininess );</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>             </span>       if ( m_pMaterials[materialIndex].m_texture 
+  &gt; 0 )</p>
+<p class=textpreword><span>             </span>       {</p>
+          <p class=textpreword><span>             </span>              glBindTexture( GL_TEXTURE_2D,<br>
+            <span>       </span>       <span>       </span>       <span>       
+            </span>       m_pMaterials[materialIndex].m_texture );</p>
+<p class=textpreword><span>             </span>              glEnable( GL_TEXTURE_2D 
+  );</p>
+<p class=textpreword><span>             </span>       }</p>
+<p class=textpreword><span>             </span>       else</p>
+<p class=textpreword><span>             </span>              glDisable( GL_TEXTURE_2D 
+  );</p>
+<p class=textpreword><span>       </span>       }</p>
+<p class=textpreword><span>       </span>       else</p>
+<p class=textpreword><span>       </span>       {</p>
+<p class=textpreword><span>             </span>       glDisable( GL_TEXTURE_2D 
+  );</p>
+<p class=textpreword><span>       </span>       }</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Свойства материала устанавливаются в соответствие со значением, 
+  сохраненным в модели. Заметим, что текстура используется и доступна, если ее 
+  индекс больше чем 0. Если поставить 0, то вы отказываетесь от текстуры, и текстура 
+  не используется. Так же текстура не используется, если для сетки вообще нет 
+  материала.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>              <span lang=EN-US>glBegin( GL_TRIANGLES );</span></p>
+<p class=textpreword><span>       </span>       {</p>
+<p class=textpreword><span>             </span>       for ( int j = 0; j &lt; 
+  m_pMeshes[i].m_numTriangles; j++ )</p>
+<p class=textpreword><span>             </span>       {</p>
+<p class=textpreword><span>             </span>              int triangleIndex 
+  = m_pMeshes[i].m_pTriangleIndices[j];</p>
+<p class=textpreword><span>             </span>              const Triangle* pTri 
+  = &amp;m_pTriangles[triangleIndex];</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>             </span>              for ( int k = 0; 
+  k &lt; 3; k++ )</p>
+<p class=textpreword><span>             </span>              {</p>
+<p class=textpreword><span>             </span>                    int index = 
+  pTri-&gt;m_vertexIndices[k];</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>             </span>                    glNormal3fv( 
+  pTri-&gt;m_vertexNormals[k] );</p>
+<p class=textpreword><span>             </span>                    glTexCoord2f( 
+  pTri-&gt;m_s[k], pTri-&gt;m_t[k] );</p>
+<p class=textpreword><span>             </span>                    glVertex3fv( 
+  m_pVertices[index].m_location );</p>
+<p class=textpreword><span>             </span>              }</p>
+<p class=textpreword>                    }</p>
+<p class=textpreword>              }</p>
+<p class=textpreword>              glEnd();</p>
+<p class=textpreword>       }</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Секция выше производит рисование треугольников модели. Она проходит 
+  цикл для каждого из треугольников сетки и потом рисует каждую из 3-х вершин, 
+  используя нормали и координаты текстуры. Помните, что каждый треугольник в сетке, 
+  как и все вершины, пронумерованы в общих массивах модели (они используют 2 индексные 
+  переменные). pTri - указывает на текущий треугольник в сетке и используется 
+  для упрощения кода следующего за ним.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>if ( texEnabled )</span></p>
+<p class=textpreword><span>       </span>       glEnable( GL_TEXTURE_2D );</p>
+<p class=textpreword><span>       </span>else</p>
+<p class=textpreword><span>       </span>       glDisable( GL_TEXTURE_2D );</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Заключительный фрагмент кода устанавливает режим отображения 
+  текстур в свое первоначальное состояние.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Другой важный кусок кода в классе Model - это конструктор и 
+  деструктор. Они сами все объясняют. Конструктор устанавливает все члены в 0-ое 
+  значение (или NULL для указателей), и деструктор удаляет динамические массивы 
+  из памяти для всех структур модели. Вы должны заметить, что если вызываете функцию 
+  loadModelData дважды, для объекта Model, то можете потерять часть памяти. Будьте 
+  осторожны!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Последняя тема, которую я буду здесь обсуждать, это изменение, 
+  в основном коде отображения используя новый класс модели, и прямо отсюда я планирую 
+  начать свой будущий урок о скелетной анимации.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>Model</span> *<span lang=EN-US>pModel</span> = <span lang=EN-US>NULL</span>;  
+  // Место для хранения данных модели</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>В начале кода lesson31.cpp была объявлена модель, но не инициализирована. 
+  Она создается в процедуре WinMain:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>pModel = new MilkshapeModel();</span></p>
+<p class=textpreword><span>       </span>if ( pModel-&gt;loadModelData( &quot;data/model.ms3d&quot; 
+  ) == false )</p>
+<p class=textpreword><span>       </span>{</p>
+          <p class=textpreword><span>       </span>       MessageBox( NULL, &quot;Couldn't 
+            load the model data/model.ms3d&quot;,<br>
+            <span>       </span>       <span>       </span>       &quot;Error&quot;, 
+            MB_OK | MB_ICONERROR );</p>
+          <p class=textpreword><span>       </span>       return 0;  // Если модель 
+            не загружена, выходим</p>
+<p class=textpreword>       }</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Модель создается здесь, и не в InitGL, потому что InitGL вызывается 
+  каждый раз, когда мы меняем графический режим (теряя контекст OpenGL). Но модель 
+  не должна перезагружаться, так как данные не меняются. Это не относиться к текстурам, 
+  которые присоединены к объектам текстур, когда мы загружаем объект. Поэтому 
+  добавлена следующая строка в InitGL:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>       pModel-&gt;reloadTextures();</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Это место вызова LoadGLTextures, как и раньше. Если бы в сцене 
+  было несколько моделей, то эту функцию пришлось бы вызывать для каждой из них. 
+  Если все объекты стали вдруг белыми, то это значит, что с вашими текстурами 
+  что-то не так и они не правильно загрузились.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Наконец, вот новая функция DrawGLScene:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>int DrawGLScene(GLvoid)                                  
+  // Здесь происходит все рисование</p>
+<p class=textpreword>{</p>
+          <p class=textpreword>       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+            // Очищаем экран и буфер глубины</p>
+<p class=textpreword>       glLoadIdentity();                              // 
+  Сбрасываем вид</p>
+<p class=textpreword>       gluLookAt( 75, 75, 75, 0, 0, 0, 0, 1, 0 );</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       <span
+lang=EN-US>glRotatef(yrot,0.0f,1.0f,0.0f);</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>pModel-&gt;draw();</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span>       </span>yrot+=1.0f;</p>
+<p class=textpreword><span>       </span>return TRUE;                            
+         // Продолжаем<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US>}</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Просто? Мы очистили цветовой буфер, установили единичную матрицу 
+  модели/вида, и потом устанавливается камера в режим gluLookAt. Если вы раньше 
+  не пользовались gluLookAt, то по существу она помещает камеру в позицию, описываемую 
+  3-мя параметрами, перемещая центр сцены в позицию, описываемую 3-мя следующими 
+  параметрами, и последние 3 параметра описывают вектор направленный вверх. В 
+  данном случае мы смотрим из точки (75, 75, 75) в точку (0, 0, 0), так как модель 
+  расположена в центре системы координат, если вы не переместили ее до этого, 
+  и положительное направление оси Y смотрит вверх. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Функция должна быть вызвана вначале, но после сброса матрицы 
+  просмотра, таким образом, она работает.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Чтобы сделать сцену немного интереснее, постепенно вращаем ее 
+  вокруг оси y с помощью glRotatef.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Наконец, рисуем модель с помощью члена-функции рисования. Она 
+  рисуется в центре (она была создана в центре системы координат в Milkshape3D!), 
+  поэтому если вы хотите вращать ее, менять позицию или масштабировать, просто 
+  вызовите соответствующие функции GL перед рисованием. Вуаля! Чтобы проверить, 
+  сделайте свои собственные модели в Milkshape (или используйте функции импорта), 
+  и загрузите их, изменяя строки в функции WinMain. Или добавьте их в сцену и 
+  нарисуйте несколько объектов.</p>
+<p class=textword>&nbsp; </p>
+<p class=head3word>Что дальше?</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>В будущем уроке NeHe, я опишу, как расширить класс, чтобы объединить 
+  модель с анимационным скелетом. И если я вернусь к этому, то я напишу еще классы 
+  для загрузки, чтобы сделать программу более гибкой.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Шаг к скелетной анимации не такой уж и большой, как может показаться, 
+  хотя математика, привлекаемая для этого, достаточно хитра. Если вы что-то не 
+  понимаете в матрицах и векторах, пришло время прочитать что-нибудь по этой теме! 
+  Есть несколько источников в сети, которые вам в этом помогут.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Увидимся!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Информация о Brett Porter: родился в Австралии, был студентом 
+  University of Wollongong, недавно получил дипломы <span lang=EN-US>BCompSc</span> 
+  и <span lang=EN-US>BMath</span>. Он начал программировать на Бейсике в 12 лет 
+  на &quot;клоне&quot; Commandore 64, называемом VZ300, но скоро перешел на Паскаль, 
+  Intel ассемблер, C++ и ява. В течение последних нескольких лет его интересом 
+  стало  3-х мерное программирование, и его выбором в качестве API стал OpenGL. 
+  Для более подробной информации посетите его страницу http://rsn.gamedev.net/.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Продолжение этого урока Скелетной Анимацией можно найти на странице 
+  Brett'а.</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Brett Porter (brettporter@yahoo.com)</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;22 апреля 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:prvv1@uic.nnov.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Валерий Провалов</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

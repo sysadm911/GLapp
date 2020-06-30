@@ -1,0 +1,1260 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 24. Лексемы, Расширения, Вырезка и Загрузка TGA</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe24.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 24. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 24. Лексемы, Расширения, Вырезка и Загрузка TGA
+</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=24" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Tokens, Extensions, Scissor Testing And TGA Loading</b></font></a>
+<br>
+<br>
+
+<p class=textword>&nbsp;  </p>
+<p class=textword>Этот урок далеко не идеален, но Вы 
+  определенно узнаете кое-что новое. Я получил довольно много вопросов о расширениях 
+  и о том, как определить какие расширения поддерживаются конкретным типом видеокарты. 
+  Этот урок научит Вас определять, какие OpenGL расширения поддерживаются любой 
+  из 3D видео карт.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Также я научу Вас прокручивать часть экрана, не влияя при этом 
+  на остальную, используя вырезку. Вы также научитесь рисовать ломаные линии (GL_LINE_STRIP 
+  - прим. пер.), и, что самое важное, в этом уроке мы не будем использовать ни 
+  библиотеку AUX ни растровые изображения. Я покажу Вам, как использовать TGA-изображения 
+  в качестве текстур. С TGA изображениями не только просто работать, они поддерживают 
+  ALPHA-канал, который позволит Вам в будущих проектах использовать некоторые 
+  довольно интересные эффекты.         </p>
+<p class=textword>   </p>
+<p class=textword>Первое, что Вы должны отметить в коде 
+  ниже - нет больше включения заголовочного файла библиотеки glaux (glaux.h). 
+  Важно отметить, что файл glaux.lib также можно не включать в проект. Мы не работаем 
+  с растровыми изображениями, так что нет смысла включать эти файлы в наш проект.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Используя glaux, я всегда получал 
+  от компилятора одно предупреждение (warning). Без glaux не будет ни предупреждений, 
+  ни сообщений об ошибках.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>#include &lt;windows.h&gt;       // Заголовочный 
+  файл для Windows</p>
+<p class=textpreword>#include &lt;stdio.h&gt;         // Заголовочный файл для 
+  стандартного ввода/вывода</p>
+<p class=textpreword>#include &lt;stdarg.h&gt;        // Заголовочный файл для 
+  переменного числа параметров    </p>
+<p class=textpreword>#include &lt;string.h&gt;        // Заголовочный файл для 
+  работы с типом String</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;         // Заголовочный файл для 
+  библиотеки OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;        // Заголовочный файл для 
+  библиотеки GLu32</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>HDC       hDC=NULL;        // Частный контекст устройства</p>
+<p class=textpreword>HGLRC     hRC=NULL;        // Постоянный контекст рендеринга</p>
+<p class=textpreword>HWND      hWnd=NULL;       // Содержит 
+  дескриптор окна</p>
+<p class=textpreword>HINSTANCE hInstance;       // Содержит экземпляр приложения</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>bool      keys[256];       // Массив для работы с клавиатурой</p>
+<p class=textpreword>bool      active=TRUE;     // Флаг активности приложения</p>
+<p class=textpreword>bool      fullscreen=TRUE; // Флаг полноэкранного режима</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Первое, что мы должны сделать - добавить несколько переменных. 
+  Переменная scroll будет использоваться для прокрутки части экрана вверх и вниз. 
+  Переменная maxtokens будет хранить количество лексем (расширений), поддерживаемых 
+  данной видеокартой. base хранит базу списков отображения для шрифта. swidth 
+  и sheight будут использоваться для захвата текущих размеров окна. Мы используем 
+  эти две переменные позднее в коде для облегчения расчета координат вырезки.         
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>int       scroll;         // Используется для прокручивания экрана</p>
+<p class=textpreword>int       maxtokens;      // Количество поддерживаемых расширений</p>
+<p class=textpreword>int       swidth;         // Ширина вырезки</p>
+<p class=textpreword>int       sheight;        // Высота 
+  вырезки</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>Gluint    base;           // База списков отображения для шрифта</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Создадим структуру для хранения информации 
+  о TGA изображении, которое мы загрузим. Первая переменная imageData будет содержать 
+  указатель на данные, создающие изображение. bpp содержит количество битов на 
+  пиксель (количество битов, необходимых для описания одного пикселя - прим. пер.), 
+  используемое в TGA файле (это значение может быть 24 или 32 в зависимости от 
+  того, используется ли альфа-канал). Третья переменная width будет хранить ширину 
+  TGA изображения. height хранит высоту изображения, и texID будет указывать на 
+  текстуру, как только она будет построена. Структуру назовем TextureImage.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>В строке, следующей за объявлением 
+  структуры, резервируется память для хранения одной текстуры, которую мы будем 
+  использовать в нашей программе.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>typedef   struct                      // Создать структуру</p>
+<p class=textpreword>{ </p>
+<p class=textpreword>Glubyte  *imageData;                  
+  // Данные изображения (до 32 бит)</p>
+<p class=textpreword>Gluint   bpp;                         
+  // Глубина цвета в битах на пиксель</p>
+<p class=textpreword>Gluint   width;                       
+  // Ширина изображения </p>
+<p class=textpreword>Gluint   height;                      
+  // Высота изображения</p>
+<p class=textpreword>Gluint   texID;                       
+  // texID 
+  используется для выбора</p>
+<p class=textpreword>                                      // текстуры</p>
+<p class=textpreword>} TextureImage;                       // Имя структуры</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>TextureImage   textures[1];           // Память для хранения</p>
+<p class=textpreword>                                      // одной текстуры</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);   // 
+  Объявление WndProc</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь позабавимся! Эта часть кода 
+  будет загружать TGA файл, и конвертировать его в текстуру, которая будет использоваться 
+  в нашей программе. Следует отметить, что этот код загружает только 24 или 32 
+  битные несжатые TGA файлы. Я хорошо постарался, для того чтобы это код мог работать 
+  как с 24, так и с 32 битными файлами. :) Я никогда не говорил, что я гениален. 
+  Я хочу отметить, что этот код не весь был написан мною самостоятельно. Много 
+  хороших идей я извлек из чтения различных сайтов в сети. Я только собрал хорошие 
+  идеи и скомбинировал их в код, который хорошо работает с OpenGL. Ни легко, ни 
+  очень сложно!</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Мы передаем два параметра в функцию 
+  ниже. Первый параметр (*texture) указывает на место в памяти, где можно сохранить 
+  текстуру. Второй параметр (*filename) - имя файла, который мы хотим загрузить.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Массив TGAheader[] содержит 12 байт. 
+  Эти байты мы будем сравнивать с первыми 12 байтами загружаемого TGA файла, для 
+  того чтобы убедиться в том, что это действительно TGA файл, а не файл изображения 
+  другого типа.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>В TGAcompare[] будут помещены первые 12 байт загружаемого TGA 
+  файла. После этого произойдет сравнение байтов  TGAcompare[] с байтами TGAheader[], 
+  для того чтобы убедиться в полном их соответствии.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>header[] будет хранить 6 первых ВАЖНЫХ байт заголовка файла 
+  (ширину, высоту и количество битов на пиксель).         </p>
+<p class=textword>    </p>
+<p class=textword>Переменная bytesPerPixel будет содержать результат деления количества 
+  битов на пиксель на  8, который будет являться уже количеством байтов на пиксель.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>imageSize будет хранить количество 
+  байтов, которое требуется для создания изображения (ширина * высота * количество 
+  байтов на пиксель).</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>temp - временная переменная, будет 
+  использована для обмена байтов дальше в программе.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Последнюю переменную type я использую для выбора подходящих 
+  параметров построения текстуры, в зависимости от того, является TGA 24 или 32 
+  битным. Если текстура 24-х битная, то мы должны использовать режим GL_RGB при 
+  построении текстуры. Если же текстура 32-х битная, то мы должны будем добавить 
+  alpha компоненту, т.е. использовать GL_RGBA (по умолчанию я предполагаю, что 
+  изображение 32-х битное, вот почему переменная type установлена в GL_RGBA).      
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>bool LoadTGA(TextureImage *texture, char *filename)</p>
+<p class=textpreword>     // Загружаем TGA файл в память</p>
+<p class=textpreword>{    </p>
+<p class=textpreword>Glubyte  TGAheader[12]={0,0,2,0,0,0,0,0,0,0,0,0}; // Заголовок несжатого TGA файла</p>
+<p class=textpreword>Glubyte  TGAcompare[12]; // Используется для сравнения заголовка 
+  TGA файла</p>
+<p class=textpreword>Glubyte  header[6];      // Первые 6 полезных байт заголовка</p>
+<p class=textpreword>Gluint   bytesPerPixel;  // Количество байтов на пиксель 
+  используемое в TGA файле</p>
+<p class=textpreword>Gluint   imageSize;      // Количество байтов, необходимое 
+  для хранения изображения в памяти</p>
+<p class=textpreword>Gluint   temp;           // Временная переменная</p>
+<p class=textpreword>Gluint   type=GL_RGBA;   // Установим по умолчанию 
+  режим RBGA (32 BPP)</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>В первой строке кода ниже TGA файл открывается на чтение. file - указатель, который мы будем использовать 
+  для ссылки на данные в пределах файла. Команда fopen(filename, &quot;rb&quot;) 
+  открывает файл filename, а параметр &quot;rb&quot; говорит нашей программе, 
+  что открыть файл нужно на чтение ([r]eading) как двоичный ([b]inary).      </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Инструкция if производит несколько действий. Во-первых, проверяется, 
+  не пуст ли файл. Если он пуст, то будет возвращено значение NULL, файл будет 
+  закрыт командой fclose(file) и функция вернет false.  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если файл не пуст, то мы попытаемся прочитать его первые 12 
+  байтов в TGAcompare. Это сделает код в следующей строке: функция fread прочитает 
+  sizeof(TGAcompare) (12 байтов) из файла в TGAcompare. Затем мы проверим: соответствует 
+  ли количество байтов, прочитанных из файла, размеру TGAcompare, который должен 
+  быть равен 12 байтам. Если мы не смогли прочитать 12 байтов в TGAcompare, то 
+  файл будет закрыт, и функция возвратит false.      </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если все прошло удачно, то мы сравниваем 12 байтов, которые 
+  мы прочитали в TGAcompare, с 12 байтами, которые хранятся в TGAheader.    </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Наконец, если все прошло великолепно, 
+  мы попытаемся прочитать следующие 6 байтов в header (важные байты). Если эти 
+  6 байтов недоступны, файл будет закрыт и функция вернет false.</p>
+<p class=textword>&nbsp;  
+  </p>
+<p class=textpreword>  FILE *file = fopen(filename, &quot;rb&quot;);   
+        // Открытие 
+  TGA файла</p>
+<p class=textpreword>  if(file==NULL ||                            
+  // Существует ли файл</p>
+<p class=textpreword>     fread(TGAcompare,1,sizeof(TGAcompare),file)!=sizeof(TGAcompare) ||</p>
+<p class=textpreword>     // Если прочитаны 12 байтов заголовка</p>
+<p class=textpreword>     memcmp(TGAheader,TGAcompare,sizeof(TGAheader))!=0 || // Если заголовок правильный</p>
+<p class=textpreword>     fread(header,1,sizeof(header),file)!=sizeof(header)) 
+  // Если прочитаны следующие 6 байтов</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>         if (file == NULL)                      
+  // Если ошибка</p>
+<p class=textpreword>                return false;                   
+  // Возвращаем false</p>
+<p class=textpreword>         else</p>
+<p class=textpreword>         {</p>
+<p class=textpreword>                fclose(file);                   // 
+  Если ошибка, закрываем файл</p>
+<p class=textpreword>                return false;                   
+  // Возвращаем false</p>
+<p class=textpreword>         }</p>
+<p class=textpreword>  }</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если все прошло успешно, то теперь у нас достаточно информации 
+  для определения некоторых важных переменных. Первой переменной, которую мы определим, 
+  будет width. Мы хотим, чтобы width равнялась ширине TGA изображения. Эту ширину 
+  мы найдем, умножив значение, сохраненное в header[1], на 256. Затем мы добавим 
+  младший байт, сохраненный в header[0].       </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>height вычисляется таким же путем, но вместо значений сохраненных 
+  в header[0] и header[1], мы используем значения, сохраненные в header[2] и header[3].  
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того как мы вычислили ширину и высоту, мы должны проверить, 
+  что ширина и высота больше 0. Если ширина или высота меньше или равна нулю, 
+  файл будет закрыт и функция вернет false.       </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Также мы должны удостовериться, что 
+  TGA файл является 24 или 32 битным изображением. Это мы сделаем, проверив значение, 
+  сохраненное в header[4]. Если оно не равно ни 24, ни 32 (бит), то файл будет 
+  закрыт и функция вернет false.</p>
+<p class=textword>     </p>
+<p class=textword>В случае если бы Вы не осуществили 
+  проверку, возврат функцией значения false привел бы к аварийному завершению 
+  программы с сообщением &quot;Initialization Failed&quot;. Убедитесь, что ваш TGA файл является несжатым 
+  24 или 32 битным изображением!</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  // Определяем ширину TGA (старший байт*256+младший 
+  байт)</p>
+<p class=textpreword>  texture-&gt;width  = header[1] * 256 + header[0]; 
+</p>
+<p class=textpreword>  // Определяем высоту TGA (старший байт*256+младший байт)</p>
+<p class=textpreword>  texture-&gt;height 
+  = header[3] * 256 + header[2];</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if(texture-&gt;width  &lt;=0 ||            
+  // Если ширина меньше или равна нулю</p>
+<p class=textpreword>   texture-&gt;height &lt;=0 ||            // 
+  Если высота меньше или равна нулю    </p>
+<p class=textpreword>  (header[4]!=24 &amp;&amp; header[4]!=32))  
+  // Является ли TGA 24 или 32 битным?</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    fclose(file);                    // Если 
+  где-то ошибка, закрываем файл</p>
+<p class=textpreword>    return false;                    // Возвращаем false</p>
+<p class=textpreword>  }</p>
+<p class=textword>  </p>
+<p class=textword>Теперь, когда мы вычислили ширину 
+  и высоту изображения, нам необходимо вычислить количество битов на пиксель, 
+  байтов на пиксель и размер изображения (в памяти). </p>
+<p class=textword> </p>
+<p class=textword>Значение, хранящееся в header[4] - это количество битов на пиксель. 
+  Поэтому установим bpp равным header[4].   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если Вам известно что-нибудь о битах и байтах, то Вы должны 
+  знать, что 8 битов составляют байт. Для того чтобы вычислить количество байтов 
+  на пиксель, используемое в TGA файле, все, что мы должны сделать - разделить 
+  количество битов на пиксель на 8. Если изображение 32-х битное, то bytesPerPixel 
+  будет равняться 4. Если изображение 24-х битное, то bytesPerPixel будет равняться 
+  3.      </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Для вычисления размера изображения 
+  мы умножим width * height * bytesPerPixel. Результат сохраним в imageSize. Так, 
+  если изображение было 100х100х32, то его размер будет 100 * 100 * 32/8 = 10000 
+  * 4 = 40000 байтов.</p>
+<p class=textword> </p>
+<p class=textpreword>  texture-&gt;bpp  = header[4];        
+  // Получаем TGA бит/пиксель (24 or 32)</p>
+<p class=textpreword>  bytesPerPixel = texture-&gt;bpp/8;   // Делим на 8 
+  для получения байт/пиксель  </p>
+<p class=textpreword>  // Подсчитываем размер памяти для данных TGA</p>
+<p class=textpreword>  imageSize 
+  = texture-&gt;width*texture-&gt;height*bytesPerPixel;</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь, когда нам известен размер 
+  изображения в байтах, мы должны выделить память под него. Это мы сделаем в первой 
+  строке кода ниже. imageData будет указывать на область памяти достаточно большого 
+  размера, для того, чтобы поместить туда наше изображение. malloc(imagesize) 
+  выделит память (подготовит память для использования), основываясь на необходимом 
+  размере (imageSize). </p>
+<p class=textword>   </p>
+<p class=textword>Конструкция &quot;if&quot; осуществляет 
+  несколько действий. Первое - проверка того, что память выделена правильно. Если 
+  это не так, imageData будет равняться NULL, файл будет закрыт и функция вернет 
+  false.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если память была выделена, мы попытаемся 
+  прочитать изображение из файла в память. Это осуществляет строка fread(texture-&gt;imageData, 
+  1, imageSize, file). fread читает файл. imageData указывает на область памяти, 
+  куда мы хотим поместить прочитанные данные. 1 - это количество байтов, которое 
+  мы хотим прочитать (мы хотим читать по одному байту за раз). imageSize - общее 
+  количество байтов, которое мы хотим прочитать. Поскольку imageSize равняется 
+  общему размеру памяти, достаточному для сохранения изображения, то изображение 
+  будет прочитано полностью. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После чтения данных, мы должны проверить, 
+  что количество прочитанных данных совпадает со значением, хранящимся в imageSize. 
+  Если это не так, значит где-то произошла ошибка. Если были загружены какие-то 
+  данные, мы уничтожим их (освободим память, которую мы выделили). Файл будет 
+  закрыт и функция вернет false.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  texture-&gt;imageData=(GLubyte *)malloc(imageSize); 
+  // Резервируем память для хранения данных TGA </p>
+<p class=textpreword>  if(texture-&gt;imageData==NULL ||           
+  // Удалось ли выделить память?</p>
+<p class=textpreword>   fread(texture-&gt;imageData, 
+  1, imageSize, file)!=imageSize)</p>
+<p class=textpreword>  // Размер выделенной памяти равен  imageSize?</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    if(texture-&gt;imageData!=NULL)       // 
+  Были ли загружены данные?</p>
+<p class=textpreword>      free(texture-&gt;imageData);        // 
+  Если да, то освобождаем память</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    fclose(file);                      // Закрываем 
+  файл</p>
+<p class=textpreword>    return false;                      // Возвращаем false</p>
+<p class=textpreword>  } </p>
+<p class=textword>   </p>
+<p class=textword>Если данные были загружены правильно, то дела идут хорошо :). 
+  Все что мы должны теперь сделать - это обменять местами Красные (Red) и Синие 
+  (Blue) байты. Данные в TGA файле хранятся в виде BGR (blue, green, red). Если 
+  мы не обменяем красные байты с синими, то все, что в нашем изображении должно 
+  быть красным, станет синим и наоборот.  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Во-первых, мы создадим цикл (по i) от 0 до imageSize. Благодаря 
+  этому, мы пройдемся по всем данным. Переменная цикла (i) на каждом шаге будет 
+  увеличиваться на 3 (0, 3, 6, 9, и т.д.) если TGA файл 24-х битный, и на 4 (0, 
+  4, 8, 12, и т.д.) - если изображение 32-х битное. Дело в том, что значение i 
+  всегда должно указывать на первый байт ([b]lue байт) нашей группы, состоящей  
+  из 3-х или 4-х байтов (BGR или BGRA - прим. пер.).  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Внутри цикла мы сохраняем [b]lue байт в переменной temp. Затем 
+  мы берем [r]ed байт, хранящийся в texture-&gt;imageData[i+2] (помните, что TGA 
+  хранит цвета как BGR[A]. B - i+0, G - i+1 и R - i+2) и помещаем его туда, где 
+  находился [b]lue байт.   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Наконец, мы помещаем [b]lue байт, 
+  который мы сохранили в переменной temp, туда, где находился [r]ed байт. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если все прошло успешно, то теперь 
+  TGA хранится в памяти, как пригодные данные для OpenGL текстуры.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  for(GLuint i=0; i&lt;int(imageSize); i+=bytesPerPixel)  
+  // Цикл по данным, описывающим изображение</p>
+<p class=textpreword>  {                                                    
+  // Обмена 1го и 3го байтов ('R'ed и 'B'lue)</p>
+<p class=textpreword>    temp=texture-&gt;imageData[i];                        
+  // Временно сохраняем значение imageData[i]</p>
+<p class=textpreword>    texture-&gt;imageData[i] = texture-&gt;imageData[i 
+  + 2]; // Устанавливаем 1й байт в значение 3го байта</p>
+<p class=textpreword>    texture-&gt;imageData[i + 2] = temp;                  
+  // Устанавливаем 3й байт в значение,</p>
+<p class=textpreword>                                                       
+  // хранящееся в temp (значение 1го байта)</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  fclose (file);                                       
+  // Закрываем файл</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь, когда у нас есть данные, пришло время сделать из них 
+  текстуру. Начнем с того, что сообщим OpenGL о нашем желании создать текстуру 
+  в памяти по адресу &amp;texture[0].texID.  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Очень важно, чтобы Вы поняли несколько вещей прежде чем мы двинемся 
+  дальше. В коде функции InitGL(), когда мы вызываем функцию LoadTGA() мы передаем 
+  ей два параметра. Первый параметр - это &amp;textures[0]. В LoadTGA() мы не 
+  обращаемся к &amp;textures[0], мы обращаемся к &amp;texture[0](отсутсвует 's' 
+  в конце). Когда мы изменяем &amp;texture[0], на самом деле изменяется &amp;textures[0]. 
+  texture[0] отождествляется с textures[0]. Я надеюсь, что это понятно.   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Таким образом, если мы хотим создать 
+  вторую текстуру, то мы должны передать в какестве параметра &amp;textures[1]. 
+  В LoadTGA(), изменяя texture[0] мы будем изменять textures[1]. Если мы передадим 
+  &amp;textures[2], texture[0] будет связан с &amp;textures[2], и т.д.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Трудно объяснить, легко понять. Конечно, я не успокоюсь, пока 
+  не объясню это по-настоящему просто :). Вот бытовой  пример. Допустим, что у 
+  меня есть коробка. Я назвал ее коробкой № 10. Я дал ее своему другу и попросил 
+  его заполнить ее. Моего друга мало заботит, какой у нее номер. Для него это 
+  просто коробка. Итак, он заполнил, как он считает &quot;просто коробку&quot; 
+  и возвратил мне ее. При этом для меня он заполнил коробку № 10. Он считает, 
+  что он заполнил обычную коробку. Если я дам ему другую коробку, названную коробкой 
+  № 11, и скажу «эй, можешь ли ты заполнить эту». Для него это опять всего лишь 
+  &quot;коробка&quot;. Он заполнит и вернет мне ее полной. При этом для меня он 
+  заполнил коробку № 11.    </p>
+<p class=textword>     </p>
+<p class=textword>Когда я передаю функции LoadTGA() 
+  параметр &amp;textures[1], она воспринимает его как &amp;texture[0]. Она заполняет 
+  его текстурой, и после завершения ее работы, у меня будет рабочая текстура textures[1]. 
+  Если я передам LoadTGA() &amp;textures[2], она опять воспримет его как &amp;texture[0]. 
+  Она заполнит его данными, И я останусь с рабочей текстурой textures[2]. В этом 
+  есть смысл :).</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Во всяком случае... в коде! Мы говорим LoadTGA() построить нашу 
+  текстуру. Мы привязываем текстуру и говорим OpenGL, что она должна иметь линейный 
+  фильтр.   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  // Строим текстуру из данных</p>
+<p class=textpreword>  glGenTextures(1, &amp;texture[0].texID);  
+  // Сгенерировать OpenGL текстуру IDs</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[0].texID); 
+  // Привязать нашу текстуру</p>
+<p class=textpreword>  // Линейная фильтрация</p>
+<p class=textpreword>  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+  GL_LINEAR); </p>
+<p class=textpreword>  // Линейная фильтрация </p>
+<p class=textpreword>  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
+  GL_LINEAR);</p>
+<p class=textword> </p>
+<p class=textword>Теперь посмотрим, был ли TGA файл 
+  24-х или 32-х битным. Если он был 24-х битным, то установим type в GL_RGB (отсутствует 
+  альфа-канал). Если бы мы этого не сделали, то OpenGL попытался бы построить 
+  текстуру с альфа-каналом. Так как информация об альфа отсутствует, то или произошел 
+  бы сбой программы или появилось бы сообщение об ошибке.</p>
+<p class=textword>    </p>
+<p class=textpreword>  if (texture[0].bpp==24)                      
+  // Если TGA 24 битный</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>     type=GL_RGB;                            
+  // Установим 'type' в GL_RGB</p>
+<p class=textpreword>  }</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь мы построим нашу текстуру, 
+  таким же путем как делали это всегда. Но вместо того, чтобы просто воспользоваться 
+  типом (GL_RGB или GL_RGBA), мы заменим его переменной type. Таким образом, если 
+  программа определит, что TGA был 24-х битным, то type будет GL_RGB. Если же 
+  TGA был 32-х битным, то type будет GL_RGBA.    </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того как текстура будет построена, 
+  мы возвратим true. Это даст знать коду InitGL(), что все прошло успешно.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glTexImage2D(GL_TEXTURE_2D, 0, type, texture[0].width, 
+  texture[0].height,                   </p>
+<p class=textpreword>                              0, type, GL_UNSIGNED_BYTE, 
+  texture[0].imageData);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  return true;              // Построение 
+  текстуры прошло Ok, возвратим true</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Код ниже является нашим стандартом 
+  построения шрифта из текстуры. Все Вы встречали этот код и раньше, если Вы прошли 
+  все уроки до этого. Здесь нет ничего нового, но я считаю, что должен включить 
+  этот код, для того, чтобы облегчить понимание программы.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Единственным отличием является то, 
+  что я привязываю текстуру textures[0].texID, которая указывает на текстуру шрифта. 
+  Я добавил только лишь .texID.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>GLvoid BuildFont(Glvoid)                 // Построение нашего шрифта</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  base=glGenLists(256);                  // 
+  Создадим 256 списков отображения</p>
+<p class=textpreword>                                         // 
+  Выбираем нашу текстуру шрифта</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, 
+  textures[0].texID);</p>
+<p class=textpreword>  for (int loop1=0; loop1&lt;256; loop1++)  
+  // Цикл по всем 256 спискам</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    float cx=float(loop1%16)/16.0f;      // X 
+  позиция текущего символа </p>
+<p class=textpreword>    float cy=float(loop1/16)/16.0f;      // 
+  Y позиция текущего символа</p>
+<p class=textpreword>    glNewList(base+loop1,GL_COMPILE);    // 
+  Начало построение списка</p>
+<p class=textpreword>    glBegin(GL_QUADS);   // Используем квадрат 
+  для каждого символа</p>
+<p class=textpreword>      glTexCoord2f(cx,1.0f-cy-0.0625f);  // 
+  Коорд. текстуры (Низ Лево)</p>
+<p class=textpreword>      glVertex2d(0,16);                  // 
+  Коорд. вершины  (Низ Лево)</p>
+<p class=textpreword>      glTexCoord2f(cx+0.0625f,1.0f-cy-0.0625f);  
+  // Коорд. текстуры (Низ Право)</p>
+<p class=textpreword>      glVertex2i(16,16);                 // 
+  Коорд. вершины  (Низ Право)</p>
+<p class=textpreword>      glTexCoord2f(cx+0.0625f,1.0f-cy-0.001f); 
+  // Коорд. текстуры (Верх Право)</p>
+<p class=textpreword>      glVertex2i(16,0);                  // 
+  Коорд. вершины  (Верх Право)</p>
+<p class=textpreword>      glTexCoord2f(cx,1.0f-cy-0.001f);   // 
+  Коорд. текстуры (Верх Лево)</p>
+<p class=textpreword>      glVertex2i(0,0);                   // 
+  Коорд. вершины  (Верх Лево)</p>
+<p class=textpreword>    glEnd();                // Конец построения 
+  квадрата (символа)</p>
+<p class=textpreword>    glTranslated(14,0,0);   // Смещаемся в право 
+  от символа</p>
+<p class=textpreword>    glEndList();            // Конец построения 
+  списка</p>
+<p class=textpreword>  }                         // Цикл пока не 
+  будут построены все 256 списков</p>
+<p class=textword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Функция KillFont не изменилась. Мы 
+  создали 256 списков отображения, поэтому мы должны будем уничтожить их, когда 
+  программа будет завершаться. </p>
+<p class=textword>   </p>
+<p class=textpreword>GLvoid KillFont(GLvoid)                          // Удаляем 
+  шрифт из памяти</p>
+<p class=textpreword>{</p>
+<p class=textpreword>      glDeleteLists(base,256);                   // 
+  Удаляем все 256 списков</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Код glPrint() немного изменился. Все 
+  буквы теперь растянуты по оси y, что делает их очень высокими. Остальную часть 
+  кода я объяснял в прошлых уроках. Растяжение выполняется командой glScalef(x,y,z). 
+  На оси x мы оставляем коэффициент равным 1.0, удваиваем размер (2.0) 
+  по оси y, и оставляем 1.0 по оси z.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>GLvoid glPrint(GLint x, GLint y, int set, const char *fmt, 
+  ...)  // Здесь происходит печать</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  char    text[1024];           // Содержит 
+  нашу строку</p>
+<p class=textpreword>  va_list ap;                   // Указатель 
+  на список аргументов</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (fmt == NULL)              // Если текста 
+  нет</p>
+<p class=textpreword>    return;                     // Ничего не 
+  делаем</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  va_start(ap, fmt);            // Разбор строки 
+  переменных</p>
+<p class=textpreword>  vsprintf(text, fmt, ap);      // И конвертирование 
+  символов в реальные коды</p>
+<p class=textpreword>  va_end(ap);                   // Результат 
+  помещаем в строку</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (set&gt;1)                    // Если выбран 
+  неправильный набор символов</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    set=1;                      // Если да, 
+  выбираем набор 1 (Italic)</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D);      // Разрешаем 
+  двумерное текстурирование</p>
+<p class=textpreword>  glLoadIdentity();             // Сбрасываем 
+  матрицу просмотра модели</p>
+<p class=textpreword>  glTranslated(x,y,0);          // Позиционируем 
+  текст (0,0 - Верх Лево)</p>
+<p class=textpreword>  glListBase(base-32+(128*set));// Выбираем 
+  набор шрифта (0 или 1)</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glScalef(1.0f,2.0f,1.0f);     // Делаем текст 
+  в 2 раза выше</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glCallLists(strlen(text),GL_UNSIGNED_BYTE, 
+  text);// Выводим текст на экран</p>
+<p class=textpreword>  glDisable(GL_TEXTURE_2D);     // Запрещаем 
+  двумерное текстурирование</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>ReSizeGLScene() устанавливает ортографическую 
+  проекцию. Ничего нового. 0,1 - это верхний левый угол экрана. 639, 480 соответствует 
+  нижнему правому углу экрана. Это дает нам точные экранные координаты с разрешением 
+  640х480. Заметьте, что мы устанавливаем значение swidth равным текущей ширине 
+  окна, а значение sheight равным текущей высоте окна. Всякий раз, при изменении 
+  размеров или перемещении окна, переменные sheight и swidth будут обновлены.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>GLvoid ReSizeGLScene(GLsizei width, GLsizei 
+  height) // Изменение 
+  размеров и инициализация GL 
+  окна</p>
+<p class=textpreword>{      </p>
+<p class=textpreword>  swidth=width;                // Устанавливаем 
+  ширину вырезки в ширину окна</p>
+<p class=textpreword>  sheight=height;              // Устанавливаем 
+  высоту вырезки в высоту окна</p>
+<p class=textpreword>  if (height==0)               // Предотвращаем 
+  деление на нуль</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    height=1;                  // Делаем высоту 
+  равной 1</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  glViewport(0,0,width,height);       // Сбрасываем область просмотра</p>
+<p class=textpreword>  glMatrixMode(GL_PROJECTION);        // Выбираем матрицу проекции</p>
+<p class=textpreword>  glLoadIdentity();                   // Сбрасываем 
+  матрицу проекции</p>
+<p class=textpreword>  // Устанавливаем ортографическую проекцию 
+  640x480  (0,0 - Верх Лево)</p>
+<p class=textpreword>  glOrtho(0.0f,640,480,0.0f,-1.0f,1.0f);    
+</p>
+<p class=textpreword>  glMatrixMode(GL_MODELVIEW);         // Выбираем 
+  матрицу просмотра модели</p>
+<p class=textpreword>  glLoadIdentity();                   // Сбрасываем 
+  матрицу просмотра модели</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Код инициализации очень мал. Мы загружаем 
+  наш TGA файл. Заметьте, что первым параметром передается &amp;textures[0]. Второй 
+  параметр - имя файла, который мы хотим загрузить. В нашем случае, мы хотим загрузить 
+  файл Font.TGA. Если LoadTGA() вернет false по какой-то причине, выражение if также 
+  вернет false, что приведет к завершению программы с сообщением &quot;initialization 
+  failed&quot;.     </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если Вы захотите загрузить вторую 
+  текстуру, то Вы должны будете использовать следующий код: if ((!LoadTGA(&amp;textures[0],&quot;image1.tga&quot;)) || (!LoadTGA(&amp;textures[1],&quot;image2.tga&quot;))) { } </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того как мы загрузили TGA (создали 
+  нашу текстуру), мы строим наш шрифт, устанавливаем плавное сглаживание, делаем 
+  фоновый цвет черным, разрешаем очистку буфера глубины и выбираем нашу текстуру 
+  шрифта (привязываемся к ней).</p>
+<p class=textword>   </p>
+<p class=textword>Наконец, мы возвращаем true, и тем 
+  самым даем знать нашей программе, что инициализация прошла ok.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>int InitGL(Glvoid)                           // Все настройки 
+  для OpenGL</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  if 
+  (!LoadTGA(&amp;textures[0],&quot;Data/Font.TGA&quot;))// Загружаем текстуру шрифта</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return false;                            
+  // Если ошибка, возвращаем false</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  BuildFont();                              
+  // Строим шрифт</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glShadeModel(GL_SMOOTH);                  
+  // Разрешаем плавное сглаживание</p>
+<p class=textpreword>  glClearColor(0.0f, 0.0f, 0.0f, 0.5f);     
+  // Черный фон</p>
+<p class=textpreword>  glClearDepth(1.0f);                       
+  // Устанавливаем буфер глубины</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, textures[0].texID); // Выбираем нашу текстуру шрифта</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  return TRUE;                              // 
+  Инициализация прошла OK</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Код отрисовки совершенно новый :). 
+  Мы начинаем с того, что создаем переменную token типа char. Token будет хранить 
+  текст, разобранный далее в коде.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>У нас есть другая переменная, названная cnt. Я использую эту 
+  переменную, как для подсчета количества поддерживаемых расширений, так и для 
+  позиционирования текста на экране. cnt сбрасывается в нуль каждый раз, когда 
+  мы вызываем DrawGLScene.  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Мы очищаем экран и буфер глубины, затем устанавливаем цвет в 
+  ярко-красный (красный полной интенсивности, 50% зеленый, 50% синий). С позиции 
+  50 по оси x и 16 по оси y мы выводим слово &quot;Renderer&quot;. Также мы выводим 
+  &quot;Vendor&quot; и &quot;Version&quot; вверху экрана. Причина, по которой 
+  каждое слово начинается не с 50 по оси x, в том, что я выравниваю все эти слова 
+  по их правому краю (все они выстраиваются по правой стороне).    </p>
+<p class=textword> </p>
+<p class=textpreword>int DrawGLScene(GLvoid)                 // Здесь происходит 
+  все рисование</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  char *token;                          // Место 
+  для хранения расширений</p>
+<p class=textpreword>  int  cnt=0;                           // Локальная 
+  переменная цикла</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Очищаем экран и буфер глубины </p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+</p>
+<p class=textpreword>  glColor3f(1.0f,0.5f,0.5f);            // Устанавливаем 
+  цвет в ярко-красный</p>
+<p class=textpreword>  glPrint(50,16,1,&quot;Renderer&quot;);          
+  // Выводим имя производителя</p>
+<p class=textpreword>  glPrint(80,48,1,&quot;Vendor&quot;);            
+  // Выводим имя поставщика</p>
+<p class=textpreword>  glPrint(66,80,1,&quot;Version&quot;);           
+  // Выводим версию карты</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь, когда у нас есть текст на 
+  экране, мы изменяем цвет на оранжевый, и считываем из видеокарты имя производителя, 
+  имя поставщика и номер версии видеокарты. Мы делаем это, передавая GL_RENDERER, 
+  GL_VENDOR и GL_VERSION в glGetString(). glGetString вернет запрошенные имя производителя, 
+  имя поставщика и номер версии. Возвращаемая информация будет текстом, поэтому 
+  мы должны запросить информацию от glGetString как char. Это значит, что мы сообщаем 
+  программе, что мы хотим, чтобы возвращаемая информация была символами (текст). 
+  Если Вы не включите (char *), то Вы получите сообщение об ошибке. Мы печатаем 
+  в текстовом виде, поэтому нам необходимо возвратить текст. Мы получаем все три 
+  части информации и выводим их справа от предыдущего текста. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Информация, которую мы получим от 
+  glGetString(GL_RENDERER), будет выведена рядом с красным текстом &quot;Renderer&quot;, 
+  а информация, которую мы получим от glGetString(GL_VENDOR), будет выведена справа 
+  от &quot;Vendor&quot;, и т.д. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Мне бы хотелось объяснить процесс приведения типа более подробно, 
+  но у меня нет по-настоящему хорошего объяснения. Если кто-то может хорошо объяснить 
+  это, напишите мне, и я изменю мои пояснения.   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того, как мы поместили информацию 
+  о производителе, имя поставщика и номер версии на экран, мы изменяем цвет на 
+  ярко-синий и выводим &quot;NeHe Productions&quot; в низу экрана :). Конечно, 
+  Вы можете изменить этот текст как угодно.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glColor3f(1.0f,0.7f,0.4f);               // 
+  Устанавливаем цвет в оранжевый</p>
+<p class=textpreword>  glPrint(200,16,1,(char *)glGetString(GL_RENDERER));// 
+  Выводим имя производителя</p>
+<p class=textpreword>  glPrint(200,48,1,(char *)glGetString(GL_VENDOR));  
+  // Выводим имя поставщика</p>
+<p class=textpreword>  glPrint(200,80,1,(char *)glGetString(GL_VERSION)); 
+  // Выводим версию</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glColor3f(0.5f,0.5f,1.0f);             // 
+  Устанавливаем цвет в ярко-голубой</p>
+<p class=textpreword>  glPrint(192,432,1,&quot;NeHe 
+  Productions&quot;); // Печатаем NeHe Productions в низу экрана</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Сейчас мы нарисуем красивую белую рамку вокруг экрана и вокруг 
+  текста. Мы начнем со сброса матрицы просмотра модели. Поскольку мы напечатали 
+  текст на экране и находимся не в точке 0,0 экрана, это лучший способ для возврата 
+  в 0,0.  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Затем мы устанавливаем цвет в белый и начинаем рисовать наши 
+  рамки. Ломаная линия достаточно легка в использовании. Мы говорим OpenGL, что 
+  хотим нарисовать ломаную линию с помощью glBegin(GL_LINE_STRIP). Затем мы устанавливаем 
+  первую вершину. Наша первая вершина будет находиться на краю  правой части экрана 
+  и на 63 пиксела вверх от нижнего края экрана (639 по оси x и 417 по оси y). 
+  После этого мы устанавливаем вторую вершину. Мы остаемся в том же месте по оси 
+  y (417), но по оси x сдвигаемся на левый край (0). Линия будет нарисована из 
+  правой части экрана (639,417) в левую часть(0,417).</p>
+<p class=textword>       </p>
+<p class=textword>У Вас должно быть, по крайней мере, две вершины для рисования 
+  линии (как подсказывает здравый смысл). Из левой части экрана мы перемещаемся 
+  вниз, вправо, и затем вверх (128 по оси y).  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Затем мы начинаем другую ломаную линию, 
+  и рисуем вторую рамку вверху экрана. Если Вам нужно нарисовать много соединенных 
+  линий, то ломаная линия определенно позволит снизить количество кода, который 
+  был бы необходим для рисования регулярных линий(GL_LINES).</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glLoadIdentity();                // Сбрасываем 
+  матрицу просмотра модели</p>
+<p class=textpreword>  glColor3f(1.0f,1.0f,1.0f);       // Устанавливаем 
+  цвет в белый</p>
+<p class=textpreword>  glBegin(GL_LINE_STRIP);          // Начало 
+  рисования ломаной линии</p>
+<p class=textpreword>    glVertex2d(639,417);           // Верх Право 
+  нижней рамки </p>
+<p class=textpreword>    glVertex2d(  0,417);           // Верх Лево 
+  нижней рамки</p>
+<p class=textpreword>    glVertex2d(  0,480);           // Низ Лево 
+  нижней рамки</p>
+<p class=textpreword>    glVertex2d(639,480);           // Низ Право 
+  нижней рамки</p>
+<p class=textpreword>    glVertex2d(639,128);           // Вверх 
+  к Низу Права верхней рамки</p>
+<p class=textpreword>  glEnd();                         // Конец 
+  первой ломаной линии</p>
+<p class=textpreword>  glBegin(GL_LINE_STRIP);          // Начало 
+  рисования другой ломаной линии</p>
+<p class=textpreword>    glVertex2d(  0,128);           // Низ Лево 
+  верхней рамки</p>
+<p class=textpreword>    glVertex2d(639,128);           // Низ Право 
+  верхней рамки</p>
+<p class=textpreword>    glVertex2d(639,  1);           // Верх Право 
+  верхней рамки</p>
+<p class=textpreword>    glVertex2d(  0,  1);           // Верх Лево 
+  верхней рамки</p>
+<p class=textpreword>  glVertex2d(  0,417);             // Вниз к 
+  Верху Лева нижней рамки</p>
+<p class=textpreword>  glEnd();                         // Конец 
+  второй ломаной линии</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>А теперь кое-что новое. Чудесная GL 
+  команда, которая называется glScissor(x,y,w,h). 
+  Эта команда создает почти то, что можно называть окном. Когда разрешен GL_SCISSOR_TEST, 
+  то единственной частью экрана, которую Вы можете изменять, является та часть, 
+  которая находится внутри вырезанного окна. Первая строка ниже создает вырезанное 
+  окно, начиная с 1 по оси x и 13.5% (0.135...f) пути снизу экрана по оси y. Вырезанное 
+  окно будет иметь 638 пикселов в  ширину(swidth-2) и 59.7%(0.597...f) экрана 
+  в высоту.         </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>В следующей строке мы разрешаем вырезку. Что бы мы ни рисовали 
+  за пределами вырезанного окна, не появится. Вы можете нарисовать ОГРОМНЫЙ четырехугольник 
+  на экране с 0,0 до 639,480, но Вы увидите только ту часть, которая попала в 
+  вырезанное окно. Оставшаяся часть экрана не будет видна. Замечательная команда!      
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Третья строка кода создает переменную text, которая будет хранить 
+  символы, возвращаемые glGetString(GL_EXTENSIONS).  malloc(strlen((char *)glGetString(GL_EXTENSIONS))+1) 
+  выделяет достаточно памяти, для хранения всей строки, которая будет возвращена, 
+  + 1 (таким образом, если строка содержит 50 символов, то text будет в состоянии 
+  хранить все 50 символов).</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Следующая строка копирует информацию 
+  GL_EXTENSIONS в text. Если мы непосредственно модифицируем информацию GL_EXTENSIONS, 
+  то возникнут большие проблемы, поэтому вместо этого мы копируем информацию в 
+  text, и затем манипулируем информацией, сохраненной в text. По сути, мы просто 
+  берем копию и сохраняем ее в переменной text.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  // Определяем область вырезки</p>
+<p class=textpreword>  glScissor(1,int(0.135416f*sheight),swidth-2,int(0.597916f*sheight));  
+</p>
+<p class=textpreword>  glEnable(GL_SCISSOR_TEST);        // Разрешаем 
+  вырезку</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Выделяем память для строки расширений </p>
+<p class=textpreword>  char* text=(char*)malloc(strlen((char *)glGetString(GL_EXTENSIONS))+1); 
+</p>
+<p class=textpreword>  // Получаем список расширений и сохраняем 
+  его в text</p>
+<p class=textpreword>  strcpy (text,(char *)glGetString(GL_EXTENSIONS)); 
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Сейчас, немного нового. Давайте предположим, 
+  что после захвата информации о расширениях из видеокарты, в переменной text 
+  хранится следующая строка... &quot;GL_ARB_multitexture GL_EXT_abgr GL_EXT_bgra&quot;. strtok(TextToAnalyze,TextToFind) 
+  будет сканировать переменную text пока не найдет в ней &quot; &quot;(пробел). 
+  Как только пробел будет найден, будет скопировано содержимое text ВПЛОТЬ ДО 
+  пробела в переменную token. В нашем случае, token будет равняться &quot;GL_ARB_multitexture&quot;. 
+  Затем пробел заменится маркером. Подробнее об этом через минуту.     </p>
+<p class=textword> </p>
+<p class=textword>Далее мы создаем цикл, который остановится когда больше не останется 
+  информации в text. Если в text нет информации, то token будет равняться NULL 
+  и цикл остановится.    </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Мы увеличиваем переменную счетчик 
+  (cnt) на единицу, и затем проверяем больше ли значение cnt чем maxtokens. Если 
+  cnt больше чем maxtokens, то мы приравниваем maxtokens к cnt. Таким образом, 
+  если счетчик достиг 20-ти, то maxtokens будет также равен 20. Это необходимо 
+  для того, чтобы следить за максимальным значением счетчика.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  // Разбиваем 'text' на слова, разделенные 
+  &quot; &quot; (пробелом)</p>
+<p class=textpreword>  token=strtok(text,&quot; &quot;); </p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  while(token!=NULL)              // Пока token не NULL</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    cnt++;                
+  // Увеличиваем счетчик</p>
+<p class=textpreword>    if 
+  (cnt&gt;maxtokens)        // Если 'maxtokens' 
+  меньше или равно 'cnt'</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        maxtokens=cnt; // Если да, то 'maxtokens' 
+  приравниваем к 'cnt'</p>
+<p class=textpreword>    }</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Итак, мы сохранили первое расширение 
+  из нашего списка расширений в переменную token. Следующее, что мы сделаем - 
+  установим цвет в ярко-зеленый. Затем мы напечатаем переменную cnt в левой части 
+  экрана. Заметьте, что мы печатаем с позиции 0 по оси x. Это могло бы удалить 
+  левую (белую) рамку, которую мы нарисовали, но так как включена вырезка, то 
+  пиксели, нарисованные в 0 по оси x, не будут изменены. Не получится нарисовать 
+  поверх рамки. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Переменная будет выведена левого края экрана (0 по оси x). По 
+  оси y мы начинаем рисовать с 96. Для того чтобы весь текст не выводился в одной 
+  и той же точке экрана, мы добавил (cnt*32) к 96. Так, если мы 
+  отображаем первое расширение, то cnt будет равно 1, и текст будет нарисован 
+  с 96+(32*1)(128) по оси y. Если мы отображаем второе расширение, то cnt будет 
+  равно 2, и текст будет нарисован с 96+(32*2)(160) по оси y.   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Заметьте, что я всегда вычитаю scroll. 
+  Во время запуска программы scroll будет равняться 0. Так, наша первая строка 
+  текста рисуется с 96+(32*1)-0. Если Вы нажмете СТРЕЛКА ВНИЗ, то scroll увеличится 
+  на 2. Если scroll равняется 4, то текст будет нарисован с 96+(32*1)-4. Это значит, 
+  что текст будет нарисован с 124 вместо 128 по оси y, поскольку scroll равняется 
+  4. Верх нашего вырезанного окна заканчивается в 128 по оси y. Любая часть текста, 
+  рисуемая в строках 124-127 по оси y, не появится на экране. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Тоже самое и с низом экрана. Если cnt равняется 11 и scroll 
+  равняется 0, то текст должен быть нарисован с 96+(32*11)-0 и в 448 по оси y. 
+  Поскольку вырезанное окно позволяет нам рисовать только до 416 по оси y, то 
+  текст не появится вообще.    </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Последнее, что нам нужно от прокручиваемого окна, это возможность 
+  посматривать 288/32 (9) строк текста. 288 - это высота нашего вырезанного окна. 
+  32 - высота нашего текста. Изменяя значение scroll, мы можем двигать текст вверх 
+  или вниз (смещать текст).    </p>
+<p class=textword> </p>
+<p class=textword>Эффект подобен кинопроектору. Фильм прокручивается через линзу 
+  и все, что Вы видите - текущий кадр. Вы не видите область выше или ниже кадра. 
+  Линза выступает в качестве окна, аналогично окну, созданному при помощи вырезки.  
+</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того, как мы нарисовали текущий счетчик (сnt) на экране, 
+  изменяем цвет на желтый, передвигаемся на 50 пикселов вправо по оси x, и выводим 
+  текст, хранящийся в переменной token на экран.    </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Используя наш пример выше, первая строка текста, которая будет 
+  отображена на экране, будет иметь вид:   </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>1 GL_ARB_multitexture</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>    glColor3f(0.5f,1.0f,0.5f);      // Устанавливаем 
+  цвет в ярко-зеленый</p>
+<p class=textpreword>    glPrint(0,96+(cnt*32)-scroll,0,&quot;%i&quot;,cnt); 
+  // Печатаем текущий номер расширения</p>
+<p class=textpreword>    glColor3f(1.0f,1.0f,0.5f);            // 
+  Устанавливаем цвет в желтый</p>
+<p class=textpreword>    glPrint(50,96+(cnt*32)-scroll,0,token);     
+  // Печатаем текущее расширение</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того, как мы отобразили значение token на экране, мы должны 
+  проверить переменную text: есть ли еще поддерживаемые расширения. Вместо использования 
+  token=strtok(text,&quot; &quot;), как мы делали выше, мы замещаем text на NULL. 
+  Это сообщает команде strtok, что искать нужно от последнего маркера до СЛЕДУЮЩЕГО 
+  пробела в строке текста (text).    </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>В нашем примере выше (&quot;GL_ARB_multitexturemarkerGL_EXT_abgr GL_EXT_bgra&quot;) маркер будет находиться после текста &quot;GL_ARB_multitexture&quot;. Строка кода ниже начнет поиск ОТ маркера до следующего 
+  пробела. Все, находящееся от маркера до следующего пробела, будет сохранено 
+  в token. В token будет помещено &quot;GL_EXT_abgr&quot;, в text будет храниться 
+  GL_ARB_multitexturemarkerGL_EXT_abgrmarkerGL_EXT_bgra&quot;.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Когда у strtok() не останется текста 
+  для сохранения в token, token станет равным NULL и цикл остановится.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>    token=strtok(NULL,&quot; &quot;);               
+  // Поиск следующего расширения</p>
+<p class=textpreword>  }</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>После того, как все расширения будут 
+  разобраны из переменной text, мы можем запретить вырезку и освободить переменную 
+  text. Это освобождает память, которую мы использовали для хранения информации, 
+  полученной от glGetString(GL_EXTENSIONS). </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>При следующем вызове DrawGLScene(), 
+  будет выделена новая память. Свежая копия информации, которую вернет glGetStrings(GL_EXTENSIONS), 
+  будет скопирована с переменную text и весь процесс начнется заново.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glDisable(GL_SCISSOR_TEST);               
+  // Запрещаем вырезку</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  free (text);                              
+  // Освобождаем выделенную память</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Первая строка ниже необязательна, но я подумал, что это хороший 
+  случай рассказать о ней, чтобы все знали, что она существует. Команда glFlush() 
+  в основном говорит OpenGL закончить то, что он делает. Если Вы когда-нибудь 
+  заметите мерцание в Вашей программе (исчезновение четырехугольников, и т.д.), 
+  то попытайтесь добавить команду flush в конец DrawGLScene.     </p>
+<p class=textword> </p>
+<p class=textword>Последнее, что мы делаем - возвращаем 
+  true, чтобы показать, что все прошло ok. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>  glFlush();                                   
+  // Сброс конвейера рендеринга</p>
+<p class=textpreword>  return TRUE:                                 
+  // Все прошло ok</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Единственно, что стоит отметить в KillGLWindow() - в конец я 
+  добавил KillFont(). Таким образом, когда окно будет уничтожено, шрифт также 
+  будет уничтожен.  </p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>GLvoid KillGLWindow(GLvoid)               // Правильное уничтожение 
+  окна</p>
+<p class=textpreword>{</p>
+<p class=textpreword>    if (fullscreen)                       // 
+  Полноэкранный режим?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        ChangeDisplaySettings(NULL,0);    // Переход в режим 
+  разрешения рабочего стола</p>
+<p class=textpreword>        ShowCursor(TRUE);// Показать указатель 
+  мыши</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    if (hRC)                              // 
+  Существует контекст рендеринга?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        if (!wglMakeCurrent(NULL,NULL))   // 
+  Можно ли освободить DC и RC контексты?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>            MessageBox(NULL,&quot;Release Of 
+  DC And RC Failed.&quot;,&quot;SHUTDOWN ERROR&quot;, </p>
+<p class=textpreword>                                                MB_OK 
+  | MB_ICONINFORMATION);</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>        if (!wglDeleteContext(hRC))         // 
+  Можно ли уничтожить RC?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>            MessageBox(NULL,&quot;Release Rendering 
+  Context Failed.&quot;,</p>
+<p class=textpreword>                   &quot;SHUTDOWN ERROR&quot;,MB_OK 
+  | MB_ICONINFORMATION);</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>        hRC=NULL;                               // 
+  Установим RC в NULL</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    if (hDC &amp;&amp; !ReleaseDC(hWnd,hDC))      
+  // Можно ли уничтожить 
+  DC?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        MessageBox(NULL,&quot;Release Device 
+  Context Failed.&quot;,&quot;SHUTDOWN ERROR&quot;,</p>
+<p class=textpreword>                                              MB_OK 
+  | MB_ICONINFORMATION);</p>
+<p class=textpreword>        hDC=NULL;                             // Установим DC в NULL</p>
+<p class=textpreword>    } </p>
+<p class=textpreword>    if 
+  (hWnd &amp;&amp; !DestroyWindow(hWnd))     // Можно ли уничтожить окно?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        MessageBox(NULL,&quot;Could Not Release 
+  hWnd.&quot;,&quot;SHUTDOWN ERROR&quot;,MB_OK | </p>
+<p class=textpreword>                                                      
+  MB_ICONINFORMATION);</p>
+<p class=textpreword>        hWnd=NULL;                            // 
+  Уствновим hWnd в NULL</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    if (!UnregisterClass(&quot;OpenGL&quot;,hInstance)) 
+  // Можно ли уничтожить класс?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        MessageBox(NULL,&quot;Could Not Unregister 
+  Class.&quot;,&quot;SHUTDOWN ERROR&quot;,MB_OK |  </p>
+<p class=textpreword>                                                          MB_ICONINFORMATION);</p>
+<p class=textpreword>        hInstance=NULL;                       // 
+  Устанавливаем hInstance в NULL</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    KillFont();                       // 
+  Уничтожаем шрифт</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>CreateGLWindow(), и WndProc() - те же. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Первое изменение в WinMain() - название, 
+  которое появляется вверху окна. Теперь оно будет &quot;NeHe's Extensions, Scissoring, Token &amp; TGA Loading Tutorial&quot;.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>int WINAPI WinMain(HINSTANCE hInstance,      // Экземпляр</p>
+<p class=textpreword>                   HINSTANCE hPrevInstance,  
+  // Предыдущий экземпляр</p>
+<p class=textpreword>                   LPSTR     lpCmdLine,      // Параметры командной строки</p>
+<p class=textpreword>                   Int       nCmdShow)       
+  // Состояние окна</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  MSG msg;                        // Структура 
+  сообщения Windows</p>
+<p class=textpreword>  BOOL done=FALSE;                // Логическая 
+  переменная выхода из цикла</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Спрашиваем у юзера какой режим он предпочитает</p>
+<p class=textpreword>  if (MessageBox(NULL,&quot;Would You Like To 
+  Run In Fullscreen Mode?&quot;, </p>
+<p class=textpreword>         &quot;Start FullScreen?&quot;, MB_YESNO 
+  | MB_ICONQUESTION)==IDNO)</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    fullscreen=FALSE;             // Оконный режим</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Создание OpenGL окна</p>
+<p class=textpreword>  if (!CreateGLWindow(&quot;NeHe's Token, Extensions, 
+  Scissoring &amp; TGA Loading                      </p>
+<p class=textpreword>                                            Tutorial&quot;,640,480,16,fullscreen))</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return 
+  0;                     // Выход, если окно не было создано</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  while(!done)                    // Цикл выполняется пока done=FALSE</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    if (PeekMessage(&amp;msg,NULL,0,0,PM_REMOVE)) 
+  // Есть сообщение?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      if (msg.message==WM_QUIT)   // Получили сообщение Quit?</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        done=TRUE;                // Если да, то done=TRUE</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>      else // Если нет, то обрабатываем оконные сообщения</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        DispatchMessage(&amp;msg);    // Отправляем 
+  сообщение</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    else                          
+  // Если нет сообщений</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>        // 
+  Рисуем сцену. Проверяем клавишу ESC и сообщение QUIT из DrawGLScene()</p>
+<p class=textpreword>        // Активно?  Получили Quit 
+  сообщение?</p>
+<p class=textpreword>        if ((active &amp;&amp; !DrawGLScene()) 
+  || keys[VK_ESCAPE]) </p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          done=TRUE; // ESC или DrawGLScene сигнализирует 
+  о выходе</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>        else                      
+  // Не время выходить, обновляем экран</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          SwapBuffers(hDC);       // Меняем буфера 
+  (двойная буферизация)</p>
+<p class=textpreword>          if (keys[VK_F1])        // Нажата клавиша 
+  F1?</p>
+<p class=textpreword>          {</p>
+<p class=textpreword>            keys[VK_F1]=FALSE;    // Если да, то 
+  установим в FALSE</p>
+<p class=textpreword>            KillGLWindow();       
+  // Уничтожаем наше текущее окно</p>
+<p class=textpreword>            fullscreen=!fullscreen; 
+  // Полноэкран./окон. режим</p>
+<p class=textpreword>            // Создаем наше OpenGL окно </p>
+<p class=textpreword>            if (!CreateGLWindow(&quot;NeHe's 
+  Token, Extensions,</p>
+<p class=textpreword>            Scissoring &amp; TGA Loading Tutorial&quot;, 
+  640,480,16,fullscreen))</p>
+<p class=textpreword>            {</p>
+<p class=textpreword>              return 0; // Выход если окно не было создано</p>
+<p class=textpreword>            }</p>
+<p class=textpreword>          }</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Код ниже проверяет: если была нажата 
+  стрелка вверх и scroll больше 0, то уменьшаем scroll на 2. Это заставляет сдвинуться вниз текст на экране.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_UP] &amp;&amp; (scroll&gt;0))  
+  // Нажата стрелка вверх?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          scroll-=2; // Если да, то уменьшаем 'scroll', двигая экран вниз</p>
+<p class=textpreword>        }</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если была нажата стрелка вниз, и scroll 
+  меньше чем (32*(maxtokens-9)), то scroll будет увеличена на 2, и текст на экране 
+  сдвинется вверх. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>32 - это количество пикселей, занимаемое 
+  каждой строкой. Maxtokens - общее количество расширений, поддерживаемых Вашей 
+  видеокартой. Мы вычитаем 9, поскольку 9 строк могут одновременно показываться 
+  на экране. Если мы не вычтем 9, то сможем сдвигать за пределы списка, что приведет 
+  к тому, что список полностью сдвинется за пределы экрана. Попробуйте убрать 
+  -9, если Вы не понимаете, о чем я говорю.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_DOWN] &amp;&amp; (scroll&lt;32*(maxtokens-9))) 
+  // Нажата стрелка вниз?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>           scroll+=2; // Если да, то увеличиваем 'scroll', двигая экран вверх</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Завершение</p>
+<p class=textpreword>  KillGLWindow(); 
+  // Уничтожаем окно</p>
+<p class=textpreword>  return 
+  (msg.wParam); // Выходим из программы</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Я надеюсь, что Вы нашли этот урок 
+  интересным. К концу этого урока Вы должны знать, как считывать имя производителя, 
+  поставщика и номер версии из Вашей видеокарты. Также Вы должны уметь определять, 
+  какие расширения поддерживаются любой видеокартой, которая поддерживает OpenGL. 
+  Также Вы должны знать, что такое вырезка и как можно использовать ее в своих 
+  OpenGL 
+  проектах, и, наконец, Вы должны знать, как загружать TGA изображения вместо BMP для использования их в качестве текстур. </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Если у Вас возникли какие-либо проблемы 
+  с этим уроком, или Вы находите, что эта информация трудна для понимания, дайте 
+  мне знать. Я хочу сделать свои уроки лучше, насколько это возможно. Обратная 
+  связь очень важна!</p>
+<p class=textword>&nbsp;  </p>
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe) </b></font><br>
+</p>    
+</div>
+<div id="end">
+
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;20 ноября 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:den_popov@xaker.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Popov Denis</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

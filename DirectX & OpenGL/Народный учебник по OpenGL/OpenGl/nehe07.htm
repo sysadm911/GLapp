@@ -1,0 +1,1041 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 7. Режимы фильтрации текстур, освещение и обработка клавиатуры</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe07.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 7. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 7. Режимы фильтрации текстур, освещение и обработка клавиатуры
+</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=7" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Texture Filters, Lighting & Keyboard Control</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>В этом уроке я научу вас, как использовать три разных режима 
+  фильтрации текстур. Я научу вас, как перемещать объект, используя клавиши на 
+  клавиатуре, и я также преподам вам, как применить простое освещение в вашей 
+  OpenGL сцене. В этом уроке много материала, поэтому, если предыдущие уроки вам 
+  непонятны, вернитесь и посмотрите их вновь. Важно иметь хорошее понимание основ 
+  прежде, чем Вы перепрыгнете на этот код.</p>
+<p class=textword><br>
+  Мы собираемся снова изменить код первого урока. Как обычно, если много меняется, 
+  я привожу полную секцию кода, который был изменен. Мы начнем, добавив несколько 
+  новых переменных к программе.</p>
+<p class=textword><span style='font-size:8.0pt;'>&nbsp; </span></p>
+<p class=textpreword>#include &lt;windows.h&gt;  // Заголовочный файл для Windows</p>
+<p class=textpreword>#<span lang=EN-US>include</span> &lt;<span lang=EN-US>stdio</span>.<span
+lang=EN-US>h</span>&gt;    // Заголовочный файл для стандартного ввода/вывода 
+  (ДОБАВИЛИ)</p>
+<p class=textpreword>#<span lang=EN-US>include</span> &lt;<span lang=EN-US>gl</span>\<span
+lang=EN-US>gl</span>.<span lang=EN-US>h</span>&gt;    // Заголовочный файл для 
+  библиотеки <span lang=EN-US>OpenGL</span>32</p>
+<p class=textpreword>#<span lang=EN-US>include</span> &lt;<span lang=EN-US>gl</span>\<span
+lang=EN-US>glu</span>.<span lang=EN-US>h</span>&gt;   // Заголовочный файл для 
+  для библиотеки <span lang=EN-US>GLu</span>32</p>
+<p class=textpreword>#<span lang=EN-US>include</span> &lt;<span lang=EN-US>gl</span>\<span
+lang=EN-US>glaux</span>.<span lang=EN-US>h</span>&gt; // Заголовочный файл для 
+  библиотеки <span lang=EN-US>GLaux</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>HDC    hDC=NULL;      // Служебный контекст GDI устройства</p>
+<p class=textpreword>HGLRC  hRC=NULL;      // Постоянный контекст для визуализации</p>
+<p class=textpreword>HWND   hWnd=NULL;     // Содержит дискриптор для окна</p>
+<p class=textpreword>HINSTANCE hInstance;  // Содержит данные для нашей программы</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>bool keys[256];       // Массив, использующийся для сохранения 
+  состояния клавиатуры</p>
+<p class=textpreword>bool active=TRUE;     // Флаг состояния активности приложения 
+  (по умолчанию: TRUE)</p>
+<p class=textpreword>bool fullscreen=TRUE; // Флаг полноэкранного режима (по умолчанию: 
+  полноэкранное)</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Строки ниже новые. Мы собираемся добавлять три логических переменных. 
+  Тип <span lang=EN-US>BOOL</span> означает, что переменная может только быть 
+  ИСТИННА (<span lang=EN-US>TRUE</span>) или ЛОЖЬ (<span lang=EN-US>FALSE</span>). 
+  Мы создаем переменную называемую <b><span lang=EN-US>light</span></b>, чтобы 
+  отслеживать, действительно ли освещение включено или выключено. Переменные <b><span
+lang=EN-US>lp</span></b> и <b><span lang=EN-US>fp</span></b> используются, для 
+  отслеживания нажатия клавиш 'L' и 'F'. Я объясню, почему нам нужны эти переменные 
+  позже. Пока, запомните, что они необходимы.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>BOOL</span><span
+lang=EN-US> </span><span lang=EN-US>light</span>;      // Свет ВКЛ / ВЫКЛ</p>
+<p class=textpreword><span lang=EN-US>BOOL</span><span
+lang=EN-US> </span><span lang=EN-US>lp</span>;         // <span lang=EN-US>L</span> 
+  нажата?</p>
+<p class=textpreword>BOOL fp;         // F нажата<span
+lang=EN-US>?</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь нам нужны пять переменных, которые будут управлять следующими 
+  параметрами: углом по оси <span lang=EN-US>X</span> (<b><span lang=EN-US>xrot</span></b>), 
+  углом по оси <span lang=EN-US>Y</span> (<b><span
+lang=EN-US>yrot</span></b>), скоростью вращения ящика по оси <span lang=EN-US>X</span> 
+  (<b><span
+lang=EN-US>xspeed</span></b>), и скоростью вращения ящика по оси <span lang=EN-US>Y</span> 
+  (<b><span lang=EN-US>yspeed</span></b>). Мы также создадим переменную <b><span lang=EN-US>z</span></b>, 
+  которая будет управлять, погружением ящика в экран (по оси <span lang=EN-US>Z</span>).</p>
+<p class=textword><span style='font-size:8.0pt;'>&nbsp; </span></p>
+<p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>xrot</span>;         // <span lang=EN-US>X</span> 
+  вращение</p>
+<p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>yrot</span>;         // <span lang=EN-US>Y</span> 
+  вращение</p>
+<p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>xspeed</span>;       // <span lang=EN-US>X</span> 
+  скорость вращения</p>
+<p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>yspeed</span>;       // <span lang=EN-US>Y</span> 
+  скорость вращения</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>z</span>=-5.0<span
+lang=EN-US>f</span>;      // Сдвиг вглубь экрана</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь мы зададим массивы, которые мы будем использовать для 
+  освещения. Мы будем использовать два разных типа света. Первый тип света называется 
+  фоновым светом. Фоновый свет не имеет никакого определенного направления. Все 
+  объекты в вашей сцене будут освещены фоновым светом. Второй тип света - диффузный 
+  свет. Диффузный свет создается при помощи вашего источника света и отражается 
+  от поверхности объекта в вашей сцене. Любая поверхность объекта, на которую 
+  падает прямо свет, будет очень яркой и области, куда свет падает под углом, 
+  будут темнее. Это создает хороший эффект оттенения на сторонах нашей корзины.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Свет создается так же как цвет. Если первое число - 1.0f, а 
+  следующие два - 0.0f, мы получим ярко красный свет. Если третье число - 1.0f, 
+  и первые два - 0.0f, мы будем иметь ярко синий свет. Последнее число - альфа 
+  значение. Мы оставим его пока 1.0f.<br>
+  <br>
+</p>
+<p class=textword>Поэтому в строке ниже, мы зададим значение белого фонового света 
+  половиной интенсивности (0.5f). Поскольку все числа - 0.5f, мы получим свет 
+  средней яркости между черным (выключен свет) и белым (полная яркость). Смешанные 
+  в равных значениях красный, синий и зеленый дадут оттенки от черного (0.0f) 
+  до белого (1.0f). Без фонового света пятна, где нет диффузного света, будут 
+  очень темными.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>GLfloat</span><span
+lang=EN-US> </span><span lang=EN-US>LightAmbient</span>[]= { 0.5<span lang=EN-US>f</span>, 
+  0.5<span
+lang=EN-US>f</span>, 0.5<span lang=EN-US>f</span>, 1.0<span lang=EN-US>f</span> 
+  }; // Значения фонового света ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>В следующей строке мы зададим значение для супер-яркой, полной 
+  интенсивности диффузного света. Все значения - 1.0f. Это означает, что свет 
+  настолько яркий, насколько мы можем получить его. Диффузный свет эти яркое пятно 
+  спереди ящика.</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'>GLfloat</span><span lang=EN-US style='color:windowtext'> 
+  </span><span
+lang=EN-US style='color:windowtext;'>LightDiffuse</span><span
+style='color:windowtext'>[]= { 1.0</span><span lang=EN-US style='color:windowtext;
+'>f</span><span style='color:windowtext'>, 1.0</span><span
+lang=EN-US style='color:windowtext;'>f</span><span
+style='color:windowtext'>, 1.0</span><span lang=EN-US style='color:windowtext;
+'>f</span><span style='color:windowtext'>, 1.0</span><span
+lang=EN-US style='color:windowtext;'>f</span> }; // Значения диффузного света 
+  ( НОВОЕ )</p>
+<p class=textpreword><span style='color:windowtext'> &nbsp; </span></p>
+<p class=textword>Наконец мы зададим позицию света. Первые три числа совпадают 
+  с тремя первыми аргументами функции <span lang=EN-US>glTranslate</span>. Первое 
+  число смещение влево или вправо по плоскости x, второе число - для перемещения 
+  вверх или вниз по плоскости y, и третье число для перемещения к или от экрана 
+  по плоскости z. Поскольку мы хотим чтобы наш свет, падал прямо на переднею часть 
+  ящика, мы не сдвигаемся влево или вправо, поэтому первое значение - 0.0f (нет 
+  движения по <span lang=EN-US>x</span>), мы не хотим двигаться вверх или вниз, 
+  поэтому второе значение - 0.0f. Третье значение мы зададим так, чтобы свет был 
+  всегда перед ящиком. Поэтому мы поместим свет вне экрана по отношению к наблюдателю. 
+  Давайте примем, что стекло на вашем мониторе - 0.0f по плоскости z. Мы позиционируем 
+  свет в 2.0f по плоскости z. Если бы Вы могли бы фактически видеть свет, он бы 
+  плавал перед стеклом вашего монитора. Делая, таким образом, единственный способ, 
+  когда бы свет оказался позади ящика, был бы тот, если бы ящик был также перед 
+  стеклом вашего монитора. Конечно, если бы ящик был уже не позади стекла вашего 
+  монитора, Вы больше не видели ящик, поэтому тогда не имеет значения, где свет. 
+  Это имеет смысл?</p>
+<p class=textword><br>
+  Нет никакого простого реального способа разъяснить третий параметр. Вы должны 
+  понять, что -2.0f ближе к Вам чем -5.0f и что -100.0f ДАЛЕКО в экране. Как только 
+  Вы берете 0.0f, изображение становится настолько большим, это заполняет весь 
+  монитор. Как только Вы устанавливаете положительные значения, изображение больше 
+  не появляется на экране по той причине, что объект &quot;пропал с экрана&quot;. 
+  Вот это я подразумеваю, когда я говорю вне экрана. Объект - все еще есть, но 
+  Вы уже не можете больше его видеть.</p>
+<p class=textword><br>
+  Оставьте последнее число в 1.0f. Это говорит <span lang=EN-US>OpenGL</span> 
+  о том, что данные координаты - позиция источника света. Более подробно об этом 
+  я расскажу в одном из следующих уроков.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'>GLfloat</span><span lang=EN-US style='color:windowtext'> 
+  </span><span
+lang=EN-US style='color:windowtext;'>LightPosition</span><span
+style='color:windowtext'>[]= { 0.0</span><span lang=EN-US style='color:windowtext;
+'>f</span><span style='color:windowtext'>, 0.0</span><span
+lang=EN-US style='color:windowtext;'>f</span><span
+style='color:windowtext'>, 2.0</span><span lang=EN-US style='color:windowtext;
+'>f</span><span style='color:windowtext'>, 1.0</span><span
+lang=EN-US style='color:windowtext;'>f</span> };     // Позиция света ( НОВОЕ 
+  )</p>
+<p class=textpreword><span style='color:windowtext'> &nbsp; </span></p>
+<p class=textword>Переменная <b><span lang=EN-US>filter</span></b> должна отслеживать, 
+  каким образом будут отображаться текстуры. Первая текстура (<span lang=EN-US>texture</span>[0]) 
+  использует gl_nearest (без сглаживания). Вторая текстура (<span lang=EN-US>texture</span>[1]) 
+  использует фильтрацию gl_linear, которая немного сглаживает изображение. Третья 
+  текстура (<span
+lang=EN-US>texture</span>[2]) использует текстуры с мип-наложением (<span lang=EN-US>mipmapped</span>, 
+  или множественное наложение), что повышает качество отображения. Переменная 
+  <b><span
+lang=EN-US>filter</span></b> будет равняться 0, 1 или 2 в зависимости от текстуры, 
+  которую мы хотим использовать. Мы начинаем с первой текстуры.</p>
+<p class=textword><br>
+  Объявление <span lang=EN-US>GLuint</span><span
+lang=EN-US> </span><span lang=EN-US>texture</span>[3] создает место для хранения 
+  трех разных текстур. Текстуры будут сохранены в <span
+lang=EN-US>texture</span>[0], <span lang=EN-US>texture</span>[1] и <span lang=EN-US>texture</span>[2].</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword><span lang=EN-US>GLuint</span><span
+lang=EN-US> </span><span lang=EN-US>filter</span>;         // Какой фильтр использовать</p>
+<p class=textpreword><span lang=EN-US>GLuint</span><span
+lang=EN-US> </span><span lang=EN-US>texture</span>[3];     // Место для хранения 
+  3 текстур</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);    
+  // Декларация<span lang=EN-US> WndProc</span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Сейчас мы загрузим картинку (<span lang=EN-US>bitmap</span>, 
+  или растровый (побитный) образ изображения), и создадим три различных текстуры 
+  из нее. В этом уроке используется библиотека <span lang=EN-US>glaux</span> для 
+  загрузки картинки, поэтому проверьте, что Вы подключили библиотеку <span
+lang=EN-US>glaux</span> прежде, чем Вы пробуете скомпилировать код. Я знаю, что 
+  <span lang=EN-US>Delphi</span>, и <span lang=EN-US>Visual</span> C++ имеют библиотеку 
+  <span lang=EN-US>glaux</span>. Я не уверен, что она есть в других языках. Я 
+  собираюсь объяснить только новые строки кода, если Вы видите не прокомментированную 
+  строку, и Вы не понимаете, что она делает, посмотрите шестой урок. Там объясняется 
+  загрузка, и формирования образов текстуры из картинок очень подробно.</p>
+<p class=textword><br>
+  Сразу же после кода выше, и до <span lang=EN-US>ReSizeGLScene</span> (), мы 
+  добавим следующую секцию кода. Это - тот же самый код, который мы использовали 
+  в уроке 6 для загрузки картинки. Ничего не изменилось. Если Вы не понимаете 
+  их, прочитайте шестой урок. Там этот код объяснен подробнее.</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword>AUX_RGBImageRec *LoadBMP(char *Filename)     // Загрузка 
+  картинки<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span> </span>FILE *File=NULL;          // Индекс файла</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span> </span>if (!<span lang=EN-US>Filename</span>)            
+  // Проверка имени файла</p>
+<p class=textpreword> <span lang=EN-US>{</span></p>
+<p class=textpreword>  <span lang=EN-US>return</span><span lang=EN-US> </span><span
+lang=EN-US>NULL</span>;             // Если нет вернем <span
+lang=EN-US>NULL</span></p>
+<p class=textpreword> <span lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span> </span><span
+lang=EN-US>File</span>=<span lang=EN-US>fopen</span>(<span lang=EN-US>Filename</span>,&quot;<span lang=EN-US>r</span>&quot;); 
+  // Проверим существует ли файл</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> <span lang=EN-US>if</span> (<span lang=EN-US>File</span>)   
+                // Файл существует?</p>
+<p class=textpreword> <span lang=EN-US>{</span></p>
+<p class=textpreword><span>  </span>fclose(File);            // Закрыть файл<span lang=EN-US></span></p>
+<p class=textpreword>  <span lang=EN-US>return</span><span lang=EN-US> </span><span
+lang=EN-US>auxDIBImageLoad</span>(<span
+lang=EN-US>Filename</span>); // Загрузка картинки и вернем на нее указатель</p>
+<p class=textpreword> <span lang=EN-US>}</span></p>
+<p class=textpreword><span> </span><span
+lang=EN-US>return</span><span lang=EN-US> </span><span
+lang=EN-US>NULL</span>;              // Если загрузка не удалась вернем <span lang=EN-US>NULL</span></p>
+<p class=textpreword><span lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>В этой секции кода загружается картинка (вызов кода выше) и 
+  производится конвертирование ее в 3 текстуры. Переменная <b><span lang=EN-US>Status</span></b> 
+  используется, чтобы следить, действительно ли текстура была загружена и создана.</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword><span lang=EN-US>int</span><span
+lang=EN-US> </span><span lang=EN-US>LoadGLTextures</span>()                      
+  // Загрузка картинки и конвертирование в текстуру</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span> </span>int Status=FALSE;                        <span lang=EN-US>// 
+  </span>Индикатор состояния<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span> </span><span
+lang=EN-US>AUX</span>_<span lang=EN-US>RGBImageRec</span> *<span lang=EN-US>TextureImage</span>[1];        
+  // Создать место для текстуры</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> <span lang=EN-US>memset(TextureImage,0,sizeof(void *)*1); 
+  // </span>Установить указатель в<span lang=EN-US> NULL</span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Теперь мы загружаем картинку и конвертируем ее в текстуру. Выражение 
+  <span lang=EN-US>TextureImage</span>[0]=<span
+lang=EN-US>LoadBMP</span> (&quot;<span
+lang=EN-US>Data</span>/<span lang=EN-US>Crate</span>.<span lang=EN-US>bmp</span> 
+  &quot;) будет вызывать наш код <span lang=EN-US>LoadBMP</span>(). Файл по имени 
+  <span
+lang=EN-US>Crate</span>.<span lang=EN-US>bmp</span> в каталоге Data будет загружен. 
+  Если все пройдет хорошо, данные изображения сохранены в <span lang=EN-US>TextureImage</span>[0], 
+  Переменная <b><span
+lang=EN-US>Status</span></b> установлена в <span
+lang=EN-US>TRUE</span>, и мы начинаем строить нашу текстуру.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> // Загрузка картинки, проверка на ошибки, если картинка 
+  не найдена - выход</p>
+<p class=textpreword> <span lang=EN-US>if (TextureImage[0]=LoadBMP(&quot;Data/Crate.bmp&quot;))</span></p>
+<p class=textpreword><span> </span>{</p>
+<p class=textpreword><span>  </span>Status=TRUE;       // Установим<span lang=EN-US> 
+  Status </span>в<span lang=EN-US> TRUE</span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Теперь, мы загрузили данные изображения в <span lang=EN-US>TextureImage</span> 
+  [0], мы будем использовать эти данные для построения 3 текстур. Строка ниже 
+  сообщает <span lang=EN-US>OpenGL</span>, что мы хотим построить три текстуры, 
+  и мы хотим, чтобы текстура была сохранена в <span lang=EN-US>texture</span>[0], 
+  <span lang=EN-US>texture</span>[1] и <span lang=EN-US>texture</span>[2].</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>glGenTextures(3, &amp;texture[0]);     // Создание трех текстур<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>В шестом уроке, мы использовали линейную фильтрацию образов 
+  текстур. Это способ фильтрации требует много мощности процессора, но текстуры 
+  при этом выглядят реалистичными. Первый тип текстуры, которую мы собираемся 
+  создать в этом уроке, использует GL_NEAREST. Этот тип текстуры не использует 
+  фильтрацию. Требуется очень мало мощности процессора, и качество плохое. Если 
+  вы когда-нибудь видели игру, где текстуры как будто состоят из блоков, они, 
+  вероятно, используют этот тип текстуры. Единственное применение этого типа текстуры 
+  для проектов, которые будут запускаться на медленных компьютерах.</p>
+<p class=textword><br>
+  Заметьте, что мы используем GL_NEAREST, и для <span lang=EN-US>MIN</span> и 
+  для <span lang=EN-US>MAG</span>. Вы можете смешивать использование GL_NEAREST 
+  с GL_LINEAR, и текстура будет смотреться немного лучше, но мы заинтересованы 
+  в быстродействии, поэтому мы будем использовать везде низкое качество. Фильтр 
+  MIN_FILTER используется, когда изображение рисуемого полигона меньше, чем первоначальный 
+  размер текстуры. Фильтр MAG_FILTER используется, когда изображение рисуемого 
+  полигона больше, чем первоначальный размер текстуры.</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword>  // Создание текстуры с фильтром по соседним пикселям</p>
+<p class=textpreword>  <span lang=EN-US>glBindTexture(GL_TEXTURE_2D, texture[0]);</span></p>
+<p class=textpreword><span>  </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST); 
+ // ( НОВОЕ<span lang=EN-US> )</span></p>
+<p class=textpreword><span>  </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST); 
+ // ( НОВОЕ<span
+lang=EN-US> )</span></p>
+<p class=textpreword><span>  </span>glTexImage2D(GL_TEXTURE_2D, 0, 3, TextureImage[0]-&gt;sizeX, 
+  TextureImage[0]-&gt;sizeY,<span
+style='color:windowtext'></span></p>
+<p class=textpreword><span>   </span>0, GL_RGB, GL_UNSIGNED_BYTE, TextureImage[0]-&gt;data);</p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Следующая текстура, которую мы построим, имеет тот же самый 
+  тип текстуры, которую мы использовали в уроке шесть. Линейный режим фильтрации. 
+  Изменилось только то, что мы сохраняем эту текстуру в <span lang=EN-US>texture</span>[1] 
+  вместо <span lang=EN-US>texture</span>[0], потому что здесь она вторая текстура. 
+  Если бы мы сохранили ее в <span lang=EN-US>texture</span>[0] как ранее, она 
+  затерла бы текстуру GL_NEAREST (первая текстура).</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  // Создание текстуры с линейной фильтрацией</p>
+<p class=textpreword><span>  </span>glBindTexture(GL_TEXTURE_2D, texture[1]);</p>
+<p class=textpreword><span>  </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword><span>  </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+<p class=textpreword><span>  </span>glTexImage2D(GL_TEXTURE_2D, 0, 3, TextureImage[0]-&gt;sizeX, 
+  TextureImage[0]-&gt;sizeY,<span
+style='color:windowtext'></span></p>
+<p class=textpreword><span>   </span>0, GL_RGB, GL_UNSIGNED_BYTE, TextureImage[0]-&gt;data);</p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Теперь новый способ создания текстуры. Мип-наложение! Вы, возможно, 
+  замечали, что, когда изображение на экране очень маленькое, пропадает множество 
+  мелких деталей. Орнаменты, которые выглядят вначале отлично, смотрятся отвратительно. 
+  Когда Вы говорите <span lang=EN-US>OpenGL</span> построить текстуру с мип-наложением, 
+  <span lang=EN-US>OpenGL</span> будет строить разного размера высококачественные 
+  текстуры. Когда Вы выводите текстуру с мип-наложением на экран, <span lang=EN-US>OpenGL</span> 
+  будет выбирать НАИБОЛЕЕ ЛУЧШУЮ для отображения текстуру из построенных текстур 
+  (текстура с таким размером, как размер полигона на экране, т.е. наиболее детальная) 
+  и нарисует ее на экран вместо масштабирования первоначального изображения (что 
+  и вызывает потерю качества).</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Я рассказал в уроке шесть про ограничение на размер текстур 
+  в <span lang=EN-US>OpenGL</span> по ширине и высоте текстуры в 64,128,256, и 
+  т.д. Для <span lang=EN-US>g</span>luBuild2DMipmaps Вы можете использовать картинки 
+  любых размеров при формировании текстуры с мип-наложением. <span lang=EN-US>OpenGL</span> 
+  будет автоматически изменять размер ее задавая правильные ширину и высоту.</p>
+<p class=textword><br>
+  Поскольку это - текстура номер три, мы собираемся хранить эту текстуру в <span
+lang=EN-US>texture</span>[2]. Поэтому, теперь мы имеем <span lang=EN-US>texture</span>[0], 
+  которая не имеет никакой фильтрации, <span lang=EN-US>texture</span>[1], которая 
+  использует линейную фильтрацию, и <span
+lang=EN-US>texture</span>[2], которая использует текстуру с мин-наложением. Мы 
+  закончили построение текстур в этом уроке.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  // Создание Текстуры с Мип-Наложением</p>
+<p class=textpreword>  <span lang=EN-US>glBindTexture(GL_TEXTURE_2D, texture[2]);</span></p>
+<p class=textpreword><span>  </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword><span>  </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST); 
+ // ( НОВОЕ<span lang=EN-US> )</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Следующая строка строит текстуру с мип-наложением. Мы создаем 
+  2<span lang=EN-US>D</span> текстуру, используя три цвета (красный, зеленый, 
+  синий) (<span lang=EN-US>red</span>, <span lang=EN-US>green</span>, <span lang=EN-US>blue</span>).  
+  <span lang=EN-US>TextureImage</span>[0]-&gt;<span lang=EN-US>sizeX</span> - 
+  ширина картинки, <span lang=EN-US>TextureImage</span>[0]-&gt;<span lang=EN-US>sizeY</span> 
+  - высота картинки, GL_RGB означает, что мы используем цвета в порядке Красный, 
+  Зеленый, Синий (<span lang=EN-US>Red</span>, <span lang=EN-US>Green</span>, 
+  <span lang=EN-US>Blue</span>). GL_UNSIGNED_BYTE означает что данные, из которых 
+  состоит текстура из байтов, и <span lang=EN-US>TextureImage</span>[0]-&gt;<span lang=EN-US>data</span> 
+  указатель на растр картинки, из которого мы строим текстуру.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span>  </span>gluBuild2DMipmaps(GL_TEXTURE_2D, 3, TextureImage[0]-&gt;sizeX, 
+  TextureImage[0]-&gt;sizeY,</p>
+<p class=textpreword><span>   </span>GL_RGB, GL_UNSIGNED_BYTE, TextureImage[0]-&gt;data); 
+ // ( НОВОЕ<span lang=EN-US> )</span></p>
+<p class=textpreword><span> </span>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь мы можем освободить память, которую мы использовали для 
+  картинок. Мы проверяем, была ли картинка сохранена в <span lang=EN-US>TextureImage</span>[0]. 
+  Если да, то мы проверяем, были ли данные сохранены. Если данные были сохранены, 
+  мы удаляем их. Тогда мы освобождаем структуру изображения, уверенные, что любая 
+  используемая память освобождена.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> <span lang=EN-US>if</span> (<span lang=EN-US>TextureImage</span>[0])           
+  // Если текстура существует</p>
+<p class=textpreword> <span lang=EN-US>{</span></p>
+<p class=textpreword>  <span lang=EN-US>if</span> (<span lang=EN-US>TextureImage</span>[0]-&gt;<span lang=EN-US>data</span>)    
+  // Если изображение текстуры существует</p>
+<p class=textpreword>  <span lang=EN-US>{</span></p>
+<p class=textpreword>   <span
+lang=EN-US>free</span>(<span lang=EN-US>TextureImage</span>[0]-&gt;<span lang=EN-US>data</span>); 
+  // Освобождение памяти изображения текстуры</p>
+<p class=textpreword>  <span lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword>  <span lang=EN-US>free</span>(<span lang=EN-US>TextureImage</span>[0]);        
+  // Освобождение памяти под структуру</p>
+<p class=textpreword> }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Наконец мы возвращаем статус. Если все прошло OK, переменная 
+  <b><span
+lang=EN-US>Status</span></b> будет <span
+lang=EN-US>TRUE</span>. Если что-нибудь прошло не так, как надо, <b><span lang=EN-US>Status</span></b> 
+  будет <span lang=EN-US>FALSE</span>.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span> </span>return Status;        // Возвращаем статус<span
+lang=EN-US></span></p>
+<p class=textpreword><span style='color:windowtext'>}</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь мы загружаем текстуры, и инициализируем параметры настройки 
+  <span lang=EN-US>OpenGL</span>. В первой строке <span lang=EN-US>InitGL</span> 
+  загружаются текстуры, используя код выше. После того, как текстуры созданы, 
+  мы разрешаем 2<span lang=EN-US>D</span> наложение текстуры с помощью <span lang=EN-US>glEnable</span> 
+  (GL_TEXTURE_2D). Режим закрашивания (<span lang=EN-US>shade</span>) задается 
+  как сглаженное закрашивание. Цвет фона задан как черный, мы разрешаем тест глубины, 
+  затем мы разрешаем хорошие перспективные вычисления.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>int</span><span
+lang=EN-US> </span><span lang=EN-US>InitGL</span>(<span
+lang=EN-US>GLvoid</span>)             // Все настройки для <span
+lang=EN-US>OpenGL</span> делаются здесь</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span> </span>if (!<span lang=EN-US>LoadGLTextures</span>())        
+  // Переход на процедуру загрузки текстуры</p>
+<p class=textpreword> <span lang=EN-US>{</span></p>
+<p class=textpreword>  <span lang=EN-US>return</span><span lang=EN-US> </span><span
+lang=EN-US>FALSE</span>;                // Если текстура не загружена возвращаем 
+  <span lang=EN-US>FALSE</span></p>
+<p class=textpreword> <span lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span> </span>glEnable(GL_TEXTURE_2D);      // Разрешить 
+  наложение текстуры<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>glShadeModel(GL_SMOOTH);      // Разрешение 
+  сглаженного закрашивания<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>glClearColor(0.0f, 0.0f, 0.0f, 0.5f); // Черный 
+  фон<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>glClearDepth(1.0<span lang=EN-US>f</span>);  
+           // Установка буфера глубины</p>
+<p class=textpreword> glEnable(GL_DEPTH_TEST);      // Разрешить тест глубины<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>glDepthFunc(GL_LEQUAL);       // Тип теста 
+  глубины<span
+lang=EN-US></span></p>
+<p class=textpreword><span> </span>glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); 
+  // Улучшенные вычисления перспективы<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь мы задаем освещение. Строка ниже задает интенсивность 
+  фонового света, которое light1 будет давать. В начале этого урока мы задали 
+  интенсивность фонового света в <span lang=EN-US>LightAmbient</span>. Значения, 
+  которые мы поместили в массив, будут использованы (фоновый свет половиной интенсивности).</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);    // Установка 
+  Фонового Света<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Затем мы задаем интенсивность диффузного света, который источник 
+  света номер один будет давать. Мы задали интенсивность диффузного света в <span lang=EN-US>LightDiffuse</span>. 
+  Значения, которые мы поместили в этот массив, будут использованы (белый свет 
+  полной интенсивности).</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword>glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);    // Установка 
+  Диффузного Света<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Теперь мы задаем позицию источника света. Мы поместили позицию 
+  в <span lang=EN-US>LightPosition</span>. Значения, которые мы поместили в этот 
+  массив, будут использованы (справо в центре передней грани, 0.0f по <b><span lang=EN-US>x</span></b>, 
+  0.0f по <b>y</b>, и 2 единицы вперед к наблюдателю {выходит за экран} по плоскости 
+  <b>z</b>).</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword><span> </span>glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);   
+  // Позиция света<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>Наконец, мы разрешаем источник света номер один. Мы не разрешили 
+  GL_LIGHTING, поэтому Вы еще не увидите никакого освещения. Свет установлен, 
+  и позиционирован, и даже разрешен, но пока мы не разрешили GL_LIGHTING, освещение 
+  не будет работать.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> <span lang=EN-US>glEnable</span>(<span lang=EN-US>GL</span>_<span lang=EN-US>LIGHT</span>1); 
+  // Разрешение источника света номер один</p>
+<p class=textpreword> <span lang=EN-US>return</span><span lang=EN-US> </span><span
+lang=EN-US>TRUE</span>;         // Инициализация прошла <span
+lang=EN-US>OK</span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'>}</span></p>
+<p class=textpreword><span lang=EN-US style='color:windowtext;'> &nbsp; </span></p>
+<p class=textword>В следующей секции кода, мы нарисуем текстуру, наложенную на 
+  куб. Я буду комментировать только несколько строк, потому что они новые. Если 
+  Вы не понимаете не прокомментированные строки, вернитесь к уроку номер шесть.</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword>int DrawGLScene(GLvoid)        // Здесь мы делаем все рисование<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span> </span>glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);   
+  // Очистка Экрана и Буфера Глубины<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>glLoadIdentity();       // Сброс Просмотра<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Следующих трех строках кода куб с наложенной текстурой позиционируется 
+  и вращается. Вызов <span lang=EN-US>glTranslatef</span> (0.0f, 0.0f, z) перемещает 
+  куб на значение <b>z</b> по плоскости z (от наблюдателя или к наблюдателю). 
+  Вызов <span lang=EN-US>glRotatef</span> (<span lang=EN-US>xrot</span>, 1.0f, 
+  0.0f, 0.0f) использует переменную <b><span lang=EN-US>xrot</span></b>, чтобы 
+  вращать куб по оси X. Вызов <span lang=EN-US>glRotatef</span> (<span lang=EN-US>yrot</span>, 
+  1.0f, 0.0f, 0.0f) использует переменную <b><span lang=EN-US>yrot</span></b>, 
+  чтобы вращать куб по оси Y.</p>
+<p class=textpreword><span style='font-family:Arial;
+color:windowtext'> &nbsp; </span></p>
+<p class=textpreword><span> </span>glTranslatef(0.0f,0.0f,z);      // Перенос 
+  В<span lang=EN-US>/</span>Вне экрана по<span lang=EN-US> z</span></p>
+<p class=textpreword><span> </span><span
+lang=EN-US>glRotatef</span>(<span lang=EN-US>xrot</span>,1.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>); 
+  // Вращение по оси <span lang=EN-US>X</span> на <span lang=EN-US>xrot</span></p>
+<p class=textpreword><span> </span><span lang=EN-US style='color:windowtext;'>glRotatef</span><span style='color:windowtext'>(</span><span lang=EN-US
+style='color:windowtext;'>yrot</span><span
+style='color:windowtext'>,0.0</span><span lang=EN-US style='color:windowtext;
+'>f</span><span style='color:windowtext'>,1.0</span><span
+lang=EN-US style='color:windowtext;'>f</span><span
+style='color:windowtext'>,0.0</span><span lang=EN-US style='color:windowtext;
+'>f</span><span style='color:windowtext'>); // Вращение по оси </span><span lang=EN-US style='color:windowtext;'>Y</span><span
+style='color:windowtext'> по </span><span lang=EN-US style='color:windowtext;
+'>yrot</span><span style='color:windowtext'></span></p>
+<p class=textpreword><span style='color:windowtext'> &nbsp; </span></p>
+<p class=textword>Следующая строка подобна строке, которую мы использовали в уроке 
+  шесть, но вместо связывания к <span lang=EN-US>texture</span>[0], мы привязываем 
+  <span lang=EN-US>texture</span>[<span lang=EN-US>filter</span>]. Если мы нажимаем 
+  клавишу 'F', значение в <span lang=EN-US>filter</span> увеличится. Если значение 
+  больше чем два, переменная <span
+lang=EN-US>filter</span> сбрасывается в ноль. Когда программа запускается, <span lang=EN-US>filter</span> 
+  будет установлена в ноль. Это все равно, что <span lang=EN-US>glBindTexture</span> 
+  (GL_TEXTURE_2D, <span lang=EN-US>texture</span>[0]). Если мы нажимаем &quot;F&quot; 
+  еще раз, переменная <span
+lang=EN-US>filter</span> будет равна единице, что фактически <span lang=EN-US>glBindTexture</span> 
+  (GL_TEXTURE_2D, <span lang=EN-US>texture</span>[1]). Используя, переменную <span lang=EN-US>filter</span> 
+  мы можем выбирать любую из трех текстур, которые мы создали.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> <span lang=EN-US>glBindTexture</span>(<span lang=EN-US>GL</span>_<span lang=EN-US>TEXTURE</span>_2<span lang=EN-US>D</span>, 
+  <span lang=EN-US>texture</span>[<span
+lang=EN-US>filter</span>]);    // Выбор текстуры основываясь на <span
+lang=EN-US>filter</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span> </span><span lang=EN-US style='color:windowtext;'>glBegin</span><span style='color:windowtext'>(</span><span lang=EN-US
+style='color:windowtext;'>GL</span><span
+style='color:windowtext'>_</span><span lang=EN-US style='color:windowtext;
+'>QUADS</span>);       // Начало рисования четырехугольников</p>
+<p class=textpreword><span style='color:windowtext'> &nbsp; </span></p>
+<p class=textword><span lang=EN-US>g</span>lNormal3f новая функция в моих уроках. 
+  Нормаль - линия, берущая начало из середины полигона под 90 углом градусов. 
+  Когда Вы используете освещение, Вы должны задать нормали. Нормаль сообщает <span lang=EN-US>OpenGL</span>, 
+  в каком направлении у полигона лицевая часть, какое направление верхнее. Если 
+  Вы не задали нормали, могут происходить сверхъестественные вещи. Грань, которая 
+  не освещена, будет освещена, неверная сторона полигона будет освещена, и т.д. 
+  Нормаль должна указывать вовне полигона.</p>
+<p class=textword> <br>
+  Посмотрев на переднюю грань, Вы заметите, что нормаль имеет положительное направление 
+  по оси Z. Это означает, что нормаль указывает на наблюдателя. Это точно, то 
+  направление, которое мы хотим указать. На обратной грани, нормаль указывает 
+  от наблюдателя вглубь экрана. Снова это точно то, что мы хотим. Если куб повернут 
+  на 180 градусов или по оси <span lang=EN-US>X</span> или по оси Y, передняя 
+  грань ящика будет лицом вглубь экрана, и задняя грань ящика будет лицом к наблюдателю. 
+  Независимо от того, какую грань видит наблюдатель, нормаль этой грани будет 
+  также направлена на наблюдателя. Поскольку свет - близко к наблюдателю всегда 
+  нормаль, указывающая на наблюдателя, также указывает на свет. Если это сделать, 
+  то грань будет освещена. Чем больше нормалей указывает на свет, тем более яркая 
+  будет грань. Если Вы переместились в центр куба, Вы заметите, что там темно. 
+  Нормали – указывают вовне, а не во внутрь, поэтому нет освещения внутри куба.</p>
+<p class=textword><span style='font-size:8.0pt;'>&nbsp; </span></p>
+<p class=textpreword>  // Передняя грань</p>
+<p class=textpreword>  <span lang=EN-US>glNormal</span>3<span lang=EN-US>f</span>( 
+  0.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>, 1.0<span lang=EN-US>f</span>);   
+    // Нормаль указывает на наблюдателя</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord</span>2<span lang=EN-US>f</span>(0.0<span lang=EN-US>f</span>, 
+  0.0<span lang=EN-US>f</span>); <span lang=EN-US>glVertex</span>3<span
+lang=EN-US>f</span>(-1.0<span lang=EN-US>f</span>, -1.0<span lang=EN-US>f</span>,  
+  1.0<span lang=EN-US>f</span>); // Точка 1 (Перед)</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord</span>2<span lang=EN-US>f</span>(1.0<span lang=EN-US>f</span>, 
+  0.0<span lang=EN-US>f</span>); <span lang=EN-US>glVertex</span>3<span
+lang=EN-US>f</span>( 1.0<span lang=EN-US>f</span>, -1.0<span lang=EN-US>f</span>,  
+  1.0<span lang=EN-US>f</span>); // Точка 2 (Перед)</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord</span>2<span lang=EN-US>f</span>(1.0<span lang=EN-US>f</span>, 
+  1.0<span lang=EN-US>f</span>); <span lang=EN-US>glVertex</span>3<span
+lang=EN-US>f</span>( 1.0<span lang=EN-US>f</span>,  1.0<span lang=EN-US>f</span>,  
+  1.0<span lang=EN-US>f</span>); // Точка 3 (Перед)</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord</span>2<span lang=EN-US>f</span>(0.0<span lang=EN-US>f</span>, 
+  1.0<span lang=EN-US>f</span>); <span lang=EN-US>glVertex</span>3<span
+lang=EN-US>f</span>(-1.0<span lang=EN-US>f</span>,  1.0<span lang=EN-US>f</span>,  
+  1.0<span lang=EN-US>f</span>); // Точка 4 (Перед)</p>
+<p class=textpreword>  <span lang=EN-US>// </span>Задняя грань<span lang=EN-US></span></p>
+<p class=textpreword>  <span lang=EN-US>glNormal</span>3<span lang=EN-US>f</span>( 
+  0.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>,-1.0<span
+lang=EN-US>f</span>);     // Нормаль указывает от наблюдателя</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 
+  -1.0f, -1.0f); // Точка 1 (</span>Зад<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  
+  1.0f, -1.0f); // Точка 2 (Зад<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  
+  1.0f, -1.0f); // Точка 3 (Зад<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, 
+  -1.0f, -1.0f); // Точка 4 (Зад<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>// Верхняя грань<span lang=EN-US></span></p>
+<p class=textpreword>  <span lang=EN-US>glNormal</span>3<span lang=EN-US>f</span>( 
+  0.0<span lang=EN-US>f</span>, 1.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>);     
+  // Нормаль указывает вверх</p>
+<p class=textpreword>  glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  1.0f, -1.0f); 
+  // Точка 1 (Верх<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f,  
+  1.0f,  1.0f); // Точка 2 (Верх<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.0f,  
+  1.0f,  1.0f); // Точка 3 (Верх<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  
+  1.0f, -1.0f); // Точка 4 (Верх<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>// Нижняя грань<span lang=EN-US></span></p>
+<p class=textpreword>  <span lang=EN-US>glNormal</span>3<span lang=EN-US>f</span>( 
+  0.0<span lang=EN-US>f</span>,-1.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>);     
+  // Нормаль указывает вниз</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f, 
+  -1.0f, -1.0f); // Точка 1 (</span>Низ<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f, 
+  -1.0f, -1.0f); // Точка 2 (Низ<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, 
+  -1.0f,  1.0f); // Точка 3 (Низ<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 
+  -1.0f,  1.0f); // Точка 4 (Низ<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>// Правая грань<span lang=EN-US></span></p>
+<p class=textpreword>  <span lang=EN-US>glNormal</span>3<span lang=EN-US>f</span>( 
+  1.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>);     
+  // Нормаль указывает вправо</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord2f(1.0f, 0.0f); glVertex3f( 
+  1.0f, -1.0f, -1.0f); // Точка 1 (</span>Право<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.0f,  
+  1.0f, -1.0f); // Точка 2 (Право<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 1.0f); glVertex3f( 1.0f,  
+  1.0f,  1.0f); // Точка 3 (Право<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 0.0f); glVertex3f( 1.0f, 
+  -1.0f,  1.0f); // Точка 4 (Право<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>// Левая грань<span lang=EN-US></span></p>
+<p class=textpreword>  <span lang=EN-US>glNormal</span>3<span lang=EN-US>f</span>(-1.0<span lang=EN-US>f</span>, 
+  0.0<span lang=EN-US>f</span>, 0.0<span lang=EN-US>f</span>);     // Нормаль 
+  указывает влево</p>
+<p class=textpreword>  <span lang=EN-US>glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.0f, 
+  -1.0f, -1.0f); // Точка 1 (</span>Лево<span lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 0.0f); glVertex3f(-1.0f, 
+  -1.0f,  1.0f); // Точка 2 (Лево<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(1.0f, 1.0f); glVertex3f(-1.0f,  
+  1.0f,  1.0f); // Точка 3 (Лево<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span>  </span>glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.0f,  
+  1.0f, -1.0f); // Точка 4 (Лево<span
+lang=EN-US>)</span></p>
+<p class=textpreword><span> </span><span
+lang=EN-US>glEnd</span>();        // Кончили рисовать четырехугольник</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>В следующих двух строках увеличиваются значения <b><span
+lang=EN-US>xrot</span></b> и <b><span
+lang=EN-US>yrot</span></b> на значения, сохраненные в <b><span lang=EN-US>x</span>speed</b>, 
+  и <b><span lang=EN-US>yspeed</span></b>. Если значение в <b>xspeed</b> или <b><span lang=EN-US>yspeed</span></b> 
+  большое, <b><span lang=EN-US>xrot</span></b><span
+lang=EN-US> </span>и <b><span lang=EN-US>yrot</span></b> увеличивается быстро. 
+  Чем быстрее увеличение <b><span lang=EN-US>xrot</span></b>, или <b><span lang=EN-US>yrot</span></b>, 
+  тем быстрее куб вращается по соответствующей оси.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword> <span lang=EN-US>xrot</span>+=<span lang=EN-US>xspeed</span>;        
+  // Добавить в <span lang=EN-US>xspeed</span> значение <span
+lang=EN-US>xrot</span></p>
+<p class=textpreword> <span lang=EN-US>yrot</span>+=<span lang=EN-US>yspeed</span>;        
+  // Добавить в <span lang=EN-US>yspeed</span> значение <span
+lang=EN-US>yrot</span></p>
+<p class=textpreword><span> </span>return TRUE;         // Выйти<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь мы спускаемся до <span lang=EN-US>WinMain</span> (). 
+  Здесь добавим код для включения или выключения освещения, вращения корзины, 
+  смены фильтра и перемещения ящика ближе или дальше от экрана. Ближе к концу 
+  <span lang=EN-US>WinMain</span> () Вы увидите вызов SwapBuffers (<span lang=EN-US>hDC</span>). 
+  Сразу после этой строки, добавьте следующий код.</p>
+<p class=textword><br>
+  Этот код отслеживает нажатие клавиши 'L'. В первой строке проверяется, нажата 
+  ли 'L'. Если 'L' нажата, но <b><span lang=EN-US>lp</span></b> - не ложь, что 
+  значит клавиша 'L' уже была нажата, или она удерживается нажатой, то тогда ничего 
+  не происходит.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    <span
+lang=EN-US>SwapBuffers</span>(<span lang=EN-US>hDC</span>);     // Переключение 
+  буферов (Двойная буферизация)</p>
+<p class=textpreword>    <span
+lang=EN-US>if</span> (<span lang=EN-US>keys</span>['<span lang=EN-US>L</span>'] 
+  &amp;&amp; !<span lang=EN-US>lp</span>) // Клавиша '<span lang=EN-US>L</span>' 
+  нажата и не удерживается?</p>
+<p class=textpreword>    <span
+lang=EN-US>{</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Если <b><span lang=EN-US>lp</span></b> – ложь то, это означает, 
+  что клавиша '<span lang=EN-US>L</span>' не нажата, иначе, если она уже отпущена, 
+  <b><span lang=EN-US>lp</span></b> - истина. Это гарантирует, что клавишу '<span lang=EN-US>L</span>' 
+  отпустят прежде, чем этот код выполнится снова. Если мы не будет проверять удержание 
+  клавиши, освещение будет мерцать, постоянно включаясь и выключаясь много раз, 
+  поскольку программа думала бы, что Вы нажимает клавишу '<span lang=EN-US>L</span>' 
+  снова и снова, при этом вызывая этот раздел кода. </p>
+<p class=textword><br>
+  Переменная <b><span lang=EN-US>lp</span></b> будучи равной истине, сообщает, 
+  что 'L' отпущена, мы включаем или выключаем освещение. Переменная <b><span lang=EN-US>light</span></b> 
+  может только быть истина или ложь. Поэтому, если мы говорим <b><span
+lang=EN-US>light</span></b>=!<b><span
+lang=EN-US>light</span></b>, то мы фактически говорим, что свет, не равен свету. 
+  По-русски это будет значит, что, если <b><span
+lang=EN-US>light</span></b> равена истине, то <b><span
+lang=EN-US>light</span></b> не будет истина (ложь), и если <b><span lang=EN-US>light</span></b> 
+  равена ложь, то <b><span lang=EN-US>light</span></b> не будет ложь (истина). 
+  Поэтому, если переменная <b><span lang=EN-US>light</span></b> была истина, она 
+  станет ложь, и если <b><span lang=EN-US>light</span></b> была ложь, она станет 
+  истина.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span>     </span>lp=TRUE;      // lp присвоили<span lang=EN-US> 
+  TRUE</span></p>
+<p class=textpreword><span>     </span>light=!<span lang=EN-US>light</span>; // 
+  Переключение света <span
+lang=EN-US>TRUE</span>/<span lang=EN-US>FALSE</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь мы проверим, какое значение <b><span lang=EN-US>light</span></b> 
+  получилось в конце. Первая строка, переведенная на русский означает: если <b><span lang=EN-US>light</span></b> 
+  равняется ложь. Поэтому, если Вы совместите все строки вместе, то они делают 
+  следующее: если <b><span
+lang=EN-US>light</span></b> равняется ложь, то надо запретить освещение. Это выключает 
+  все освещение. Команда '<span
+lang=EN-US>else</span>' означает: если <b><span
+lang=EN-US>light</span></b> не ложь. Поэтому, если <b><span lang=EN-US>light</span></b> 
+  не была ложь то, она истинна, поэтому мы включаем освещение.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>     <span
+lang=EN-US>if</span> (!<span lang=EN-US>light</span>)               // Если не 
+  свет</p>
+<p class=textpreword>     <span
+lang=EN-US>{</span></p>
+<p class=textpreword><span>      </span>glDisable(GL_LIGHTING);  // Запрет освещения<span lang=EN-US></span></p>
+<p class=textpreword>     }</p>
+<p class=textpreword>     <span
+lang=EN-US>else</span>                      // В противном случае</p>
+<p class=textpreword>     <span
+lang=EN-US>{</span></p>
+<p class=textpreword><span>      </span>glEnable(GL_LIGHTING);  <span> </span><span lang=EN-US>// 
+  </span>Разрешить освещение<span
+lang=EN-US></span></p>
+<p class=textpreword><span>     </span>}</p>
+<p class=textpreword><span>    </span>}</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Следующая строка отслеживает отжатие клавиши 'L'. Если мы присвоили 
+  переменной <b><span lang=EN-US>lp</span></b> значение ложь, то это, означает, 
+  что клавиша 'L' не нажата. Если мы не будем отслеживать отжатие клавиши, мы 
+  могли бы включить освещение, но поскольку компьютер считал бы, что 'L' нажата, 
+  поэтому он не позволит нам выключить освещение.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    <span
+lang=EN-US>if</span> (!<span lang=EN-US>keys</span>['<span lang=EN-US>L</span>']) 
+  // Клавиша '<span lang=EN-US>L</span>' Отжата?</p>
+<p class=textpreword>    <span
+lang=EN-US>{</span></p>
+<p class=textpreword>     <span
+lang=EN-US>lp</span>=<span lang=EN-US>FALSE</span>;      // Если так, то <span lang=EN-US>lp</span> 
+  равно <span lang=EN-US>FALSE</span></p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Теперь мы сделаем что-то подобное с клавишей 'F'. Если клавиша 
+  нажата, и она не удерживается, или она не была нажата до этого, тогда присвоим 
+  значение переменной <b><span lang=EN-US>fp</span></b> равное истине, что значит 
+  клавиша 'F' нажата и удерживается. При этом увеличится значение переменной <b><span lang=EN-US>filter</span></b>. 
+  Если <b><span lang=EN-US>filter</span></b> больше чем 2 (т.е. <span lang=EN-US>texture</span>[3], 
+  а такой текстуры не существует), мы сбрасываем значение переменной <span lang=EN-US>texture</span> 
+  назад в ноль.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    <span
+lang=EN-US>if</span> (<span lang=EN-US>keys</span>['<span lang=EN-US>F</span>'] 
+  &amp;&amp; !<span lang=EN-US>fp</span>) // Клавиша '<span lang=EN-US>F</span>' 
+  нажата?</p>
+<p class=textpreword>    <span
+lang=EN-US>{</span></p>
+<p class=textpreword><span>     </span>fp=TRUE;             // fp равно<span lang=EN-US> 
+  TRUE</span></p>
+<p class=textpreword>     <span
+lang=EN-US>filter</span>+=1;           // значение <span lang=EN-US>filter</span> 
+  увеличивается на один</p>
+<p class=textpreword>     <span lang=EN-US>if</span> (<span lang=EN-US>filter</span>&gt;2)        
+  // Значение больше чем 2?</p>
+<p class=textpreword>     <span
+lang=EN-US>{</span></p>
+<p class=textpreword>      <span
+lang=EN-US>filter</span>=0;           // Если так, то установим <span
+lang=EN-US>filter</span> в 0</p>
+<p class=textpreword>     <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span>    </span>}</p>
+<p class=textpreword><span>    </span>if (!keys['F'])       // Клавиша<span lang=EN-US> 
+  'F' </span>отжата<span lang=EN-US>?</span></p>
+<p class=textpreword><span>    </span>{</p>
+<p class=textpreword>     <span
+lang=EN-US>fp</span>=<span lang=EN-US>FALSE</span>;            // Если так, то 
+  <span lang=EN-US>fp</span> равно <span lang=EN-US>FALSE</span></p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>В следующих четырех строках проверяем, нажали ли мы клавишу 
+  'Page up'. Если так, то уменьшим значение переменной <b>z</b>. Если эта переменная 
+  уменьшается, куб будет двигаться вглубь экрана, поскольку мы используем <span lang=EN-US>glTranslatef</span> 
+  (0.0f, 0.0f, z) в процедуре DrawGLScene.</p>
+<p class=textword><span style='font-size:8.0pt;'>&nbsp; </span></p>
+<p class=textpreword>    if (keys[VK_PRIOR])   // Клавиша<span lang=EN-US> 'Page 
+  Up' </span>нажата<span lang=EN-US>?</span></p>
+<p class=textpreword><span>    </span>{</p>
+<p class=textpreword>     <span
+lang=EN-US>z</span>-=0.02<span lang=EN-US>f</span>;            // Если так, то 
+  сдвинем вглубь экрана</p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>В этих четырех строках проверяется, нажали ли мы клавишу 'Page 
+  down'. Если так, то увеличим значение переменной <b>z</b> и сместим куб к наблюдателю, 
+  поскольку мы используем <span lang=EN-US>glTranslatef</span> (0.0f, 0.0f, z) 
+  в процедуре DrawGLScene.</p>
+<p class=textword><span style='font-size:8.0pt;'>&nbsp; </span></p>
+<p class=textpreword>    if (keys[VK_NEXT])    // Клавиша<span lang=EN-US> 'Page 
+  Down' </span>нажата<span lang=EN-US>?</span></p>
+<p class=textpreword><span>    </span>{</p>
+<p class=textpreword>     <span
+lang=EN-US>z</span>+=0.02<span lang=EN-US>f</span>;            // Если так, то 
+  придвинем к наблюдателю</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь все, что мы должны проверить - клавиши курсора. Нажимая 
+  влево или вправо, <b><span lang=EN-US>xspeed</span></b> увеличивается или уменьшается. 
+  Нажимая вверх или вниз, <b><span lang=EN-US>yspeed</span></b> увеличивается 
+  или уменьшается. Помните выше в этом уроке, я говорил, что, если значения <b><span
+lang=EN-US>xs</span>peed</b> или <b><span
+lang=EN-US>yspeed</span></b> большие, куб вращается быстрее. Чем дольше Вы удерживаете 
+  одну из клавиш курсора, тем, быстрее куб будет вращаться в соответствующем направлении.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    <span
+lang=EN-US>if</span> (<span lang=EN-US>keys</span>[<span lang=EN-US>VK</span>_<span lang=EN-US>UP</span>])     
+  // Клавиша стрелка вверх нажата?</p>
+<p class=textpreword>    <span
+lang=EN-US>{</span></p>
+<p class=textpreword>     <span
+lang=EN-US>xspeed</span>-=0.01<span lang=EN-US>f</span>;      // Если так, то 
+  уменьшим <span lang=EN-US>xspeed</span></p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span> </span>   if (keys[VK_DOWN])   // Клавиша стрелка 
+  вниз нажата<span
+lang=EN-US>?</span></p>
+<p class=textpreword><span>    </span>{</p>
+<p class=textpreword>     <span
+lang=EN-US>xspeed</span>+=0.01<span lang=EN-US>f</span>;      // Если так, то 
+  увеличим <span lang=EN-US>xspeed</span></p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword>    <span
+lang=EN-US>if</span> (<span lang=EN-US>keys</span>[<span lang=EN-US>VK</span>_<span lang=EN-US>RIGHT</span>])  
+  // Клавиша стрелка вправо нажата?</p>
+<p class=textpreword>    <span
+lang=EN-US>{</span></p>
+<p class=textpreword>     <span
+lang=EN-US>yspeed</span>+=0.01<span lang=EN-US>f</span>;      // Если так, то 
+  увеличим <span lang=EN-US>yspeed</span></p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span>   </span> if (keys[VK_LEFT])   // Клавиша стрелка 
+  влево нажата<span
+lang=EN-US>?</span></p>
+<p class=textpreword><span>    </span>{</p>
+<p class=textpreword>     <span
+lang=EN-US>yspeed</span>-=0.01<span lang=EN-US>f</span>;      // Если так, то 
+  уменьшим <span lang=EN-US>yspeed</span></p>
+<p class=textpreword>    <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Как и во всех предыдущих уроках, удостоверитесь, что заголовок 
+  наверху окна правильный.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    <span
+lang=EN-US>if</span> (<span lang=EN-US>keys</span>[<span lang=EN-US>VK</span>_<span lang=EN-US>F</span>1])          
+  // Клавиша '<span lang=EN-US>F</span>1' нажата?</p>
+<p class=textpreword>    <span
+lang=EN-US>{</span></p>
+<p class=textpreword>     <span
+lang=EN-US>keys</span>[<span lang=EN-US>VK</span>_<span lang=EN-US>F</span>1]=<span lang=EN-US>FALSE</span>;       
+  // Если так, то сделаем <span
+lang=EN-US>Key</span><span lang=EN-US> </span><span
+lang=EN-US>FALSE</span></p>
+<p class=textpreword><span>     </span>KillGLWindow();          // Уничтожим наше 
+  текущее окно<span lang=EN-US></span></p>
+<p class=textpreword><span>     </span>fullscreen=!<span lang=EN-US>fullscreen</span>;  
+  // Переключение между режимами Полноэкранный/Оконный</p>
+<p class=textpreword>                              // Повторное создание нашего 
+  окна <span
+lang=EN-US>OpenGL</span></p>
+<p class=textpreword>     <span
+lang=EN-US>if</span> (!<span lang=EN-US>CreateGLWindow</span>(&quot;Урок <span
+lang=EN-US>NeHe</span> Текстуры, Свет &amp; Обработка Клавиатуры&quot;,640,480,16,<span lang=EN-US>fullscreen</span>))</p>
+<p class=textpreword>     <span
+lang=EN-US>{</span></p>
+<p class=textpreword><span>      </span>return 0;               // Выход<span lang=EN-US>, 
+  </span>если окно не создано<span lang=EN-US></span></p>
+<p class=textpreword><span>     </span>}</p>
+<p class=textpreword><span>    </span>}</p>
+<p class=textpreword><span>   </span>}</p>
+<p class=textpreword><span>  </span>}</p>
+<p class=textpreword><span> </span>}</p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword><span> </span>// Сброс<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>KillGLWindow();              // Уничтожение 
+  окна<span lang=EN-US></span></p>
+<p class=textpreword><span> </span>return (msg.wParam);         // Выход из программы<span lang=EN-US></span></p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>После освоения этого урока Вы должны уметь создавать и оперировать 
+  объектами из четырехугольников с высококачественным, реалистичным наложением 
+  текстур. Вы должны понять преимущества каждого из трех фильтров, используемых 
+  в этом уроке. Нажимая определенные клавиши на клавиатуре Вы сможете взаимодействовать 
+  с объектом на экране, и наконец, Вы должны знать, как применить простое освещение 
+  на сцене, делая сцену более реалистичной.</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+<p align="center">
+<a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>PMG</b></font></a>
+
+<font class="comment">&nbsp;22 апреля 2002&nbsp;(c)&nbsp;</font> 
+	<a href="mailto:pmg-ru@narod.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  "
+	onmouseout=" return event_out(this) ">
+	<font class="link"><b>Сергей Анисимов</b></font></a>
+          </p>
+</div>
+
+<div id="counter">
+<script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

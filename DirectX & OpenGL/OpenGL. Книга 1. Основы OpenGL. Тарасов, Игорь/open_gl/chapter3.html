@@ -1,0 +1,350 @@
+<html>
+<head>
+<title>Глава 3</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+
+      <h1><a name=tth_chAp3>Chapter 3 </a><br>
+        Рисуем простые объекты</h1>
+
+      <h2><a name=tth_sEc3.1>3.1</a>&nbsp;&nbsp;Общие положения</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Точки, линии, треугольники,четырехугольники, многоугольники - простые объекты, 
+      из которых состоят любые сложные фигуры. В предыдущей главе
+мы рисовали сферу, конус и тор. OpenGL непосредственно не поддерживает функций для
+создания таких сложных объектов, т.е. таких функций нет в opengl32.dll. Эти функции
+есть в библиотеки утилит glu32.dll, и устроены они следующим образом. Для того чтобы нарисовать
+сферу функция auxSolidSphere использует функции из библиотеки glu32.dll, а те в свою очередь,
+использут базовую библиотеку opengl32.dll и из линий или многоугольников строят сферу.
+Примивы создаются следующим образом: 
+<a name=glBegin31></a><a name=glVertex31></a><a name=glEnd31></a>
+<pre> 
+glBegin(GLenum mode);  // указываем, что будем рисовать 
+  glVertex[2 3 4][s i f d](...); // первая вершина
+  ...                            // тут остальные вершины 
+  glVertex[2 3 4][s i f d](...); // последняя вершина
+ glEnd();               // закончили рисовать примитив
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Сначала вы говорите, что будете рисовать - glBegin с соответсвующим параметром. 
+        Возможные значения mode перечислены ниже в таблице. Далее вы указываете 
+вершины, определяющие 
+        объкты указанного типа. Обычно вы будете задавать вершину одним из четырех
+способов.
+<pre>
+glVertex2d(x,y);    // две переменных типа double
+glVertex3d(x,y,z);  // три переменных типа double
+glVertex2dv(array); // массив из двух переменных типа double
+glVertex3d(array);  // массив из трех переменных типа double
+</pre>
+ И наконец, вы вызваете glEnd, чтобы указать, что 
+        вы закончили рисовать объекты типа, указанного в glBegin.     
+Далее мы подробно разберем создание всех примитивов.
+<br><br>
+<table border=1>
+<tr>
+ <td align=center>Значение mode</td><td align=center>Описание</td>
+</tr>
+
+<tr>
+ <td>GL_POINTS</td><td>Каждый вызов glVertex задает отдельную точку.</td>
+</tr>
+<tr>
+ <td>GL_LINES</td><td>Каждая пара вершин задает отрезок.</td>
+</tr>
+<tr>
+ <td>GL_LINE_STRIP</td><td>Рисуется ломанная.</td>
+</tr>
+<tr>
+ <td>GL_LINE_LOOP</td><td>Рисуется ломанная, причем ее последняя точка соединяется с первой.</td>
+</tr>
+<tr>
+ <td>GL_TRIANGLES</td><td>Каждые три вызова glVertex задают треугольник.</td>
+</tr>
+<tr>
+ <td>GL_TRIANGLE_STRIP</td><td>Рисуются треугольники с общей стороной.</td>
+</tr>
+<tr>
+ <td>GL_TRIANGLE_FAN</td><td>Тоже самое, но по другому правилу соединяются вершины, вряд ли понадобится.</td>
+</tr>
+<tr>
+ <td>GL_QUADS</td><td>Каждые четыре вызова glVertex задают четырехугольник.</td>
+</tr>
+<tr>                       
+ <td>GL_QUAD_STRIP</td><td>Четырехугольники с общей стороной.</td>
+</tr>
+<tr>
+ <td>GL_POLYGON</td><td>Многоугольник.</td>
+</tr>
+
+</table>
+
+
+      <h2><a name=tth_sEc3.2>3.2</a>&nbsp;&nbsp;Точки</h2>
+      <a name=glPointSize32></a><a name=GL\_POINTS32></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Вы можете нарисовать столько точек, сколько вам нужно. Вызывая glVertex3d, 
+        вы устанавливает новую точку. При создании точек вы можете изменять следующие
+параметры.
+Вы можете вызывать glColor3d внутри 
+        glBegin/glEnd. Размер точки можно устанавливать с помощью функции:
+<pre>
+void glPointSize(GLfloat size)
+</pre>
+ Режим сглаживания можно устанавливать вызовом функции
+<pre>
+glEnable(GL_POINT_SMOOTH)
+</pre> <a name=GL\_POINT\_SMOOTH32></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Отключается соответственно вызовом glDisable() c 
+        этим параметром. Последние функции - glPointSize и glEnable/glDisable 
+        надо вызывать вне glBegin/glEnd, иначе они будут проигнорированы. Функции 
+        glEnable/glDisable включают/выключают множество опций, но вы должны учитывать, 
+        что некоторые опции влекут за собой большие вычисления и, следовательно, 
+        изрядно затормаживают ваше приложение, поэтому без надобности не стоит 
+        их включать. Очевидно, что совершенно не к чем включать освещение, наложение текстру и
+сглаживания цветов при рисовании точек. Пока вы с этими возможностями OpenGL не
+познакомились, поэтому запомните это на будующее.
+<pre> // рисуем точки
+  glPointSize(2);  
+  glBegin(GL_POINTS);  
+   glColor3d(1,0,0);  
+   glVertex3d(-4.5,4,0); // первая точка
+
+   glColor3d(0,1,0);  
+   glVertex3d(-4,4,0);   // вторая точка
+
+   glColor3d(0,0,1);     // третья
+   glVertex3d(-3.5,4,0);
+  glEnd();
+  
+  glPointSize(5);  
+  glBegin(GL_POINTS);  
+   glColor3d(1,0,0);  
+   glVertex3d(-2,4,0); // первая точка
+
+   glColor3d(0,1,0);  
+   glVertex3d(-1,4,0);   // вторая точка  
+   
+   glColor3d(0,0,1);     // третье
+   glVertex3d(0,4,0);
+  glEnd();
+  
+  glPointSize(10);
+  glEnable(GL_POINT_SMOOTH);  
+  glBegin(GL_POINTS);  
+   glColor3d(1,0,0);  
+   glVertex3d(2,4,0); // первая точка
+
+   glColor3d(0,1,0);  
+   glVertex3d(3,4,0);   // вторая точка
+
+   glColor3d(0,0,1);     // третья
+   glVertex3d(4,4,0);
+  glEnd();
+  glDisable(GL_POINT_SMOOTH); 
+
+</pre>
+
+      <h2><a name=tth_sEc3.3>3.3</a>&nbsp;&nbsp;Линии</h2>
+      <a name=glLineWidth33></a><a name=GL\_LINES33></a>
+<a name=GL\_LINE\_STRIP33></a><a name=GL\_LINE\_STIPPLE33></a>
+<a name=glLineStipple33></a><a name=GL\_LINE\_LOOP33></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Для линий вы также можете изменять ширину, цвет, размер сглаживание.
+Если вы зададите разные цвета для начала и конца линии, то ее цвет будет переливающемся.
+OpenGL по умолчанию делает интерполяцию. Так же вы можете рисовать прерывестые
+линии, делается это путем наложения маски при помощи следующей функции:
+<pre>
+void glLineStipple(GLint factor, GLushort pattern   );
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Второй параметр задает саму маску. Например, если его значение равно 255(0x00FF),
+то чтобы вычислить задаваемую маску воспользуемся калькулятором.
+В двоичном виде это число выглядит так: 0000000011111111, т.е. всего 16 бит.
+Старшие восемь установлены в ноль, значит тут линии не будет. Младшие установлены в 
+        единицу, тут будет рисоваться линия. Первый параметр определяет, сколько 
+        раз повторяется каждый бит. Скажем, если его установить равным 2, то накладываемая 
+        маска будет выглядить так:
+<pre>
+00000000000000001111111111111111
+</pre>
+ 
+ Далее приведен исходный текст с комментариями для наглядной демонстрации что к чему.
+<pre> 
+glLineWidth(1);       // ширину линии 
+                      // устанавливаем 1
+ glBegin(GL_LINES);
+ 
+  glColor3d(1,0,0);     // красный цвет
+  glVertex3d(-4.5,3,0); // первая линия
+  glVertex3d(-3,3,0); 
+
+  glColor3d(0,1,0);     // зеленый
+  glVertex3d(-3,3.3,0); // вторая линия
+  glVertex3d(-4,3.4,0); 
+  
+ glEnd();
+
+ 
+ glLineWidth(3);      // ширина 3
+ glBegin(GL_LINE_STRIP); // см. ниже
+ 
+  glColor3d(1,0,0);
+  glVertex3d(-2.7,3,0);
+  glVertex3d(-1,3,0);
+
+  glColor3d(0,1,0);
+  glVertex3d(-1.5,3.3,0); 
+  glColor3d(0,0,1);
+  glVertex3d(-1,3.5,0); 
+ 
+ glEnd();
+
+ 
+ glLineWidth(5);
+ glEnable(GL_LINE_SMOOTH); 
+ glEnable(GL_LINE_STIPPLE); // разрешаем рисовать 
+                            // прерывистую линию
+ glLineStipple(2,58360);    // устанавливаем маску
+                            // пояснения см. ниже
+
+
+ glBegin(GL_LINE_LOOP);
+
+  glColor3d(1,0,0);
+  glVertex3d(1,3,0);
+  glVertex3d(4,3,0);
+
+  glColor3d(0,1,0);
+  glVertex3d(3,2.7,0); 
+  glColor3d(0,0,1);
+  glVertex3d(2.5,3.7,0); 
+ 
+  glEnd();
+
+ glDisable(GL_LINE_SMOOTH);
+ glDisable(GL_LINE_STIPPLE);
+
+
+</pre>
+      <h2><a name=tth_sEc3.4>3.4</a>&nbsp;&nbsp;Треугольники</h2>
+      <a name=glPolygonMode34></a><a name=GL\_FRONT\_AND\_BACK34></a><a 
+name=GL\_FRONT34></a><a name=GL\_BACK34></a><a name=GL\_TRIANGLES34></a><a 
+name=GL\_TRIANGLE\_STRIP34></a><a name=GL\_TRIANGLE\_FAN34></a><a 
+name=GL\_POINT34></a><a name=GL\_LINE34></a><a name=GL\_FILL34></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Для треугольника можно задавать теже параметры, что и для линии плюс есть еще
+одна функция glPolygonMode.
+Она устанавливает опции для отрисовки многоугольника. Первый параметр может 
+      принимать значения - GL_FRONT, GL_BACK и GL_FRONT_AND_BACK. Второй параметр 
+      указывает, как будет рисоваться многоугольник. Он примает значения - GL_POINT(рисуются 
+      только точки), GL_LINE(рисуем линии) и GL_FILL(рисуем заполненный многоугольник). 
+      Первый параметр указывает: к лицевой, тыльной или же к обеим сторонам применяется 
+      опция, заданная вторым параметром. Треугольники можно рисовать, передав 
+      GL_TRIANGLE_STRIP или GL_TRIANGLE_FAN в glBegin. В первом случае первая, 
+      вторая и третья вершины задают первый треугольник. Вторая, третья и четвертая 
+      вершина - второй треугольник. Третья, четвертая и пятая вершина - третий 
+      треугольник и т.д. Вершины n, n+1 и n+2 определят n-ый треугольник. Во втором 
+      случае первая, вторая и третья вершина задают первый треугольник. Первая, 
+      третья и четвертая вершины задают второй треугольник и т.д. Вершины 1, n+1, 
+      n+2 определяют n-ый треугольник.  Далее следует пример с комментариями.
+
+<pre>
+glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // см. выше
+ glBegin(GL_TRIANGLES);
+  glColor3d(1,0,0);      // рисуем треугольник
+  glVertex3d(-4,2,0);
+  glVertex3d(-3,2.9,0);
+  glVertex3d(-2,2,0);
+ glEnd();
+ 
+
+glLineWidth(2);
+ glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //рисуем 
+                             // проволочные треугольники
+			     
+ glBegin(GL_TRIANGLE_STRIP); // обратите внимание на порядок
+                             // вершин
+  glColor3d(0,1,0);
+  glVertex3d(1,2,0);
+  glVertex3d(0,2.9,0);
+  glVertex3d(-1,2,0);
+  glVertex3d(0,1.1,0);
+ glEnd();
+
+
+ glEnable(GL_LINE_STIPPLE); 
+ glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+ glBegin(GL_TRIANGLE_FAN);
+  glColor3d(0,0,1);
+  glVertex3d(4,2,0);
+  glVertex3d(2.6,2.8,0);
+  glVertex3d(2,2,0);
+  glVertex3d(3,1.1,0);
+ glEnd();
+
+ 
+ glDisable(GL_LINE_STIPPLE);
+
+</pre>
+
+ <h2><a name=tth_sEc3.5>3.5</a>&nbsp;&nbsp;Четырехугольники и многоугольники</h2>
+      <a name=GL\_QUADS35></a><a name=GL\_QUAD\_STRIP35></a><a 
+name=GL\_POLYGON35></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Четырехугольники рисуются вызовом функции glBegin с параметром 
+      GL_QUADS или GL_QUAD_STRIP. Для первого случая каждые четыре вершины определяют 
+      свой четырехугольник. Во втором случае рисуются связанные четырехугольники. 
+      Первая, вторая, третья и четвертая вершина определяют первый четырехугольник. 
+      Третья, четвертая, пятая и шестая вершина - второй четырехугольник и т.д. 
+      (2n-1), 2n, (2n+1) и (2n+2) вершины задают n-ый четырехугольник. Многоугольники 
+      задаются вызывом glBegin с параметром GL_POLYGON. Все вершины определяют 
+      один многоугольник. Для многоугольников можно задавать стили при помощи 
+      выше описанной функции glPolygonMode, толщину линии, толщину точек и цвет.     
+
+      <h2><a name=tth_sEc3.6>3.6</a>&nbsp;&nbsp;Уражнение:"Примитивы"</h2>
+Изобразите точки, линии, треугольники, многоугольники в одном окне, как показано ниже.
+<center><img src="chapter3/primitive/release/primit.jpg"><br>
+Исходный файл смотрите <a href="chapter3/primitive/primitive.c">здесь</a>.
+Исполняемый файл <a href="chapter3/primitive/release/primitive.exe">здесь</a>.
+</center><br>
+
+      <h2><a name=tth_sEc3.7>3.7</a>&nbsp;&nbsp;Уражнение:"Многогранники"</h2>
+      Реализуйте проволочные многогранники с помощью проволочных треугольников, 
+      многоугольников и линий.     
+
+      <h2><a name=tth_sEc3.8>3.8</a>&nbsp;&nbsp;Резюме</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Ну вот, вы еще на один шаг продвинулись  в изучение библиотеки OpenGL.
+Теперь вы имеете представление о том, как рисовать элементарные фигуры. 
+      Из примитивов вы можете составить фигуры любой сложности.
+      <p> 
+    </td>
+  </tr>
+</table>
+</body>
+</html>

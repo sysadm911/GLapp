@@ -1,0 +1,780 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок X1. Улучшенная обработка ввода с использованием DirectInput и Windows</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehex1.jpg" align="right" hspace="0" width="80" height="60" alt="Урок X1. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок X1. Улучшенная обработка ввода с использованием DirectInput и Windows</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+  <p class=textword>Вы должны использовать самые современные технологии, чтобы 
+    конкурировать с такими играми как Quake и Unreal. В этом уроке я научу вас, 
+    как подключить и использовать DirectInput и как использовать мышь в OpenGL 
+    под Windows. Код этого урока базируется на коде урока 10. Начнем.</p>
+  <p class=head3word>&nbsp; </p>
+  <p class=head3word>Мышь</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Первое, что нам понадобиться, это переменная для хранения 
+    X и Y позиции мыши.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword><span>typedef struct tagSECTOR</span></p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>int numtriangles;</p>
+  <p class=textpreword><span>  </span>TRIANGLE* triangle;</p>
+  <p class=textpreword><span>} SECTOR;</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword>SECTOR sector1;            // Наша модель<span></span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword>POINT mpos;                // Позиция мыши (Новое)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);  
+    // Объявление<span> WndProc</span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword>Отлично, как вы видите, мы добавили новую переменную <b>mpos</b>. 
+    Структура POINT состоит из двух переменных – x и y, мы будем использовать 
+    их для того, чтобы вычислить вращение сцены. Далее мы изменим, часть функции 
+    CreateGLWindow() так, как показано ниже.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>ShowCursor(FALSE);             // Убрать указатель мыши 
+    (Изменено)</p>
+  <p class=textpreword>if (fullscreen)                // Если полноэкранный режим?</p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>dwExStyle=WS_EX_APPWINDOW;   </p>
+  <p class=textpreword><span>  </span>dwStyle=WS_POPUP;</p>
+  <p class=textpreword>}</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Выше мы переместили вызов ShowCursor(FALSE) так, чтобы курсора 
+    мыши не было видно не только в полноэкранном режиме, но и в оконном тоже. 
+    Теперь нам нужно получить и установить координаты мыши каждый кадр, поэтому 
+    измените функцию WinMain() так как показано ниже:</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>SwapBuffers(hDC);              // Смена буферов (двойная 
+    буферизация)</p>
+  <p class=textpreword>GetCursorPos(&amp;mpos);           // Получить текущую 
+    позицию мыши (Новое)</p>
+  <p class=textpreword>SetCursorPos(320,240);         // Установить мышь в центр 
+    окна (Новое)</p>
+  <p class=textpreword>heading += (float)(320 - mpos.x)/100 * 5;//Обновить направление 
+    движения (Новое)</p>
+  <p class=textpreword>yrot = heading;                // Обновить вращение вокруг 
+    оси Y (Новое)</p>
+  <p class=textpreword>lookupdown -= (float)(240 - mpos.y)/100 * 5;//Обновить 
+    вращение вокруг X (Новое)</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Сначала мы получили позицию мыши при помощи функции GetCursorPos(POINT 
+    p). Смещение от центра окна даст нам информацию о том, куда и насколько нужно 
+    вращать камеру. Затем мы устанавливаем мышь в центр окна для следующего прохода 
+    используя SetCursorPos(int X, int Y).</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Замечание: Не устанавливайте позицию мыши в 0,0! Если вы сделаете 
+    это, то не сможете обработать перемещение мыши вверх и влево, потому что 0,0 
+    это левый верхний угол окна. 320, 240 – это центр окна для режима 640х480.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>После того как мы позаботились о мыши, нужно изменить часть 
+    кода для выполнения перемещения.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textpreword><span>float = (P - CX) / U * S;</span></p>
+  <p class=textword style='text-align:justify'><span> &nbsp; </span></p>
+  <p class=textword>P – точка, в которую мы устанавливаем мышь каждый кадр</p>
+  <p class=textword>CX – текущая позиция мыши</p>
+  <p class=textword>U – единицы </p>
+  <p class=textword>S – скорость мыши (будучи истинным квакером я люблю в этом 
+    месте значение 12).</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>По этой формуле вычисляются значения переменных heading и 
+    lookupdown.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>С мышью вроде как разобрались. Идем дальше.</p>
+  <p class=head3word>&nbsp; </p>
+  <p class=head3word>Клавиатура (DirectX 7)</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Теперь мы можем при помощи мыши вращать камеру в нашем мире. 
+    Следующий шаг использовать клавиатуру для перемещения вперед, атаки и приседания. 
+    Довольно болтовни, начнем кодировать.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Сначала я расскажу, как использовать DirectX7. Первый шаг 
+    – настройка компилятора. Я покажу, как сделать это на примере Visual C++, 
+    настройка других компиляторов может отличаться от предложенного способа.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Если у вас еще нет DirectX SDK, то вам придется его заиметь, 
+    например, скачать с сайта MicroSoft, и проинсталлировать его.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>После этого, в VisualStudio зайдите в меню <span>Project</span>-&gt;<span>Settings.
+   Выберите закладку <span>Link</span> и в строке 
+    <span>Object</span>/<span>libraty</span><span> </span><span>modules</span> в начало строки добавьте <span>dinput</span>.<span>lib</span><span> </span><span>dxguid</span>.<span>lib</span><span> </span><span>winmm</span>.<span>lib</span>. Библиотеки <span>DirectInput</span>, 
+    <span>DirectX</span><span> </span><span>GUID</span> и <span>Windows</span><span> </span><span>Multimedia</span> соответственно, последняя необходима для таймера. 
+    Возможно, вам также понадобиться войти в меню Tools-&gt;Options и на закладке 
+    Directories добавить пути (Include files и Library files) к DirectX SDK и 
+    переместить их наверх списка.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Теперь DirectInput готов к использованию, можно начинать программировать!</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Мы нуждаемся в подключении заголовочных файлов DirectInput, 
+    для того чтобы мы могли использовать некоторые его функции. Также мы нуждаемся 
+    в создании и добавлении новых переменных для DirectInput и для устройства 
+    DirectInput клавиатуры. Сделаем мы это следующим образом:</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>#include &lt;stdio.h&gt;             // Заголовочный файл 
+    стандартного ввода/вывода</p>
+  <p class=textpreword>#include &lt;gl\gl.h&gt;             // Заголовочный файл 
+    библиотеки OpenGL32</p>
+  <p class=textpreword>#include &lt;gl\glu.h&gt;            // Заголовочный файл 
+    библиотеки GLu32</p>
+  <p class=textpreword>#include &lt;gl\glaux.h&gt;          // Заголовочный файл 
+    библиотеки Glaux</p>
+  <p class=textpreword>#include &lt;dinput.h&gt;            // DirectInput функции<span>  
+    </span>(Новое<span>)</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword>LPDIRECTINPUT7       g_DI;     // DirectInput (Новое<span>)</span></p>
+  <p class=textpreword><span>LPDIRECTINPUTDEVICE7 g_KDIDev; // </span>Устройство 
+    клавиатуры<span> (</span>Новое<span>)</span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword>В последних две строчках объявляются  переменные для DirectInput 
+    (g_DI) и для устройства клавиатуры (g_KDIDev), последнее будет получать данные 
+    и обрабатывать их. Константы DirectInput не сильно отличаются от стандартных 
+    констант Windows. </p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>Windows       DirectInput</p>
+  <p class=textpreword>VK_LEFT        DIK_LEFT</p>
+  <p class=textpreword>VK_RIGHT      DIK_RIGHT</p>
+  <p class=textpreword>... и так далее</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Основное отличие в замене VK на DIK. Хотя некоторые названия 
+    изменили существенно. Все DIK константы объявлены в файле dinput.h.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Теперь нужно написать функцию инициализации DirectInput’а 
+    и устройства клавиатуры. Под CreateGLWindow() добавьте следующее:</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>// Инициализация DirectInput (Новое)</p>
+  <p class=textpreword><span>int DI_Init()</span></p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>// Создание<span> DirectInput</span></p>
+  <p class=textpreword><span>  </span>if ( DirectInputCreateEx( hInstance,    
+    // Instance окна<span></span></p>
+  <p class=textpreword><span>        </span>DIRECTINPUT_VERSION,              
+    // Версия<span> DirectInput</span></p>
+  <p class=textpreword><span>        </span>IID_IDirectInput7, </p>
+  <p class=textpreword><span>        </span>(void**)&amp;g_DI,                    
+    // DirectInput</p>
+  <p class=textpreword>        <span>NULL</span> ) )                          // <span>NULL</span><span> 
+    </span>параметр</p>
+  <p class=textpreword>  <span>{</span></p>
+  <p class=textpreword><span>    </span>return(false);                        
+    // Не создался<span> DirectInput</span></p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>// Создание устройства клавиатуры<span></span></p>
+  <p class=textpreword><span>  </span>if ( g_DI-&gt;CreateDeviceEx(  GUID_SysKeyboard,  
+  </p>
+  <p class=textpreword><span>               </span>// Какое устройство создается 
+    (клавиатура, мышь или джойстик)</p>
+  <p class=textpreword>        IID_IDirectInputDevice7,  </p>
+  <p class=textpreword>        (void**)&amp;g_KDIDev,       // Устройство клавиатуры</p>
+  <p class=textpreword>        NULL ) )                 // NULL параметр</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    return(false);               // Не создалось устройство 
+    клавиатуры</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  // Установка формата данных для клавиатуры</p>
+  <p class=textpreword>  <span>if ( g_KDIDev-&gt;SetDataFormat(&amp;c_dfDIKeyboard) 
+    )</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword>    return(false);            // Не удалось установить 
+    формат данных</p>
+  <p class=textpreword>    // здесь не хватает функций уничтожения устройства 
+    клавиатуры и DirectInput</p>
+  <p class=textpreword>  <span>}</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>// Установка уровня кооперации<span></span></p>
+  <p class=textpreword><span>  </span>if ( g_KDIDev-&gt;SetCooperativeLevel(hWnd, 
+    DISCL_FOREGROUND | DISCL_EXCLUSIVE) )</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword>    return(false);            // Не удалось установить 
+    режим</p>
+  <p class=textpreword>    // здесь не хватает функций уничтожения устройства 
+    клавиатуры и DirectInput</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  if (g_KDIDev)              // Создано устройство клавиатуры? 
+    (лишняя проверка)</p>
+  <p class=textpreword>    g_KDIDev-&gt;Acquire();     // Взять его под контроль</p>
+  <p class=textpreword>  <span>else</span>                       // 
+    если нет</p>
+  <p class=textpreword>    <span>return</span>(<span>false</span>);           // возвращаем 
+    <span>false</span></p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  <span>return</span>(<span>true</span>);              
+    // все отлично</p>
+  <p class=textpreword>}</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>// Уничтожение <span>DirectInput</span></p>
+  <p class=textpreword><span>void DX_End()</span></p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>if (g_DI)</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>if (g_KDIDev)</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>g_KDIDev-&gt;Unacquire();</p>
+  <p class=textpreword><span>      </span>g_KDIDev-&gt;Release();</p>
+  <p class=textpreword><span>      </span>g_KDIDev = NULL;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>    </span>g_DI-&gt;Release();</p>
+  <p class=textpreword><span>    </span>g_DI = NULL;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword>}</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Этот код в достаточной мере снабжен комментариями и должен 
+    быть понятен. Первое – мы инициализируем DirectInput и при помощи него создаем 
+    устройство клавиатуры, которое затем берем под контроль. Можно также использовать 
+    DirectInput для мыши, но на данном этапе средств Windows вполне достаточно.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Теперь нужно заменить старый код обработки ввода с клавиатуры 
+    на новый, использующий DirectInput. Изменить предстоит много, приступим.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><u>Удалите следующий код из WndProc():</u></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>  case WM_KEYDOWN:          // Клавиша была нажата?</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    keys[wParam] = TRUE;    // Пометить ее как нажатую</p>
+  <p class=textpreword>    return 0;               // Вернуться</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  case WM_KEYUP:            // Клавиши была отпущена?</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    keys[wParam] = FALSE;   // Отменить пометку</p>
+  <p class=textpreword>    <span>return</span> 0;               // Вернуться</p>
+  <p class=textpreword>  }</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><u>В начале программы необходимо сделать следующие изменения:</u></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>BYTE  buffer[256];       // Новый буфер вместо Keys[] (Изменено)</p>
+  <p class=textpreword>bool  active=TRUE;       // Флаг активности окна</p>
+  <p class=textpreword>bool  fullscreen=TRUE;   // Флаг полноэкранного режима</p>
+  <p class=textpreword>bool  blend;             // Смешивание<span> 
+    ON/OFF</span></p>
+  <p class=textpreword>bool  bp;                // Состояние кнопки смешивания</p>
+  <p class=textpreword>bool  fp;                // Состояние F1 (Изменено)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword><span>...</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword>GLfloat  lookupdown = 0.0f;</p>
+  <p class=textpreword>GLfloat  z=0.0f;         // Глубина в экран</p>
+  <p class=textpreword>GLuint  filter;          // Фильтр (Удалено)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>GLuint texture[5];       // Для текстур (Изменено)</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><u>В функции WinMain()</u></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>  <span>// </span>Создание окна<span> 
+    OpenGL</span></p>
+  <p class=textpreword><span>  </span>if (!CreateGLWindow(&quot;Justin Eslinger's 
+    &amp; NeHe's Advanced DirectInput Tutorial&quot;,640,480,16,fullscreen))  
+    // (Изменено<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword>    return 0;            // Выйти, если не удалось создать 
+    окно</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  if (!DI_Init())        // Инициализация DirectInput (Новое)</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    <span>return</span> 0;</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  ...</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  // Отрисовка сцены, пока окно активно и не была нажата 
+    клавиша Esc</p>
+  <p class=textpreword>  <span>if ((active &amp;&amp; !DrawGLScene())) 
+    // (</span>Изменено<span>)</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>      </span>...</p>
+  <p class=textpreword>  // Обновить состояние клавиатуры (Новое)</p>
+  <p class=textpreword>  HRESULT hr = g_KDIDev-&gt;GetDeviceState(sizeof(buffer), 
+    &amp;buffer);  </p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_ESCAPE] &amp; 0x80 )  // 
+    Тест клавиши<span> Escape (</span>Изменено<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>done=TRUE;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_B] &amp; 0x80)    // Нажата 
+    клавиша<span> B? </span>(Изменено)</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    if (!bp)</p>
+  <p class=textpreword>    {</p>
+  <p class=textpreword>      bp = true;                // Нажата клавиша смешения 
+    (Новое)</p>
+  <p class=textpreword>      <span>blend=!blend;</span></p>
+  <p class=textpreword><span>      </span>if (!blend)</p>
+  <p class=textpreword><span>      </span>{</p>
+  <p class=textpreword><span>       </span> glDisable(GL_BLEND);</p>
+  <p class=textpreword><span>        </span>glEnable(GL_DEPTH_TEST);</p>
+  <p class=textpreword><span>      </span>}</p>
+  <p class=textpreword><span>      </span>else</p>
+  <p class=textpreword><span>      </span>{</p>
+  <p class=textpreword><span>        </span>glEnable(GL_BLEND);</p>
+  <p class=textpreword><span>        </span>glDisable(GL_DEPTH_TEST);</p>
+  <p class=textpreword><span>      </span>}</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span>  </span>else</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>bp = false;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_PRIOR] &amp; 0x80 )   // 
+    Page Up? (Изменено)</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    z-=0.02f;</p>
+  <p class=textpreword>  <span>}</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_NEXT] &amp; 0x80 )    // 
+    Page Down? (Изменено)</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    z+=0.02f;</p>
+  <p class=textpreword>  <span>}</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_UP] &amp; 0x80 )      // 
+    Вверх<span>? (</span>Изменено<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>xpos -= (float)sin(heading*piover180) 
+    * 0.05f;</p>
+  <p class=textpreword><span>    </span>zpos -= (float)cos(heading*piover180) 
+    * 0.05f;</p>
+  <p class=textpreword><span>    </span>if (walkbiasangle &gt;= 359.0f)</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle = 0.0f;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>else</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle+= 10;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>    </span>walkbias = (float)sin(walkbiasangle * 
+    piover180)/20.0f;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_DOWN] &amp; 0x80 )    // 
+    Вниз<span>? (</span>Изменено<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>xpos += (float)sin(heading*piover180) 
+    * 0.05f;</p>
+  <p class=textpreword><span>    </span>zpos += (float)cos(heading*piover180) 
+    * 0.05f;</p>
+  <p class=textpreword><span>    </span>if (walkbiasangle &lt;= 1.0f)</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle = 359.0f;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>else</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle-= 10;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>    </span>walkbias = (float)sin(walkbiasangle * 
+    piover180)/20.0f;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_LEFT] &amp; 0x80 )    // 
+    Влево<span>? (</span>Изменено<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>xpos += (float)sin((heading - 90)*piover180) 
+    * 0.05f;  ( Modified )</p>
+  <p class=textpreword><span>    </span>zpos += (float)cos((heading - 90)*piover180) 
+    * 0.05f;  ( Modified )</p>
+  <p class=textpreword><span>    </span>if (walkbiasangle &lt;= 1.0f)</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle = 359.0f;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>else</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>  </span>    walkbiasangle-= 10;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>walkbias = (float)sin(walkbiasangle * 
+    piover180)/20.0f;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_RIGHT] &amp; 0x80 )    // 
+    Вправо<span>? (</span>Изменено<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>xpos += (float)sin((heading + 90)*piover180) 
+    * 0.05f;  ( Modified )</p>
+  <p class=textpreword><span>    </span>zpos += (float)cos((heading + 90)*piover180) 
+    * 0.05f;  ( Modified )</p>
+  <p class=textpreword><span>    </span>if (walkbiasangle &lt;= 1.0f)</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle = 359.0f;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>else</p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>walkbiasangle-= 10;</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>walkbias = (float)sin(walkbiasangle * 
+    piover180)/20.0f;</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if ( buffer[DIK_F1] &amp; 0x80)    // F1 
+    нажато<span>? </span>(Изменено)</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    if (!fp)                     // Если не была нажата 
+    (Новое)</p>
+  <p class=textpreword>    {</p>
+  <p class=textpreword>      fp = true;                 // F1 нажата (Новое)</p>
+  <p class=textpreword>      KillGLWindow();            // Уничтожить текущее 
+    окно (Изменено)</p>
+  <p class=textpreword>      fullscreen=!fullscreen;    // Переключить режим (Изменено)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>      <span>// </span>Пересоздать окно<span></span></p>
+  <p class=textpreword><span>      </span>if (!CreateGLWindow(&quot;Justin Eslinger's 
+    &amp; NeHe's Advanced Direct Input Tutorial&quot;,640,480,16,fullscreen))  
+    (Изменено<span>)</span></p>
+  <p class=textpreword><span>      </span>{</p>
+  <p class=textpreword>         return 0;       // Выйти, если не удалось создать 
+    окно (Изменено)</p>
+  <p class=textpreword>      }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>      if (!DI_Init())    // Переинициализировать DirectInput 
+    (Новое)</p>
+  <p class=textpreword>      {</p>
+  <p class=textpreword>        return 0;        // Выйти, если не удалось</p>
+  <p class=textpreword>      }</p>
+  <p class=textpreword>    }</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>  else</p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    fp = false;          // F1 отпущена</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  // Shutdown</p>
+  <p class=textpreword>  // Выход</p>
+  <p class=textpreword>  DX_End();              // Уничтожить DirectInput (Новое)</p>
+  <p class=textpreword>  KillGLWindow();        // Уничтожить окно</p>
+  <p class=textpreword>  return (msg.wParam);   // Выйти из программы</p>
+  <p class=textpreword>}</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><u>Функция DrawGLScene() изменилась следующим образом.</u></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>  <span>glTranslatef(xtrans, ytrans, ztrans);</span></p>
+  <p class=textpreword><span>  </span>numtriangles = sector1.numtriangles;</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>// Для каждого треугольника<span></span></p>
+  <p class=textpreword><span>  </span>for (int loop_m = 0; loop_m &lt; numtriangles; 
+    loop_m++)</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>glBindTexture(GL_TEXTURE_2D, texture[sector1.triangle[loop_m].texture]);  
+    // (Изменено<span>)</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>    </span>glBegin(GL_TRIANGLES);</p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword>Отлично, теперь обсудим все это немного. Мы заменили весь 
+    старый код, использующий ввод с клавиатуры средствами Windows на код использующий 
+    средства DirectInput. Так же были изменены и сами клавиши управления для удобства 
+    использования.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Теперь в нашей игре есть поддержка мыши и клавиатуры через 
+    DirectInput, что дальше? Нам нужен таймер, для того чтобы регулировать скорость. 
+    Без таймера мы обрабатываем клавиатуру каждый кадр, из-за этого скорость перемещения 
+    и вращения будет различной на различных компьютерах.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Добавим переменную для корректировки и структуру для работы 
+    с таймером.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>POINT  mpos;                </p>
+  <p class=textpreword>int  adjust = 5;            // Корректировка скорости (Новое)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>// информация для таймера (Новое)</p>
+  <p class=textpreword><span>struct</span></p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>__int64    frequency;              // Частота<span></span></p>
+  <p class=textpreword><span>  </span>float    resolution;               // Точность<span></span></p>
+  <p class=textpreword><span>  </span>unsigned long mm_timer_start;      // Стартовое 
+    значение<span></span></p>
+  <p class=textpreword><span>  </span>unsigned long mm_timer_elapsed;    // Прошедшее 
+    время<span></span></p>
+  <p class=textpreword><span>  </span>bool performance_timer;            // Использовать 
+    эффективный таймер</p>
+  <p class=textpreword>  __int64 performance_timer_start;   // Стартовое значение 
+    эффективного таймера</p>
+  <p class=textpreword>  __int64 performance_timer_elapsed; // Прошедшее время 
+    по эффективному таймеру</p>
+  <p class=textpreword><span>} timer;</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, 
+    LPARAM); </span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword>Этот код обсуждался в уроке 21. Рекомендую просмотреть его.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textpreword>// Инициализация таймера (Новое)</p>
+  <p class=textpreword><span>void TimerInit(void)</span></p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  <span>memset</span>(&amp;<span>timer</span>, 
+    0, <span>sizeof</span>(<span>timer</span>));  // Очистить 
+    структуру</p>
+  <p class=textpreword>  // Проверить есть ли возможность использования эффективного 
+    таймера</p>
+  <p class=textpreword><span>  </span>if (!QueryPerformanceFrequency((LARGE_INTEGER 
+    *) &amp;timer.frequency))</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>// нет эффективного таймера<span></span></p>
+  <p class=textpreword><span>    </span>timer.performance_timer = FALSE;      
+  </p>
+  <p class=textpreword><span>    </span>timer.mm_timer_start = timeGetTime(); 
+    // Использовать<span> timeGetTime()</span></p>
+  <p class=textpreword><span>    </span>timer.resolution = 1.0f/1000.0f;      
+    // Установить точность .001f</p>
+  <p class=textpreword>    timer.frequency = 1000;               // Установить 
+    частоту 1000</p>
+  <p class=textpreword>    // Установить прошедшее время равным стартовому </p>
+  <p class=textpreword>    <span>timer.mm_timer_elapsed = timer.mm_timer_start; </span></p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword>  <span>else</span></p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    // доступен эффективный таймер</p>
+  <p class=textpreword>    <span>QueryPerformanceCounter((LARGE_INTEGER *) &amp;timer.performance_timer_start);</span></p>
+  <p class=textpreword><span>    </span>timer.performance_timer = TRUE;        
+  </p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>    </span>// Вычисление точности и частоты</p>
+  <p class=textpreword>    <span>timer.resolution = (float) (((double)1.0f)/((double)timer.frequency));</span></p>
+  <p class=textpreword><span>    </span>// Установить прошедшее время равным стартовому</p>
+  <p class=textpreword>    <span>timer.performance_timer_elapsed = timer.performance_timer_start;</span></p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword>}</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>// Получить время в миллисекундах (Новое)</p>
+  <p class=textpreword>float TimerGetTime()</p>
+  <p class=textpreword>{</p>
+  <p class=textpreword>  __int64 time;                // Время храниться в 64-битном 
+    целом</p>
+  <p class=textpreword>  if (timer.performance_timer) // Если используется эффективный 
+    таймер</p>
+  <p class=textpreword>  {<span></span></p>
+  <p class=textpreword>    // Получить текущее время по эффективному таймеру</p>
+  <p class=textpreword>    <span>QueryPerformanceCounter((LARGE_INTEGER *) &amp;time); </span></p>
+  <p class=textpreword><span>    </span>// вернуть текущее время мину стартовое 
+    с данной точностью и в миллисекундах</p>
+  <p class=textpreword>    <span>return ( (float) ( time - timer.performance_timer_start) * timer.resolution)*1000.0f;</span></p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword>  <span>else</span></p>
+  <p class=textpreword>  {</p>
+  <p class=textpreword>    // вернуть текущее время минус стартовое с данной точностью 
+    и в миллисекундах</p>
+  <p class=textpreword>    <span>return( (float) ( timeGetTime() - timer.mm_timer_start) * timer.resolution)*1000.0f;</span></p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword>}</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword>Напомню, что пояснения кода таймера есть в 21-ом уроке. Убедитесь, 
+    что к проекту добавлена библиотека winmm.lib.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Теперь мы добавим кое-что в функцию <span>WinMain().</span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  </span>if (!DI_Init())           // Инициализация 
+    DirectInput  (Новое<span>)</span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword>    return 0;</p>
+  <p class=textpreword>  }</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  TimerInit();              // Инициализация таймера (Новое)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>  <span>...</span></p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>      </span>float start=TimerGetTime();</p>
+  <p class=textpreword><span>      </span>// Получить время перед отрисовкой (Новое)</p>
+  <p class=textpreword>&nbsp; </p>
+  <p class=textpreword>      // Отрисовка сцены. Esc – выход.</p>
+  <p class=textpreword>      // Если окно активно и был выход (Изменено)</p>
+  <p class=textpreword>      <span>if ((active &amp;&amp; !DrawGLScene())) </span></p>
+  <p class=textpreword><span>      </span>{</p>
+  <p class=textpreword><span>        </span>done=TRUE;        // ESC DrawGLScene 
+    сигнализирует о выходе<span></span></p>
+  <p class=textpreword><span>      </span>}</p>
+  <p class=textpreword>      else            // обновить сцену</p>
+  <p class=textpreword>      {</p>
+  <p class=textpreword>        // Цикл ожидания для быстрых систем (Новое)</p>
+  <p class=textpreword>        while(TimerGetTime()&lt;start+float(adjust*2.0f)) 
+    {}  </p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword>Теперь программа должна выполняться с корректной скоростью. 
+    Следующая часть кода предназначена для вывода уровня, как в уроке 10.</p>
+  <p class=textword style='text-align:justify'>&nbsp; </p>
+  <p class=textword>Если вы уже скачали код этого урока, то вы уже заметили, что 
+    я добавил несколько текстур для сцены. Новые текстуры находятся в папке Data.</p>
+  <p class=textword>&nbsp; </p>
+  <p class=textword><u>Изменения структуры tagTriangle.</u></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword><span>typedef struct tagTRIANGLE</span></p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>int  texture; // (Новое<span>)</span></p>
+  <p class=textpreword><span>  </span>VERTEX  vertex[3];</p>
+  <p class=textpreword><span>} TRIANGLE;</span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword><u>Изменения</u><u> кода</u><u><span> SetupWorld</span></u></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textpreword><span>for (int loop = 0; loop &lt; numtriangles; 
+    loop++)</span></p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>readstr(filein,oneline); // (Новое<span>)</span></p>
+  <p class=textpreword><span>  </span>sscanf(oneline, &quot;%i\n&quot;, &amp;sector1.triangle[loop].texture);  
+    // (Новое)</p>
+  <p class=textpreword><span>  </span>for (int vert = 0; vert &lt; 3; vert++)</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword><u>Изменения</u><u> кода</u><u><span> DrawGLScene</span></u></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textpreword><span>  // </span>Для каждого треугольника<span></span></p>
+  <p class=textpreword><span>  </span>for (int loop_m = 0; loop_m &lt; numtriangles; 
+    loop_m++)</p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>// (Модифицировано)</p>
+  <p class=textpreword><span>    </span>glBindTexture(GL_TEXTURE_2D, texture[sector1.triangle[loop_m].texture]);</p>
+  <p class=textpreword><span> &nbsp; </span></p>
+  <p class=textpreword><span>    </span>glBegin(GL_TRIANGLES);</p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword><u>В функцию LoadGLTextures добавлена загрузка дополнительных 
+    текстур</u></p>
+  <p class=textword>&nbsp; </p>
+  <p class=textpreword>int LoadGLTextures()          // Загрузка картинок и конвертирование 
+    их в текстуры</p>
+  <p class=textpreword><span>{</span></p>
+  <p class=textpreword><span>  </span>int Status=FALSE;           // Статус<span></span></p>
+  <p class=textpreword><span>  </span>AUX_RGBImageRec *TextureImage[5];         // 
+    Массив текстур<span></span></p>
+  <p class=textpreword><span>  </span>memset(TextureImage,0,sizeof(void *)*2);  
+    // Инициализация указателей<span> NULL</span></p>
+  <p class=textpreword><span>  </span>if( (TextureImage[0]=LoadBMP(&quot;Data/floor1.bmp&quot;)) 
+    &amp;&amp;  // Загрузка текстуры пола<span></span></p>
+  <p class=textpreword><span>    </span>(TextureImage[1]=LoadBMP(&quot;Data/light1.bmp&quot;))&amp;&amp; 
+        // Загрузка текстуры освещения<span></span></p>
+  <p class=textpreword><span>    </span>(TextureImage[2]=LoadBMP(&quot;Data/rustyblue.bmp&quot;))&amp;&amp; 
+     // Стены<span></span></p>
+  <p class=textpreword><span>    </span>(TextureImage[3]=LoadBMP(&quot;Data/crate.bmp&quot;)) 
+    &amp;&amp;     // решетки<span></span></p>
+  <p class=textpreword><span>    </span>(TextureImage[4]=LoadBMP(&quot;Data/weirdbrick.bmp&quot;)))  
+    // потолок<span></span></p>
+  <p class=textpreword><span>  </span>{</p>
+  <p class=textpreword><span>    </span>Status=TRUE;            </p>
+  <p class=textpreword><span>    </span>glGenTextures(5, &amp;texture[0]);        
+    // Создание текстур<span></span></p>
+  <p class=textpreword><span>    </span>for (int loop1=0; loop1&lt;5; loop1++)   
+  </p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>glBindTexture(GL_TEXTURE_2D, texture[loop1]);</p>
+  <p class=textpreword><span>      </span>glTexImage2D(GL_TEXTURE_2D, 0, 3, TextureImage[loop1]-&gt;sizeX,<br>
+    <span>      </span>TextureImage[loop1]-&gt;sizeY, 0,</p>
+  <p class=textpreword><span>        </span>GL_RGB, GL_UNSIGNED_BYTE, TextureImage[loop1]-&gt;data);</p>
+  <p class=textpreword><span>      </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+  <p class=textpreword><span>      </span>glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>    </span>for (loop1=0; loop1&lt;5; loop1++)        
+  </p>
+  <p class=textpreword><span>    </span>{</p>
+  <p class=textpreword><span>      </span>if (TextureImage[loop1]-&gt;data)    
+  </p>
+  <p class=textpreword><span>      </span>{</p>
+  <p class=textpreword><span>         </span>free(TextureImage[loop1]-&gt;data);</p>
+  <p class=textpreword><span>      </span>}</p>
+  <p class=textpreword><span>      </span>free(TextureImage[loop1]);    </p>
+  <p class=textpreword><span>    </span>}</p>
+  <p class=textpreword><span>  </span>}</p>
+  <p class=textpreword><span>  </span>return Status; // Вернуть статус<span></span></p>
+  <p class=textpreword><span>}</span></p>
+  <p class=textword><span> &nbsp; </span></p>
+  <p class=textword>Теперь вы можете использовать возможности DirectInput. Я потратил 
+    много времени на написание этого урока и надеюсь, что он вам пригодиться. 
+    Спасибо, что потратили свое время на чтение этого урока!</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Justin Eslinger (BlackScar)<br>
+    <b>blackscar@ticz.com</b><br>
+    <b>http://members.xoom.com/Blackscar/ </b><br>&nbsp;</font><br>
+</p>          
+</div>
+<div id="end">
+
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;25 октября 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:cupper@nashi.spb.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Cupper</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

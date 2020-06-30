@@ -1,0 +1,135 @@
+.text {
+	COLOR: #000000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LETTER-SPACING: 1px; TEXT-ALIGN: justify; TEXT-INDENT: 12pt
+}
+.textnoalign {
+	COLOR: #000000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LINE-HEIGHT: 14pt
+}
+.head1 {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 18pt; LETTER-SPACING: 1px; PADDING-BOTTOM: 5px; PADDING-TOP: 5px; TEXT-ALIGN: center
+}
+.head2 {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 14pt; TEXT-ALIGN: left
+}
+.head3 {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; FONT-STYLE: italic; TEXT-ALIGN: left
+}
+.link {
+	FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt
+}
+.linkbig {
+	FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 14pt
+}
+.linksbig {
+	FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 18pt
+}
+.comment {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 9pt
+}
+.pic {
+	COLOR: #000000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LETTER-SPACING: 2px; LINE-HEIGHT: 14pt; TEXT-ALIGN: center
+}
+.textpre {
+	COLOR: #000000; FONT-SIZE: 10pt; TEXT-ALIGN: left
+}
+.rem {
+	COLOR: #004d26; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LINE-HEIGHT: 12pt; MARGIN: 1pt 10pt; TEXT-ALIGN: justify
+}
+.headbig {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 24pt
+}
+.headbig1 {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 18pt
+}
+.rem1 {
+	COLOR: #004d26; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt
+}
+.info {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 9pt; MARGIN-BOTTOM: 1pt; MARGIN-TOP: 1pt; TEXT-ALIGN: left
+}
+.head {
+	COLOR: #000000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 14pt; LETTER-SPACING: 1px; MARGIN-BOTTOM: 0pt; MARGIN-TOP: 0pt; TEXT-ALIGN: left
+}
+.head_big {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 14pt; LINE-HEIGHT: 18pt; MARGIN-BOTTOM: 2pt; MARGIN-TOP: 2pt
+}
+.ring {
+	COLOR: #3a5987; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 9pt
+}
+.vote {
+	COLOR: #0000a0; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt
+}
+#rem_index {
+	COLOR: #0000a0; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LINE-HEIGHT: 12pt; MARGIN: 1pt 5pt; TEXT-ALIGN: justify
+}
+.head_index {
+	COLOR: #0000a0; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LINE-HEIGHT: 12pt; MARGIN: 1pt 5pt; TEXT-ALIGN: justify
+}
+.headtext {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 14pt; LETTER-SPACING: 1px; PADDING-BOTTOM: 5px; PADDING-TOP: 5px; TEXT-ALIGN: center
+}
+.linktext {
+	COLOR: #808000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt
+}
+.file {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 9pt; MARGIN-BOTTOM: 1pt; MARGIN-TOP: 1pt; TEXT-ALIGN: left
+}
+.linkbig {
+	FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 12pt
+}
+.title {
+	COLOR: #004d26; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 14pt
+}
+#headbig1 {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 18pt
+}
+#rem2 {
+	COLOR: #004d26; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt
+}
+.rem2 {
+	COLOR: #0000a0; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LINE-HEIGHT: 12pt; MARGIN: 1pt 5pt
+}
+.infobig {
+	COLOR: #800000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 12pt; MARGIN-BOTTOM: 1pt; MARGIN-TOP: 1pt; TEXT-ALIGN: left
+}
+.text1 {
+	COLOR: #000000; FONT-FAMILY: Tahoma, Arial; FONT-SIZE: 10pt; LETTER-SPACING: 1px; LINE-HEIGHT: 14pt; TEXT-ALIGN: justify; TEXT-INDENT: 12pt
+}
+.textpre1 {
+	COLOR: #000000; FONT-FAMILY: Courier New; FONT-SIZE: 10pt
+}
+.Normal {
+	FONT-FAMILY: Arial; FONT-SIZE: 12pt; MARGIN: 0cm 0cm 0pt
+}
+.textword {
+	COLOR: black; FONT-FAMILY: Tahoma; FONT-SIZE: 10pt; LETTER-SPACING: 1px; MARGIN: 0cm 0cm 0pt; TEXT-ALIGN: justify; TEXT-INDENT: 12pt
+}
+.head2word {
+	COLOR: #800000; FONT-FAMILY: Tahoma; FONT-SIZE: 14pt; MARGIN: 0cm 0cm 0pt; TEXT-ALIGN: left
+}
+.textpreword {
+	COLOR: black; FONT-FAMILY: "Courier New"; FONT-SIZE: 10pt; MARGIN: 0cm 0cm 0pt
+}
+.head3word {
+	COLOR: #800000; FONT-FAMILY: Tahoma; FONT-SIZE: 12pt; FONT-STYLE: italic; MARGIN: 0cm 0cm 0pt; TEXT-ALIGN: left
+}
+.textwordb {
+	COLOR: windowtext; FONT-FAMILY: Tahoma; FONT-SIZE: 10pt; FONT-WEIGHT: bold; MARGIN: 0cm 0cm 0pt
+}
+.textwordbu {
+	COLOR: windowtext; FONT-FAMILY: Tahoma; FONT-SIZE: 10pt; FONT-WEIGHT: bold; MARGIN: 0cm 0cm 0pt; TEXT-DECORATION: underline; text-underline: single
+}
+#top {
+	PADDING-BOTTOM: 5px; PADDING-TOP: 5px; WIDTH: 750px
+}
+#head {
+	BACKGROUND: #adadff; PADDING-BOTTOM: 5px; PADDING-LEFT: 10px; PADDING-RIGHT: 10px; PADDING-TOP: 5px; WIDTH: 750px
+}
+#main {
+	BACKGROUND: #caddfe; PADDING-BOTTOM: 5px; PADDING-LEFT: 10px; PADDING-RIGHT: 10px; PADDING-TOP: 5px; TEXT-ALIGN: left; WIDTH: 750px
+}
+#end {
+	BACKGROUND: #adadff; PADDING-BOTTOM: 5px; PADDING-LEFT: 10px; PADDING-RIGHT: 10px; PADDING-TOP: 5px; WIDTH: 750px
+}
+#counter {
+	LEFT: 0px; POSITION: absolute; TOP: 0px; VISIBILITY: hidden
+}

@@ -1,0 +1,764 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 20. Маскирование</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe20.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 20. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 20. Маскирование</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=20" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Masking</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Добро пожаловать на урок номер 20. Растровый формат изображения 
+  поддерживается, наверное, на каждом компьютере, и, скорее всего во всех операционных 
+  системах. С ним не только легко работать, но и очень просто загружать и использовать 
+  как текстуру. До этого урока мы использовали смешивание, чтобы вывести текст 
+  на экран и другие изображения без стирания того, что под текстом или изображением. 
+  Это эффективно, но результат не всегда удовлетворительный.<br>
+  <br>
+</p>
+<p class=textword>В большинстве случаев текстура смешивается излишне или не достаточно 
+  хорошо. При разработке игры со спрайтами, Вы не хотите, чтобы сцена за вашим 
+  персонажем просвечивала через его тело. Когда вы выводите текст на экран, Вы 
+  хотите, чтобы текст был сплошным и легким для чтения.<br>
+  <br>
+</p>
+<p class=textword>В данном случае очень пригодиться маскирование. Маскирование 
+  – двух шаговый процесс. Вначале мы выводим черно-белое изображение нашей текстуры 
+  поверх сцены. Белое - прозрачная часть нашей текстуры. Черное - сплошная часть 
+  нашей текстуры. Мы будем использовать такой тип смешивания, при котором только 
+  черное будет появляться на сцене. Это похоже на форму для выпечки. Затем мы 
+  меняем режим смешивания, и отображаем нашу текстуру поверх, того, что вырезано 
+  черным. Опять же, из-за того режима смешивания, который мы используем, только 
+  те части нашей текстуры будут скопированы на экран, которые находятся сверху 
+  черной маски.<br>
+  <br>
+</p>
+<p class=textword>Я приведу весь код в этом уроке кроме тех разделов, которые 
+  не изменились. Итак, если Вы готовы научиться кое-чему новому, давайте начнем!</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>#include &lt;windows.h&gt;  // Заголовочный файл для Windows</p>
+<p class=textpreword>#include &lt;math.h&gt;     // Заголовочный файл для математической 
+  библиотеки Windows</p>
+<p class=textpreword>#include &lt;stdio.h&gt;    // Заголовочный файл для стандартной 
+  библиотеки ввода/вывода</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;    // Заголовочный файл для библиотеки 
+  OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;   // Заголовочный файл для библиотеки 
+  GLu32 </p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt; // Заголовочный файл для библиотеки 
+  Glaux</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>HDC        hDC=NULL;  // Приватный контекст устройства GDI</p>
+<p class=textpreword>HGLRC      hRC=NULL;  // Постоянный контекст визуализации</p>
+<p class=textpreword>HWND       hWnd=NULL; // Сохраняет дескриптор окна</p>
+<p class=textpreword>HINSTANCE  hInstance; // Сохраняет экземпляр приложения</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Мы будем использовать 7 глобальных переменных в этой программе. 
+  <b>masking</b> - логическая переменная (ИСТИНА / ЛОЖЬ), которая будет отслеживать, 
+  действительно ли маскировка включена или выключена. <b>mp</b> используется, 
+  чтобы быть уверенным, что клавиша 'M' не нажата. <b>sp</b> используется, чтобы 
+  быть уверенным, что 'Пробел' не нажат, и переменная <b>scene</b> будет отслеживать, 
+  действительно ли мы рисуем первую или вторую сцену.<br>
+  <br>
+</p>
+<p class=textword>Мы выделяем память для 5 текстур, используя переменную <b>texture[5]</b>. 
+  <b>loop</b> - наш общий счетчик, мы будем использовать его несколько раз в нашей 
+  программе, чтобы инициализировать текстуры, и т.д. Наконец, мы имеем переменную 
+  <b>roll</b>. Мы будем использовать <b>roll</b>, чтобы сделать прокрутку текстуры 
+  по экрану. Создавая изящный эффект! Мы будем также использовать ее для вращения 
+  объекта в сцене 2.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool  keys[256];      // Массив для работы с клавиатурой</p>
+<p class=textpreword>bool  active=TRUE;    // Флаг активации окна, по умолчанию 
+  = TRUE</p>
+<p class=textpreword>bool  fullscreen=TRUE;// Флаг полноэкранного режима</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>bool  masking=TRUE;   // Маскирование Вкл/Выкл</p>
+<p class=textpreword>bool  mp;             // M нажата?</p>
+<p class=textpreword>bool  sp;             // Пробел нажат?</p>
+<p class=textpreword>bool  scene;          // Какая сцена выводиться</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>GLuint  texture[5];   // Память для пяти наших текстур</p>
+<p class=textpreword>GLuint  loop;         // Общая переменная цикла</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>GLfloat  roll;        // Катание текстуры</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>LRESULT  CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM); // 
+  Объявление WndProc</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Код загрузки картинки не изменился. Он тот же, какой был в уроке 
+  6, и т.д.<br>
+  <br>
+</p>
+<p class=textword>В коде ниже мы резервируем память для 5 изображений. Мы очищаем 
+  место и загружаем все 5 картинок. Мы делаем цикл по всем изображениям и конвертируем 
+  их в текстуры для использования в нашей программе. Текстуры сохранены в <b>texture[0-4]</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>int LoadGLTextures()                // Загрузка картинки 
+  и конвертирование в текстуру</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  int Status=FALSE;                 // Индикатор состояния</p>
+<p class=textpreword>  AUX_RGBImageRec *TextureImage[5]; // Создать место для 
+  текстуры</p>
+<p class=textpreword>  memset(TextureImage,0,sizeof(void *)*5); // Установить 
+  указатель в NULL</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  if ((TextureImage[0]=LoadBMP(&quot;Data/logo.bmp&quot;)) 
+  &amp;&amp;   // Текстура эмблемы</p>
+<p class=textpreword>      (TextureImage[1]=LoadBMP(&quot;Data/mask1.bmp&quot;)) 
+  &amp;&amp;  // Первая маска</p>
+<p class=textpreword>      (TextureImage[2]=LoadBMP(&quot;Data/image1.bmp&quot;)) 
+  &amp;&amp; // Первое изображение</p>
+<p class=textpreword>      (TextureImage[3]=LoadBMP(&quot;Data/mask2.bmp&quot;)) 
+  &amp;&amp;  // Вторая маска</p>
+<p class=textpreword>      (TextureImage[4]=LoadBMP(&quot;Data/image2.bmp&quot;)))   
+  // Второе изображение</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    Status=TRUE;                    // Задать статус в TRUE</p>
+<p class=textpreword>    glGenTextures(5, &amp;texture[0]);  // Создать пять текстур</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    for (loop=0; loop&lt;5; loop++)    // Цикл по всем пяти 
+  текстурам</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      glBindTexture(GL_TEXTURE_2D, texture[loop]);</p>
+<p class=textpreword>      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword>      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+<p class=textpreword>      glTexImage2D(GL_TEXTURE_2D, 0, 3, TextureImage[loop]-&gt;sizeX, 
+  TextureImage[loop]-&gt;sizeY,</p>
+<p class=textpreword>        0, GL_RGB, GL_UNSIGNED_BYTE, TextureImage[loop]-&gt;data);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  for (loop=0; loop&lt;5; loop++)      // Цикл по всем пяти 
+  текстурам</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    if (TextureImage[loop])         // Если текстура существуют</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      if (TextureImage[loop]-&gt;data) // Если изображение 
+  текстуры существует</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        free(TextureImage[loop]-&gt;data); // Освободить 
+  память изображения</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>      free(TextureImage[loop]);     // Освободить структуру 
+  изображения</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  return Status;                    // Возвращаем статус</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Код <b>ReSizeGLScene()</b> не изменился, и мы опустим его.<br>
+  <br>
+</p>
+<p class=textword>Код инициализации необходимая формальность. Мы загружаем наши 
+  текстуры, задаем цвет очистки, задаем и разрешаем тест глубины, включаем плавное 
+  закрашивание, и разрешаем наложение текстуры. У нас простая программа, поэтому 
+  нет необходимости в сложной инициализации :).</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>int InitGL(GLvoid)            // Все начальные настройки 
+  OpenGL здесь</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  if (!LoadGLTextures())      // Переход на процедуру загрузки 
+  текстуры</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return FALSE;             // Если текстура не загружена 
+  возвращаем FALSE</p>
+<p class=textpreword>  }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Черный фон</p>
+<p class=textpreword>  glClearDepth(1.0);          // Установка буфера глубины</p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST);    // Разрешение теста глубины</p>
+<p class=textpreword>  glShadeModel(GL_SMOOTH);    // Разрешить плавное закрашивание</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D);    // Разрешение наложения текстуры</p>
+<p class=textpreword>  return TRUE;                // Инициализация завершена 
+  OK</p>
+<p class=textpreword>}</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Теперь самое интересное. Наш код рисования! Мы начинаем как 
+  обычно. Мы очищаем фон и буфер глубины. Затем мы сбрасываем матрицу вида, и 
+  перемещаемся на 2 единицы вглубь экрана так, чтобы мы могли видеть нашу сцену.</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>int DrawGLScene(GLvoid)          // Здесь мы все рисуем</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);      
+  // Очистка экрана и буфера глубины</p>
+<p class=textpreword>  glLoadIdentity();              // Сброс матрицы вида</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,-2.0f); // Перемещение вглубь экрана 
+  на 2 единицы</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Первая строка ниже выбирает текстуру 'эмблемы' сайта NeHe. Мы 
+  наложим текстуру на экран, используя четырехугольник. Мы задаем четыре текстурных 
+  координаты совместно с четырьмя вершинами.<br>
+  <br>
+</p>
+<p class=textword>Дополнение от Джонатана Роя: помните, что OpenGL - графическая 
+  система на основе вершин. Большинство параметров, которые Вы задаете, регистрируются 
+  как атрибуты отдельных вершин. Текстурные координаты - один из таких атрибутов. 
+  Вы просто задаете соответствующие текстурные координаты для каждой вершины многоугольника, 
+  и OpenGL автоматически заполняет поверхность между вершинами текстурой, в процессе 
+  известном как интерполяция. Интерполяция - стандартная геометрическая техника, 
+  которая позволяет OpenGL определить, как данный параметр изменяется между вершинами, 
+  зная только значение, которое параметр имеет в вершинах непосредственно.<br>
+  <br>
+</p>
+<p class=textword>Как и в предыдущих уроках, мы представим, что мы на внешней 
+  стороне четырехугольника и назначаем координаты текстуры следующим образом: 
+  (0.0, 0.0) нижний левый угол, (0.0, 1.0)  верхний левый угол, (1.0, 0.0) нижний 
+  правый, и (1.0, 1.0) верхний правый. А теперь, с учетом этой настройки, Вы можете 
+  указать, какие координаты текстуры соответствуют точке в середине четырехугольника? 
+  Правильно, (0.5, 0.5). Но в коде Вы ни где не задавали эту координату, не так 
+  ли? Когда рисуется четырехугольник, OpenGL вычисляет это за Вас. И просто волшебство 
+  то, что он это делает безотносительно к позиции, размера, или ориентации многоугольника!<br>
+  <br>
+</p>
+<p class=textword>В этом уроке мы привнесем еще один интересный трюк, назначив 
+  текстурные координаты, которые будут отличаться от 0.0 и 1.0. Текстурные координаты 
+  должны быть нормализованы. Значение 0.0 отображается на одну грань текстуры, 
+  в тоже время как значение 1.0 отображает на противоположную грань, захватывая 
+  всю ширину или высоту изображения текстуры за одну единицу, независимо от размера 
+  многоугольника или размера изображения текстуры в пикселях (о чем мы не должны 
+  волноваться при выполнении наложения текстуры, и это делает жизнь в целом несколько 
+  проще). Значения большие, чем 1.0, будут просто заворачивать наложение с другой 
+  грани и повторять текстуру. Другими словами, например, текстурная координата 
+  (0.3, 0.5) отображает точно тот же самый пиксель в изображении текстуры, как 
+  и координата (1.3, 0.5), или как (12.3,-2.5). В этом уроке, мы добьемся мозаичного 
+  эффекта, задавая значение 3.0 вместо 1.0, повторяя текстуру девять раз (3x3 
+  мозаика) по поверхности четырехугольника.<br>
+</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>
+  <img width=96 height=96 src="nehe20-2.jpg" align=right hspace=5>
+  <img width=96 height=96 src="nehe20-1.jpg" align=left hspace=5> 
+Дополнительно, мы используем переменную <b>roll</b>, чтобы заставить 
+  текстуру перемещаться (или скользить) по поверхности четырехугольника. Значение 
+  0.0 для <b>roll</b>, которое добавлено к вертикальной координате текстуры, означает, 
+  что наложение текстуры на нижнею грань четырехугольника начинается на нижней 
+  грани изображения текстуры, как показано на рисунке слева. Когда <b>roll</b> 
+  равна 0.5, наложение на нижнею грань четырехугольника начинается с половины 
+  изображении (см. рисунок справа). Прокрутка текстуры может использоваться, чтобы 
+  создать отличные эффекты типа движущихся облаков, вращающихся слов вокруг объектов, 
+  и т.д.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, texture[0]); // Выбор текстуры 
+  эмблемы</p>
+<p class=textpreword>  glBegin(GL_QUADS);       // Начало рисования текстурного 
+  четырехугольника</p>
+<p class=textpreword>    glTexCoord2f(0.0f, -roll+0.0f); glVertex3f(-1.1f, -1.1f,  
+  0.0f);  // Лево Низ</p>
+<p class=textpreword>    glTexCoord2f(3.0f, -roll+0.0f); glVertex3f( 1.1f, -1.1f,  
+  0.0f);  // Право Низ</p>
+<p class=textpreword>    glTexCoord2f(3.0f, -roll+3.0f); glVertex3f( 1.1f,  1.1f,  
+  0.0f);  // Право Верх</p>
+<p class=textpreword>    glTexCoord2f(0.0f, -roll+3.0f); glVertex3f(-1.1f,  1.1f,  
+  0.0f);  // Лево Верх</p>
+<p class=textpreword>  glEnd();                // Завершения рисования четырехугольника</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Продолжим… Теперь мы разрешаем смешивание. Чтобы этот эффект 
+  работал мы также должны отключить тест глубины. Очень важно, чтобы Вы это сделали! 
+  Если Вы не отключили тест глубины, вероятно, вы ничего не увидите. Все Ваше 
+  изображение исчезнет!</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glEnable(GL_BLEND);       // Разрешение смешивания</p>
+<p class=textpreword>  glDisable(GL_DEPTH_TEST); // Запрет теста глубины</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Первое, что мы делаем после того, как мы разрешаем смешивание 
+  и отключаем тест глубины – проверка надо ли нам маскировать наше изображение 
+  или смешивать его на старый манер. Строка кода ниже проверяет истина ли маскировка. 
+  Если это так, то мы задаем смешивание таким образом, чтобы наша маска выводилась 
+  на экран правильным образом.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  if (masking)              // Маскировка разрешена?</p>
+<p class=textpreword>  {</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Если маскировка ИСТИНА, что строка ниже задаст смешивание для 
+  нашей маски. Маска – это только черно-белая копия текстуры, которую мы хотим 
+  вывести на экран. Любая белая часть маски будет прозрачной. Любая черная часть 
+  маски будет непрозрачной.<br>
+  <br>
+</p>
+<p class=textword>Команда настройки смешивания ниже делает следующее: цвет адресата 
+  (цвет на экране) будет установлен в черный, если часть нашей маски, которая 
+  копируется на экран, черная. Это означает, что часть экрана, которая попадает 
+  под черную часть нашей маски, станет черной. Все, что было на экране под маской, 
+  будет очищено в черный цвет. Часть экрана, попавшего под белую маску не будет 
+  изменена.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    glBlendFunc(GL_DST_COLOR,GL_ZERO); // Смешивание цвета 
+  экрана с нулем (Черное)</p>
+<p class=textpreword>  }</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь мы проверим, какую сцену надо вывести. Если <b>scene</b> 
+  ИСТИНА, то мы выведем вторую сцену. Если <b>scene</b> ЛОЖЬ, то мы выведем первую 
+  сцену.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  if (scene)                // Рисовать вторую сцену?</p>
+<p class=textpreword>  {</p>
+<p class=textword> &nbsp; </p>
+<p class=textword>Мы не хотим, чтобы объекты были слишком большими, поэтому мы 
+  перемещаемся еще на одну единицу в экран. Это уменьшит размер наших объектов.<br>
+  <br>
+</p>
+<p class=textword>После того, как мы переместились в экран, мы вращаемся от 0-360 
+  градусов в зависимости от значения <b>roll</b>. Если <b>roll</b> - 0.0, мы будем 
+  вращать на 0 градусов. Если <b>roll</b> - 1.0, мы будем вращать на 360 градусов. 
+  Довольно быстрое вращение, но я не хочу создавать другую переменную только, 
+  для того чтобы вращать изображение в центре экрана. :)</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    glTranslatef(0.0f,0.0f,-1.0f);      // Перемещение вглубь 
+  экрана на одну единицу</p>
+<p class=textpreword>    glRotatef(roll*360,0.0f,0.0f,1.0f); // Вращение по оси 
+  Z на 360 градусов</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Мы уже имеем прокрутку эмблемы на экране, и мы вращаем сцену 
+  по оси Z, при этом любые объекты, которые мы рисуем, вращаются против часовой 
+  стрелки, теперь все, что мы должны сделать – это проверить, включена ли маскировка. 
+  Если это так, то мы выведем нашу маску, затем наш объект. Если маскировка выключена, 
+  то мы выведем только наш объект.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    if (masking)              // Маскирование включено?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Если маскировка ИСТИНА, то код ниже выведет нашу маску на экран. 
+  Наш режим смешивания уже задан ранее. Теперь все, что мы должны сделать – это 
+  вывести маску на экран. Мы выбираем маску 2 (потому что это вторая сцена). После 
+  того, как мы выбрали текстуру маски, мы накладываем текстуру на четырехугольник. 
+  Четырехугольник размером на 1.1 единицу влево и вправо так, чтобы он немного 
+  выходил за край экрана. Мы хотим показать только одну текстуру, поэтому координаты 
+  текстуры изменяются от 0.0 до 1.0.<br>
+  <br>
+</p>
+<p class=textword>После отрисовки нашей маски на экране будет находиться сплошная 
+  черная копия нашей завершающей текстуры. Это похоже на то, что формочка для 
+  выпечки, которая по форме совпадает с нашей завершающей текстурой, вырезала 
+  на экране пустое черное место.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>      glBindTexture(GL_TEXTURE_2D, texture[3]); // Выбор 
+  второй маски текстуры</p>
+<p class=textpreword>      glBegin(GL_QUADS);  // Начало рисования текстурного 
+  четырехугольника</p>
+<p class=textpreword>        glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.1f, -1.1f,  
+  0.0f);  // Низ Лево</p>
+<p class=textpreword>        glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.1f, -1.1f,  
+  0.0f);  // Низ Право</p>
+<p class=textpreword>        glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.1f,  1.1f,  
+  0.0f);  // Верх Право</p>
+<p class=textpreword>        glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.1f,  1.1f,  
+  0.0f);  // верх Лево</p>
+<p class=textpreword>      glEnd();            // Конец рисования четырехугольника</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь, когда мы вывели нашу маску на экран, пришло время снова 
+  изменить режим смешивания. На сей раз, мы собираемся, указать OpenGL, что надо 
+  копировать на экран любую часть нашей цветной текстуры, которая НЕ черная. Поскольку 
+  завершающая текстура - точная копия маски, но с цветом, выводятся на экран только 
+  те части нашей текстуры, которые попадают сверху черной части маски. Поскольку 
+  маска черная, ничто с экрана не будет просвечивать через нашу текстуру. И с 
+  нами остается сплошная текстура, плавающая сверху по экрану.<br>
+  <br>
+</p>
+<p class=textword>Заметьте, что мы выбираем второе изображение после выбора завершающего 
+  режима смешивания. При этом выбирается наше цветное изображение (изображение, 
+  на котором основана вторая маска). Также заметьте, что мы выводим это изображения 
+  с правого верхнего угла маски. Те же самые текстурные координаты, те же самые 
+  вершины.<br>
+  <br>
+</p>
+<p class=textword>Если мы не выведем маску, наше изображение будет скопировано 
+  на экран, но оно смешает с тем, что было на экране.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    glBlendFunc(GL_ONE, GL_ONE);  // Копирование цветного 
+  изображения 2 на экран</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D, texture[4]); // Выбор второго 
+  изображения текстуры</p>
+<p class=textpreword>    glBegin(GL_QUADS);            // Начало рисования текстурного 
+  четырехугольника</p>
+<p class=textpreword>      glTexCoord2f(0.0f, 0.0f); glVertex3f(-1.1f, -1.1f,  
+  0.0f);  // Низ Лево</p>
+<p class=textpreword>      glTexCoord2f(1.0f, 0.0f); glVertex3f( 1.1f, -1.1f,  
+  0.0f);  // Низ Право</p>
+<p class=textpreword>      glTexCoord2f(1.0f, 1.0f); glVertex3f( 1.1f,  1.1f,  
+  0.0f);  // Верх Право</p>
+<p class=textpreword>      glTexCoord2f(0.0f, 1.0f); glVertex3f(-1.1f,  1.1f,  
+  0.0f);  // Верх Лево</p>
+<p class=textpreword>    glEnd();                      // Завершение рисования 
+  четырехугольника</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Если <b>scene</b> была ЛОЖЬ, мы выведем первую сцену (моя любимая).</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  else                  // Иначе</p>
+<p class=textpreword>  {</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Вначале мы проверяем, включена ли маскировка, точно так же как 
+  в коде выше.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    if (masking)              // Вкл. маскировка?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Если <b>masking</b> ИСТИНА, то мы выводим нашу маску 1 на экран 
+  (маска для сцены 1). Заметьте, что текстура прокручивается справа налево (<b>roll</b> 
+  добавляется к горизонтальной координате текстуры). Мы хотим, чтобы эта текстура 
+  заполнила весь экран, именно поэтому мы и не перемещаемся глубже в экран.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>      glBindTexture(GL_TEXTURE_2D, texture[1]); // Выбор 
+  первой маски текстуры</p>
+<p class=textpreword>      glBegin(GL_QUADS);  // Начало рисования текстурного 
+  четырехугольника</p>
+<p class=textpreword>        glTexCoord2f(roll+0.0f, 0.0f); glVertex3f(-1.1f, 
+  -1.1f,  0.0f);  // Низ Лево</p>
+<p class=textpreword>        glTexCoord2f(roll+4.0f, 0.0f); glVertex3f( 1.1f, 
+  -1.1f,  0.0f);  // Низ Право</p>
+<p class=textpreword>        glTexCoord2f(roll+4.0f, 4.0f); glVertex3f( 1.1f,  
+  1.1f,  0.0f);  // Верх Право</p>
+<p class=textpreword>        glTexCoord2f(roll+0.0f, 4.0f); glVertex3f(-1.1f,  
+  1.1f,  0.0f);  // Верх Лево</p>
+<p class=textpreword>      glEnd();            // Конец рисования четырехугольника</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Снова мы разрешаем смешивание и выбираем нашу текстуру для сцены 
+  1. Мы накладываем эту текстуру поверх маски. Заметьте, что мы прокручиваем эту 
+  текстуру таким же образом, иначе маска и завершающие изображение не совместились.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    glBlendFunc(GL_ONE, GL_ONE); // Копирование цветного 
+  изображения 1 на экран</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D, texture[2]); // Выбор первого 
+  изображения текстуры</p>
+<p class=textpreword>    glBegin(GL_QUADS);    // Начало рисования текстурного 
+  четырехугольника</p>
+<p class=textpreword>      glTexCoord2f(roll+0.0f, 0.0f); glVertex3f(-1.1f, -1.1f,  
+  0.0f);  // Низ Лево</p>
+<p class=textpreword>      glTexCoord2f(roll+4.0f, 0.0f); glVertex3f( 1.1f, -1.1f,  
+  0.0f);  // Низ Право</p>
+<p class=textpreword>      glTexCoord2f(roll+4.0f, 4.0f); glVertex3f( 1.1f,  1.1f,  
+  0.0f);  // Верх Право</p>
+<p class=textpreword>      glTexCoord2f(roll+0.0f, 4.0f); glVertex3f(-1.1f,  1.1f,  
+  0.0f);  // Верх Лево</p>
+<p class=textpreword>    glEnd();              // Конец рисования четырехугольника</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Затем мы разрешаем тест глубины, и отключаем смешивание. Это 
+  предотвращает странные вещи, происходящие от случая к случаю в остальной части 
+  нашей программы. :)</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST); // Разрешение теста глубины</p>
+<p class=textpreword>  glDisable(GL_BLEND);     // Запрещение смешивания</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>В завершении надо увеличить значение <b>roll</b>. Если <b>roll</b> 
+  больше, чем 1.0, мы вычитаем 1.0. Это предотвращает появление больших значений 
+  <b>roll</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  roll+=0.002f;            // Увеличим прокрутку нашей текстуры</p>
+<p class=textpreword>  if (roll&gt;1.0f)           // Roll больше чем</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    roll-=1.0f;            // Вычтем 1 из Roll</p>
+<p class=textpreword>  }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  return TRUE;             // Все OK</p>
+<p class=textpreword>}</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Код <b>KillGLWindow(), </b><b>CreateGLWindow() </b>и<b> </b><b>WndProc() 
+  </b>не изменился, поэтому мы опустим его.<br>
+  <br>
+</p>
+<p class=textword>Первое что изменилось в <b>WinMain()</b> - заголовок окна. Теперь 
+  название &quot;Урок Маскирования NeHe&quot;. Вы можете изменить это название 
+  на такое, какое Вы захотите. :)</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>int WINAPI WinMain(</p>
+<p class=textpreword>          HINSTANCE hInstance,     // Экземпляр</p>
+<p class=textpreword>          HINSTANCE hPrevInstance, // Предыдущий экземпляр</p>
+<p class=textpreword>          LPSTR     lpCmdLine,     // Параметры командной 
+  строки</p>
+<p class=textpreword>          int       nCmdShow)      // Показать состояние 
+  окна</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  MSG  msg;        // Структура сообщения окна</p>
+<p class=textpreword>  BOOL done=FALSE; // Булевская переменная выхода из цикла</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  // Запросим пользователя какой режим отображения он предпочитает</p>
+<p class=textpreword>  if (MessageBox(NULL,&quot;Would You Like To Run In Fullscreen 
+  Mode?&quot;,</p>
+<p class=textpreword>      &quot;Start FullScreen?&quot;,MB_YESNO|MB_ICONQUESTION)==IDNO)</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    fullscreen=FALSE;              // Оконный режим</p>
+<p class=textpreword>  }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textpreword>  // Создадим наше окно OpenGL</p>
+<p class=textpreword>  if (!CreateGLWindow(&quot;NeHe's Masking Tutorial&quot;,640,480,16,fullscreen))</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    return 0;                  // Выходим если окно не было 
+  создано</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  while (!done) // Цикл, который продолжается пока done=FALSE</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    if (PeekMessage(&amp;msg,NULL,0,0,PM_REMOVE)) // Есть 
+  ожидаемое сообщение?</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      if (msg.message==WM_QUIT) // Мы получили сообщение 
+  о выходе?</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        done=TRUE; // Если так done=TRUE</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>      else // Если нет, продолжаем работать с сообщениями 
+  окна</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        TranslateMessage(&amp;msg); // Переводим сообщение</p>
+<p class=textpreword>        DispatchMessage(&amp;msg);  // Отсылаем сообщение</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    else // Если сообщений нет</p>
+<p class=textpreword>    {</p>
+<p class=textpreword>      // Рисуем сцену. Ожидаем нажатия кнопки ESC и сообщения 
+  о выходе от DrawGLScene()</p>
+<p class=textpreword>      // Активно?  Было получено сообщение о выходе?</p>
+<p class=textpreword>      if ((active &amp;&amp; !DrawGLScene()) || keys[VK_ESCAPE])</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        done=TRUE; // ESC или DrawGLScene просигналили &quot;выход&quot;</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>      else // Не время выходить, обновляем экран</p>
+<p class=textpreword>      {</p>
+<p class=textpreword>        SwapBuffers(hDC); // Переключаем буферы (Двойная 
+  буферизация)</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь наш простой обработчик клавиатуры. Мы проверяем, нажат 
+  ли пробел. Если это так, то мы устанавливаем переменную <b>sp</b> в ИСТИНА. 
+  Если <b>sp</b> ИСТИНА, код ниже не будет выполняться второй раз, пока пробел 
+  не был отпущен. Это блокирует быстрое переключение сцен в нашей программе. После 
+  того, как мы устанавливаем <b>sp</b> в ИСТИНА, мы переключаем сцену. Если <b>scene</b> 
+  была ИСТИНА, она станет ЛОЖЬ, если она была ЛОЖЬ, то станет ИСТИНА. В нашем 
+  коде рисования выше, если <b>scene</b> ЛОЖЬ, первая сцена будет выведена. Если 
+  <b>scene</b> ИСТИНА, то вторая сцена будет выведена.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>        if (keys[' '] &amp;&amp; !sp) // Пробел нажат?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          sp=TRUE;            // Сообщим программе, что пробел 
+  нажат</p>
+<p class=textpreword>          scene=!scene;       // Переключение сцен</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Код ниже проверяет, отпустили ли мы пробел (если НЕ ' '). Если 
+  пробел был отпущен, мы устанавливаем <b>sp</b> в ЛОЖЬ, сообщая нашей программе, 
+  что пробел не нажат. Задав <b>sp</b> в ЛОЖЬ, код выше снова проверит, был ли 
+  нажат пробел, и если так, то все повториться.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>        if (!keys[' '])    // Пробел отжат?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          sp=FALSE;        // Сообщим программе, что пробел 
+  отжат</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>В следующем разделе кода проверяется нажатие клавиши 'M'. Если 
+  она нажата, мы устанавливаем <b>mp</b> в ИСТИНА, указывая программе не проверять 
+  это условие в дальнейшем, пока клавиша не отпущена, и мы переключаем <b>masking</b> 
+  с ИСТИНА на ЛОЖЬ или с ЛОЖЬ на ИСТИНА. Если <b>masking</b> ИСТИНА, то в коде 
+  рисования будет подключена маскировка. Если <b>masking</b> ЛОЖЬ, то маскировка 
+  будет отключена. Если маскировка выключена, то объект будет смешан с содержимым 
+  экрана, используя смешивание на старый манер, который мы использовали до сих 
+  пор.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>        if (keys['M'] &amp;&amp; !mp) // M нажата?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          mp=TRUE;            // Сообщим программе, что M 
+  нажата</p>
+<p class=textpreword>          masking=!masking;   // Переключение режима маскирования 
+  Выкл/Вкл</p>
+<p class=textpreword>        }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Последняя небольшая часть кода проверяет, отпущена ли &quot;M&quot;. 
+  Если это так, то <b>mp</b> присваивается ЛОЖЬ, давая знать программе, что мы 
+  больше не нажимаем клавишу 'M'. Как только клавиша 'M' была отпущена, мы можем 
+  нажать ее еще раз, чтобы переключить включение или отключение маскировки.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>        if (!keys['M']) // M отжата?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          mp=FALSE;     // Сообщим программе, что M отжата</p>
+<p class=textpreword>        }</p>
+<p class=textpreword> &nbsp; </p>
+<p class=textword>Как и в других уроках, удостоверитесь, что заголовок наверху 
+  окна правильный.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>        if (keys[VK_F1])             // Была нажата кнопка 
+  F1?</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          keys[VK_F1]=FALSE;         // Если так - установим 
+  значение FALSE</p>
+<p class=textpreword>          KillGLWindow();            // Закроем текущее окно 
+  OpenGL  </p>
+<p class=textpreword>          fullscreen=!fullscreen;    // Переключим режим 
+  &quot;Полный экран&quot;/&quot;Оконный&quot;</p>
+<p class=textpreword>          // Заново создадим наше окно OpenGL</p>
+<p class=textpreword>          if (!CreateGLWindow(&quot;NeHe's Masking Tutorial&quot;,640,480,16,fullscreen))</p>
+<p class=textpreword>          {</p>
+<p class=textpreword>            return 0;                // Выйти, если окно 
+  не было создано</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>          }</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  // Сброс</p>
+<p class=textpreword>  KillGLWindow();                    // Закроем окно</p>
+<p class=textpreword>  return (msg.wParam);               // Выйдем из программы</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Создание маски не сложно, и не требует много времени. Лучший 
+  способ сделать маску из готового изображения, состоит в том, чтобы загрузить 
+  ваше изображение в графический редактор или программу просмотра изображений, 
+  такую как infranview, и перевести изображение в серую шкалу. После того, как 
+  Вы сделали это, увеличивайте контрастность так, чтобы серые пиксели стали черными. 
+  Вы можете также уменьшить яркость, и т.д. Важно, что белый цвет это ярко белый, 
+  и черный это чисто черный. Если Вы имеете любые серые пиксели в вашей маске, 
+  то эта часть изображения будет прозрачной. Наиболее надежный способ удостовериться, 
+  что ваша маска точная копия вашего изображения, снять копию изображения с черным. 
+  Также очень важно, что ваше изображение имеет ЧЕРНЫЙ цвет, и маска имеет БЕЛЫЙ 
+  цвет! Если Вы создали маску и заметили квадратную форму вокруг вашей текстуры, 
+  или ваш белый - не достаточно яркий (255 или FFFFFF) или ваш черный - не точно 
+  черный (0 или 000000). Ниже Вы приведен пример маски и изображения, которое 
+  накладывается поверх маски. Изображение может иметь любой цвет, который Вы хотите, 
+  но фон должен быть черный. Маска должна иметь белый фон и черную копию вашего 
+  изображения.</p>
+<p class=textword><br>
+  Это - маска - &gt; <img width=32 height=32 src="nehe20-3.jpg" hspace=5> . Это 
+  - изображение - &gt; <img width=32 height=32 src="nehe20-4.jpg" hspace=5> .</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>(Прим.переводчика: Вы можете в изображении назначить любой цвет 
+  фоновым, важно, чтобы он стал белым в маске, а все остальные цвета перешли в 
+  черный цвет. Можно воспользоваться для выделения прозрачного цвета (или группы 
+  цветов) инструментов Select/Color Range в AdobePhotoshop, а затем залить выделенную 
+  область в белый цвет (тем самым вы создадите прозрачные области в маски), а 
+  затем инвертировать эту область и залить ее черным цветом (тем самым вы создадите 
+  непрозрачные области в маске).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Эрик Десросиерс подсказал, что Вы можете также проверять значение 
+  каждого пикселя в вашем рисунке, во время его загрузки. Если Вы хотите иметь 
+  прозрачный пиксель, Вы можете присвоить ему альфа значение 0. Для всех других 
+  цветов Вы можете присвоить им альфа значение 255. Этот метод будет также работать, 
+  но требует дополнительного кодирования. Текущий урок прост и требует очень немного 
+  дополнительного кода. Я не отвергаю другие методы, но когда я писал обучающую 
+  программу, я пробовал сделать код простым, понятым и удобным. Я только хотел 
+  сказать, что есть всегда другие способы сделать эту работу. Спасибо за замечание 
+  Эрик.<br>
+  <br>
+</p>
+<p class=textword>В этом уроке я показал Вам простой, но эффективный способ рисования 
+  частей текстуры на экран без использования альфа канала. Стандартное смешивание 
+  обычно выглядит плохо (текстуры или прозрачные, или они не прозрачные), и текстурирование 
+  с альфа каналом требует, чтобы ваши изображения имели альфа канал. С растровыми 
+  изображениями удобно работать, но они не поддерживают альфа канала, эта программа 
+  показывает нам, как обойти ограничения растровых изображений, демонстрируя крутой 
+  способ создавать эффекты типа штампа (effect overlay).<br>
+  <br>
+</p>
+<p class=textword>Благодарю Роба Санте за идею и за пример кода. Я никогда не 
+  слышал об этом небольшом трюке, пока он не указал на него. Он хотел, чтобы я 
+  подчеркнул, что, хотя эта уловка и работает, но для нее требуется два прохода, 
+  и это снижается производительность. Он рекомендует, чтобы Вы использовали текстуры 
+  с альфа каналом для сложных сцен.<br>
+  <br>
+</p>
+<p class=textword>Я надеюсь, что Вам понравится этот урок. Если Вы что-то не понимаете, 
+  или Вы нашли ошибку в уроке, пожалуйста, сообщите мне. Я хочу сделать уроки 
+  лучше. Ваши замечания также очень важны!<br>
+  <br>
+</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;3 сентября 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:pmg-ru@narod.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Сергей Анисимов</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

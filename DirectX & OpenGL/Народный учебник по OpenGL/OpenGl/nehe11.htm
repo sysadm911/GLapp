@@ -1,0 +1,430 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 11. Эффект &quot;флага&quot; на OpenGL</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe11.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 11. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 11. Эффект &quot;флага&quot; на OpenGL</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=11" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>OpenGL Flag Effect</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Всем привет. Для тех, кто хочет узнать, чем же мы тут занимаемся: 
+  эту вещь можно увидеть в конце моего демо/хака &quot;<span
+lang=EN-US>Worthless</span>!&quot;. Меня зовут Боско (Bosco), и я сделаю все, 
+  что в моих силах, чтобы научить вас, парни, делать анимированную картинку с 
+  синусоидальной волной по ней. Этот урок основан на уроке №6 от NeHe, и вы должны, 
+  по крайней мере, знать и уметь делать то, что в нем описано. Вы должны скачать 
+  архив с исходным кодом, распаковать его куда-нибудь, взять картинку из папки 
+  <span lang=EN-US>data</span><span lang=EN-US> </span>и поместить в подпапку 
+  <span
+lang=EN-US>data</span> той папки, где находится ваш исходник :). Ну, или использовать 
+  свою текстуру, если она подходящего для <span
+lang=EN-US>OpenGL</span> размера. </p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Перво-наперво откройте урок №6 для <span lang=EN-US>Visual</span> 
+  C++ и добавьте этот #<span
+lang=EN-US>include</span> сразу за другими. Данный #<span lang=EN-US>include</span> 
+  позволит нам использовать различные библиотечные математические функции, как, 
+  например, синус и косинус.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>#include &lt;math.h&gt;                                  
+  // для функции<span lang=EN-US> Sin()</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Мы будем использовать массив точек (<span lang=EN-US>points</span>) 
+  для хранения отдельных x, y и z - координат нашей сетки. Размер сетки 45x45, 
+  и она в свою очередь образует 44x44 квадрата. <span lang=EN-US>wiggle</span>_<span
+lang=EN-US>count</span> будет использоваться для определения того, насколько быстро 
+  &quot;развевается&quot; текстура. Каждые три кадра выглядят достаточно хорошо, 
+  и переменная <span lang=EN-US>hold</span> будет содержать число с плавающей 
+  запятой для сглаживания волн. Эти строки можно добавить в начале программы, 
+  где-нибудь под последней строчкой с #<span lang=EN-US>include</span> и перед 
+  строкой <span lang=EN-US>GLuint</span><span lang=EN-US> </span><span lang=EN-US>texture</span>[1]:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>float points[ 45 ][ 45 ][3]; // массив точек 
+  сетки нашей &quot;волны&quot;</p>
+<p class=textpreword>int wiggle_count = 0;        // счетчик для контроля быстроты развевания 
+  флага </p>
+<p class=textpreword>GLfloat hold;                // временно содержит число с плавающей 
+  запятой</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Перейдем вниз, к функции <span lang=EN-US>LoadGLTextures</span>(). 
+  Мы хотим использовать текстуру с именем <span
+lang=EN-US>Tim</span>.<span lang=EN-US>bmp</span>. Найдите <span lang=EN-US>LoadBMP</span>(&quot;<span lang=EN-US>Data</span>/<span lang=EN-US>NeHe</span>.<span lang=EN-US>bmp</span>&quot;) 
+  и поменяйте на <span lang=EN-US>LoadBMP</span>(&quot;<span
+lang=EN-US>Data</span>/<span lang=EN-US>Tim</span>.<span lang=EN-US>bmp</span>&quot;).<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textpreword>if (TextureImage[0]=LoadBMP(&quot;Data/Tim.bmp&quot;))         // загружаем изображение<span lang=EN-US></span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь добавьте приведенный ниже код в конец функции <span
+lang=EN-US>InitGL</span>() перед <span
+lang=EN-US>return</span><span lang=EN-US> </span><span
+lang=EN-US>TRUE</span>:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>glPolygonMode( GL_BACK, GL_FILL );       // нижняя<span lang=EN-US> 
+  (</span>задняя<span lang=EN-US>) </span>сторона заполнена<span lang=EN-US></span></p>
+<p class=textpreword>glPolygonMode( GL_FRONT, GL_LINE );      // верхняя<span
+lang=EN-US> (</span>передняя<span lang=EN-US>) </span>сторона прорисована линиями<span
+lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Этот код просто означает, что мы хотим, чтобы полигоны нижней 
+  (задней) стороны были зарисованы полностью и чтобы полигоны верхней (передней) 
+  стороны были лишь очерчены.</p>
+<p class=textword>Это мои личные предпочтения. Причина – ориентация полигона или 
+  направления граней. Загляните в Красную Книгу (по <span lang=EN-US>OpenGL</span>), 
+  если хотите узнать больше. Пользуясь случаем, хочу сказать, что эта книга как 
+  раз из числа того, что помогает мне в изучении <span lang=EN-US>OpenGL</span>, 
+  не считая сайта <span lang=EN-US>NeHe</span> :). Спасибо <span lang=EN-US>NeHe</span>. 
+  Купите книгу<span lang=EN-US> The Programmer's Guide to OpenGL </span>издательства<span lang=EN-US> 
+  Addison-Wesley. </span>Она – неисчерпаемый ресурс по части программирования 
+  на <span lang=EN-US>OpenGL</span>. Ладно, вернемся к уроку.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Прямо под предыдущим кодом и выше <span lang=EN-US>return</span><span lang=EN-US> 
+  </span><span
+lang=EN-US>TRUE</span> добавьте следующие строки:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// пройдемся по плоскости <span lang=EN-US>X</span></p>
+<p class=textpreword>      <span
+lang=EN-US>for(int x=0; x&lt;45; x++)</span></p>
+<p class=textpreword><span>      </span>{</p>
+<p class=textpreword><span>      </span>      // пройдемся по плоскости <span lang=EN-US>Y</span></p>
+<p class=textpreword>            <span lang=EN-US>for(int y=0; y&lt;45; y++)</span></p>
+<p class=textpreword><span>      </span>      {</p>
+<p class=textpreword><span>            </span>      // применим волну к нашей 
+  сетке</p>
+<p class=textpreword>                  <span lang=EN-US>points[x][y][0]=float((x/5.0f)-4.5f);</span></p>
+<p class=textpreword><span>            </span>      points[x][y][1]=float((y/5.0f)-4.5f);</p>
+<p class=textpreword><span>            </span>      points[x][y][2]=float(sin((((x/5.0f)*40.0f)/360.0f)*3.141592654*2.0f));</p>
+<p class=textpreword><span>      </span>      }</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Благодарю Грэма Гиббонса (<span lang=EN-US>Graham</span><span lang=EN-US> 
+  </span><span lang=EN-US>Gibbons</span>) за замечание об целочисленном цикле 
+  для того чтобы избежать пиков на волне.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Два цикла вверху инициализируют точки на нашей сетке. Я инициализирую 
+  переменные в моем цикле, чтобы помнить, что они просто переменные цикла. Не 
+  уверен, что это хорошо. Мы используем целочисленные циклы, дабы предупредить 
+  глюки, которые появляются при вычислениях с плавающей запятой. Мы делим переменные 
+  <span lang=EN-US>x</span> и <span
+lang=EN-US>y</span> на 5 (т.е. 45 / 9 = 5) и отнимаем 4.5 от каждой из них, чтобы 
+  отцентрировать &quot;волну&quot;. Того же эффекта можно достигнуть переносом 
+  (<span lang=EN-US>translate</span>), но этот способ мне больше нравится. </p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Окончательное значение <span lang=EN-US>points</span>[<span lang=EN-US>x</span>][<span
+lang=EN-US>y</span>][2] - это наше значение синуса. Функция <span lang=EN-US>sin</span>() 
+  принимает параметр в радианах. Мы берем наши градусы, которые получились умножением 
+  <span lang=EN-US>float</span>_<span
+lang=EN-US>x</span><span lang=EN-US> </span>(<span
+lang=EN-US>x</span>/5.0<span lang=EN-US>f</span>) на 40.0<span lang=EN-US>f</span>, 
+  и, чтобы конвертировать их в радианы делением, мы берем градусы, делим на 360.0<span lang=EN-US>f</span>, 
+  умножаем на число пи (или на аппроксимацию) и на 2.0<span
+lang=EN-US>f</span>.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Я заново перепишу функцию <span lang=EN-US>DrawGLScene</span>, 
+  так что удалите ее текст и замените его текстом, приведенным ниже.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>int</span><span
+lang=EN-US> </span><span lang=EN-US>DrawGLScene</span>(<span
+lang=EN-US>GLvoid</span>)                          // рисуем нашу сцену</p>
+<p class=textpreword><span lang=EN-US>{</span></p>
+<p class=textpreword><span>      </span>int<span lang=EN-US> </span><span
+lang=EN-US>x</span>, <span lang=EN-US>y</span>;                                  
+  // переменные циклов</p>
+<p class=textpreword>      // для разбиения флага на маленькие квадраты</p>
+<p class=textpreword>      <span
+lang=EN-US>float</span><span lang=EN-US> </span><span
+lang=EN-US>float</span>_<span lang=EN-US>x</span>, <span lang=EN-US>float</span>_<span lang=EN-US>y</span>, 
+  <span
+lang=EN-US>float</span>_<span lang=EN-US>xb</span>, <span lang=EN-US>float</span>_<span lang=EN-US>yb</span>;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Различные переменные используются для контроля в циклах. Посмотрите 
+  на код ниже – большинство из них служит лишь для контролирования циклов и хранения 
+  временных значений.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>glClear</span>(<span
+lang=EN-US>GL</span>_<span lang=EN-US>COLOR</span>_<span lang=EN-US>BUFFER</span>_<span lang=EN-US>BIT</span> 
+  | <span lang=EN-US>GL</span>_<span lang=EN-US>DEPTH</span>_<span lang=EN-US>BUFFER</span>_<span lang=EN-US>BIT</span>); // очистить экран и буфер глубины</p>
+<p class=textpreword><span lang=EN-US>glLoadIdentity</span>();                   
+                  // сброс текущей матрицы</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>glTranslatef</span>(0.0<span
+lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>,-12.0<span lang=EN-US>f</span>);     
+                  // перенести 17 единиц в глубь экрана</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>glRotatef</span>(<span
+lang=EN-US>xrot</span>,1.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>);     
+                  // вращение по оси <span lang=EN-US>X</span></p>
+<p class=textpreword><span lang=EN-US>glRotatef</span>(<span
+lang=EN-US>yrot</span>,0.0<span lang=EN-US>f</span>,1.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>);     
+                  // вращение по оси <span lang=EN-US>Y</span>  </p>
+<p class=textpreword><span lang=EN-US>glRotatef</span>(<span
+lang=EN-US>zrot</span>,0.0<span lang=EN-US>f</span>,0.0<span lang=EN-US>f</span>,1.0<span lang=EN-US>f</span>);     
+                  // вращение по оси <span lang=EN-US>Z</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>glBindTexture</span>(<span
+lang=EN-US>GL</span>_<span lang=EN-US>TEXTURE</span>_2<span lang=EN-US>D</span>, 
+  <span lang=EN-US>texture</span>[0]);           // выбрать нашу текстуру</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Вы могли видеть это все раньше. Все тут так же, как в уроке 
+  №6, кроме того, что я просто отвожу сцену от камеры чуть дальше.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>glBegin</span>(<span
+lang=EN-US>GL</span>_<span lang=EN-US>QUADS</span>);              // начинаем рисовать квадраты</p>
+<p class=textpreword>      <span
+lang=EN-US>for</span>( <span lang=EN-US>x</span> = 0; <span lang=EN-US>x</span> 
+  &lt; 44; <span lang=EN-US>x</span>++ ) // пройдемся по плоскости <span
+lang=EN-US>X</span> 0-44 (45 точек)</p>
+<p class=textpreword>      <span
+lang=EN-US>{</span></p>
+<p class=textpreword><span>      </span>      for( <span lang=EN-US>y</span> = 
+  0; <span
+lang=EN-US>y</span> &lt; 44; <span lang=EN-US>y</span>++ ) // пройдемся по плоскости 
+  <span
+lang=EN-US>Y</span> 0-44 (45 точек)</p>
+<p class=textpreword>            {</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Просто запускаем цикл рисования наших полигонов. Я здесь использую 
+  целые числа, чтобы избежать использования функции <span lang=EN-US>int</span>(), 
+  которой я пользовался ранее для получения индекса ссылки массива как целое значение.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>float</span>_<span
+lang=EN-US>x</span> = <span lang=EN-US>float</span>(<span lang=EN-US>x</span>)/44.0<span lang=EN-US>f</span>;   
+        // создать значение <span lang=EN-US>X</span> как <span
+lang=EN-US>float</span></p>
+<p class=textpreword><span lang=EN-US>float</span>_<span
+lang=EN-US>y</span> = <span lang=EN-US>float</span>(<span lang=EN-US>y</span>)/44.0<span lang=EN-US>f</span>;   
+        // создать значение <span lang=EN-US>Y</span> как <span
+lang=EN-US>float</span></p>
+<p class=textpreword><span lang=EN-US>float</span>_<span
+lang=EN-US>xb</span> = <span lang=EN-US>float</span>(<span lang=EN-US>x</span>+1)/44.0<span lang=EN-US>f</span>; 
+       // создать значение <span lang=EN-US>X</span> как <span
+lang=EN-US>float</span> плюс 0.0227<span
+lang=EN-US>f</span></p>
+<p class=textpreword><span lang=EN-US>float</span>_<span
+lang=EN-US>yb</span> = <span lang=EN-US>float</span>(<span lang=EN-US>y</span>+1)/44.0<span lang=EN-US>f</span>; 
+       // создать значение <span lang=EN-US>Y</span> как <span
+lang=EN-US>float</span> плюс 0.0227<span
+lang=EN-US>f</span></p>
+<p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Мы используем четыре переменных выше для координат текстуры. 
+  Каждый наш полигон (квадрат в сетке) имеет секцию размером 1/44 <span
+lang=EN-US>x</span> 1/44 с отображенной на нее текстурой. В начале циклов задается 
+  нижняя левая вершина секции, и потом мы просто добавляем к этой вершине соответственно 
+  0 или 1 для получения трех остальных вершин (т.е. <span lang=EN-US>x</span>+1 
+  или <span lang=EN-US>y</span>+1 будет правая верхняя вершина).</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword style='margin-left:35.4pt;text-indent:35.4pt'>// первая координата 
+  текстуры (нижняя левая)</p>
+<p class=textpreword>         glTexCoord2f( float_x, float_y);   </p>
+<p class=textpreword><span>      </span>   glVertex3f( points[x][y][0], points[x][y][1], 
+  points[x][y][2] );</p>
+<p class=textpreword><span>            </span>      </p>
+<p class=textpreword style='text-indent:35.4pt'>      // вторая координата текстуры 
+  (верхняя левая)</p>
+<p class=textpreword>         <span
+lang=EN-US>glTexCoord2f( float_x, float_yb );</span></p>
+<p class=textpreword><span>      </span>   glVertex3f( points[x][y+1][0], points[x][y+1][1], 
+  points[x][y+1][2]);</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword style='margin-left:35.4pt;text-indent:35.4pt'>// третья координата 
+  текстуры (верхняя правая)                 </p>
+<p class=textpreword>         <span lang=EN-US>glTexCoord2f( float_xb, float_yb 
+  );</span></p>
+<p class=textpreword><span lang=EN-US>glVertex3f( points[x+1][y+1][0], points[x+1][y+1][1], 
+  points[x+1][y+1][2]);</span></p>
+<p class=textpreword><span>            </span>      </p>
+<p class=textpreword>            // четвертая координата текстуры 
+  (нижняя правая)</p>
+<p class=textpreword>         <span
+lang=EN-US>glTexCoord2f( float_xb, float_y );</span></p>
+<p class=textpreword><span>      </span>   glVertex3f( points[x+1][y][0], points[x+1][y][1], 
+  points[x+1][y][2]);</p>
+<p class=textpreword><span>      </span>}</p>
+<p class=textpreword>}</p>
+<p class=textpreword><span lang=EN-US>glEnd</span>();                            
+        // закончили с квадратами</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Строки выше просто делают <span lang=EN-US>OpenGL</span>-вызовы 
+  для передачи всех данных, о которых мы говорили. Четыре отдельных вызова каждой 
+  функции <span lang=EN-US>glTexCoord</span>2<span lang=EN-US>f</span>() и <span lang=EN-US>glVertex</span>3<span
+lang=EN-US>f</span>(). Продолжим. Заметьте – квадраты рисуются по часовой стрелке. 
+  Это означает, что сторона, которую вы видите, вначале будет задней. Задняя заполнена<span lang=EN-US>. 
+  </span>Передняя состоит из линий.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Если бы вы рисовали против часовой стрелки, то сторона, которую 
+  вы бы видели вначале, была бы передней. Значит, вы увидели бы текстуру, выглядящую 
+  как сетка, (ты написал: типа сетки) вместо заполненной текстурой поверхности.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>if</span>( <span lang=EN-US>wiggle</span>_<span
+lang=EN-US>count</span> == 2 )      // для замедления волны (только каждый второй 
+  кадр)</p>
+<p class=textpreword>      {</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь мы хотим повторять значения синуса, тем самым создавая 
+  &quot;движение&quot;.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>      <span
+lang=EN-US>for</span>( <span lang=EN-US>y</span> = 0; <span lang=EN-US>y</span> 
+  &lt; 45; <span lang=EN-US>y</span>++ )           // пройдемся по плоскости <span
+lang=EN-US>Y</span></p>
+<p class=textpreword>      <span
+lang=EN-US>{</span></p>
+<p class=textpreword style='margin-left:35.4pt;text-indent:35.4pt'>// сохраним 
+  текущее значение одной точки левой стороны волны</p>
+<p class=textpreword>            <span lang=EN-US>hold</span>=<span lang=EN-US>points</span>[0][<span
+lang=EN-US>y</span>][2];</p>
+<p class=textpreword>            <span lang=EN-US>for</span>( <span lang=EN-US>x</span> 
+  = 0; <span lang=EN-US>x</span> &lt; 44; <span
+lang=EN-US>x</span>++)      // пройдемся по плоскости <span lang=EN-US>X</span></p>
+<p class=textpreword>            <span lang=EN-US>{</span></p>
+<p class=textpreword><span>            </span>     // текущее значение волны равно 
+  значению справа</p>
+<p class=textpreword>                 <span lang=EN-US>points[x][y][2] = points[x+1][y][2];</span></p>
+<p class=textpreword><span>      </span>      }</p>
+<p class=textpreword style='text-indent:35.4pt'>      // последнее значение берется 
+  из дальнего левого сохраненного значения</p>
+<p class=textpreword>            <span lang=EN-US>points</span>[44][<span lang=EN-US>y</span>][2]=<span
+lang=EN-US>hold</span>;</p>
+<p class=textpreword>      <span
+lang=EN-US>}</span></p>
+<p class=textpreword><span>      </span>wiggle_<span lang=EN-US>count</span> = 
+  0;                    // снова сбросить счетчик</p>
+<p class=textpreword><span lang=EN-US>}</span></p>
+<p class=textpreword><span lang=EN-US>wiggle</span>_<span
+lang=EN-US>count</span>++;                            // увеличить счетчик</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Вот что мы делаем: сохраняем первое значение каждой линии, затем 
+  двигаем волну к левому, заставляя текстуру развеваться. Значение, которое мы 
+  сохранили, потом вставляется в конец, чтобы создать бесконечную волну, идущую 
+  по поверхности текстуры. Затем мы обнуляем счетчик <span lang=EN-US>wiggle</span>_<span lang=EN-US>count</span> 
+  для продолжения анимации.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Код вверху был изменен <span lang=EN-US>NeHe</span> (в феврале 
+  2000) для исправления недостатка волны. Волна теперь гладкая.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>xrot</span>+=0.3<span
+lang=EN-US>f</span>;             // увеличить значение переменной вращения по X</p>
+<p class=textpreword>
+  <span lang=EN-US>yrot</span>+=0.2<span lang=EN-US>f</span>;             // увеличить 
+  значение переменной вращения по <span lang=EN-US>Y</span></p>
+<p class=textpreword><span lang=EN-US>zrot</span>+=0.4<span
+lang=EN-US>f</span>;             // увеличить значение переменной вращения по 
+  <span lang=EN-US>Z</span></p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword><span lang=EN-US>return</span><span
+lang=EN-US> </span><span lang=EN-US>TRUE</span>;            // возврат из функции</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Обычные значения поворота у <span lang=EN-US>NeHe</span>. :) 
+  Вот и все. Скомпилируйте, и у вас должна появиться миленькая вращающаяся &quot;волна&quot;. 
+  Я не знаю, что еще сказать, фу-у-ух… Это было так ДОЛГО! Но я надеюсь, вы, парни, 
+  сможете последовать этому, либо приобрести что-то полезное для себя. Если у 
+  вас есть вопросы, если вы хотите, чтобы я что-нибудь подправил или сказать мне, 
+  как, все-таки, жутко я пишу программы :), то пришлите мне письмецо.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Это был экспромт, но он очень сэкономил время и силы. Он заставил 
+  меня ценить теперь взгляды <span lang=EN-US>NeHe</span> гораздо больше. Спасибо 
+  всем<span lang=EN-US>.</span></p>
+<p class=textword><span> </span></p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Bosco (<a href="mailto:bosco4@home.com">bosco4@home.com</a>)</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+          <p> <a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;25 января 2002&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:f1inch@pisem.net"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Евгений Борисов</b></font></a> 
+          </p>
+</div>
+
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

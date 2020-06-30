@@ -1,0 +1,493 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 10. Загрузка и перемещение в трехмерном мире</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe10.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 10. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 10. Загрузка и перемещение в трехмерном мире
+</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=10" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Loading And Moving Through A 3D World</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Этот урок был написан человеком по имени Lionel Brits (<span
+lang=EN-US>B</span>etelgeuse). Урок содержит только те части кода, которые нужно 
+  добавить. Но если просто добавите строки кода, описанные ниже, программа не 
+  будет работать. Если вы хотите знать, где должна идти каждая строка кода, скачайте 
+  исходник и просмотрите его так же, как вы прочитали этот урок.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Добро пожаловать в непопулярный Урок 10. Сейчас у вас есть вращающийся 
+  куб или цепочка звёзд и некоторая базовая ориентация в 3<span
+lang=EN-US>D</span> программировании. Но стойте! Не убегайте сразу же и не начинайте 
+  создание Quake IV, пока что. Просто, вращающиеся кубики не доставят вам много 
+  удовольствий в десматче <span>J</span>. Вместо этого вам нужен большой, сложный 
+  и динамический 3<span lang=EN-US>D</span> мир со свободным взглядом во все 6 
+  сторон и с причудливыми эффектами такими, как зеркала, порталы, искривления 
+  и, конечно же, с высокой частотой кадров в секунду. В этом уроке представлена 
+  базовая «структура» 3<span lang=EN-US>D</span> мира и, конечно же, способы перемещения 
+  по нему.</p>
+<p class=head2word><br>Структура данных<br><br></p>
+<p class=textword>До сих пор было легко определять среду 3<span lang=EN-US>D</span> 
+  мира, используя длинные комбинации чисел, но это становится чрезвычайно нелегко, 
+  когда сложность среды начинает возрастать. По этой причине мы должны организовать 
+  данные в более мощные структуры. Прежде всего обсудим понятие сектора. Каждый 
+  3Д мир базируется на некотором количестве секторов. Сектор может быть комнатой, 
+  кубом или любым другим замкнутым пространством.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword>typedef struct tagSECTOR         // Создаём структуру нашего сектора</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      int numtriangles;          // Кол-во треугольников в секторе</p>
+          <p class=textpreword>      TRIANGLE* triangle         // Ссылка на массив треугольников</p>
+          <p class=textpreword>} SECTOR;                        // Обзовём структуру словом <span
+lang=EN-US>SECTOR</span>
+</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Сектор содержит ряд многоугольников, однако мы будем использовать 
+  треугольники, потому что их проще всего запрограммировать.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US>typedef</span><span
+lang=EN-US> </span><span lang=EN-US>struct</span><span
+lang=EN-US> </span><span lang=EN-US>tagTRIANGLE</span>       // Создаём стр-ру нашего треугольника</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      <span
+lang=EN-US>VERTEX</span><span lang=EN-US> </span><span
+lang=EN-US>vertex</span>[3];          // Массив трёх вершин</p>
+          <p class=textpreword>} TRIANGLE;                      // Обзовём это<span
+lang=EN-US> TRIANGLE</span></p>
+          <p class=textword>&nbsp;</p>
+          <p class=textword>Треугольник, как и любой многоугольник, определяется 
+            вершинами. Вершина содержит реальные для использования <span lang=EN-US>OpenGL</span>’ом 
+            данные. Мы определяем каждую точку треугольника её расположением в 
+            3<span lang=EN-US>D</span> пространстве (<span lang=EN-US>x</span>, 
+            <span lang=EN-US>y</span>, <span lang=EN-US>z</span>) и координатами 
+            на текстуре (<span
+lang=EN-US>u</span>, <span lang=EN-US>v</span>).<br>
+            <br>
+          </p>
+<p class=textword>&nbsp; </p>          
+          <p class=textpreword><span lang=EN-US>typedef</span><span
+lang=EN-US> </span><span lang=EN-US>struct</span><span
+lang=EN-US> </span><span lang=EN-US>tagVERTEX</span>         // Создаём стр-ру нашей вершины</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      <span
+lang=EN-US>float</span><span lang=EN-US> </span><span
+lang=EN-US>x</span>, <span lang=EN-US>y</span>, <span lang=EN-US>z</span>;             // 3<span lang=EN-US>D</span> координаты</p>
+          <p class=textpreword>      float u, v;                // Координаты на текстуре</p>
+          <p class=textpreword>} VERTEX;                        // Обзовём это <span lang=EN-US>VERTEX</span></p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=head2word>Загрузка файлов</p>
+          <p class=head2word>&nbsp;</p>
+<p class=textword>Сохранение данных нашего мира внутри программы делает её слишком 
+  статичной и скучной. Загрузка миров с диска, тем не менее, даёт больше гибкости 
+  в тестировании различных миров, избавляя от перекомпиляции нашей программы. 
+  Другое преимущество в том, что пользователь может использовать новые уровни 
+  и модифицировать их, не задумываясь о коде нашей программы. Тип файла данных, 
+  который мы собираемся использовать будет текстовым. Это сделано для того, чтобы 
+  облегчить редактирование мира и уменьшить код программы. Оставим двоичные файлы 
+  на дальнейшее рассмотрение.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Естественный вопрос: как мы извлечем данные из нашего файла? 
+  Во-первых, мы создадим новую функцию <span lang=EN-US>SetupWorld</span>(). Определим 
+  наш файл как <span lang=EN-US>filein</span> и откроем его в режиме только чтение. 
+  А так же, когда закончим, мы должны не забыть закрыть наш файл. Давайте посмотрим 
+  на следующий код:<br><br></p>
+<p class=textword>&nbsp; </p>  
+          <p class=textpreword><span lang=EN-US>// </span>Декларация выше<span lang=EN-US>:    char* worldfile = &quot;data\\world.txt&quot;;</span></p>
+          <p class=textpreword>void SetupWorld()                        // Установка нашего мира</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      FILE *filein;                      // Файл для работы</p>
+          <p class=textpreword>      filein = fopen(worldfile, &quot;rt&quot;);   // Открываем наш файл</p>
+          <p class=textpreword><em><span>                </span>...</em></p>
+          <p class=textpreword><em><span>      </span>(считываем наши данные)</em></p>
+          <p class=textpreword><em><span>                </span>...</em></p>
+          <p class=textpreword>      fclose(filein);                     // Закрываем наш файл</p>
+          <p class=textpreword>      return;                             // Возвращаемся назад</p>
+          <p class=textpreword>}</p>
+<p class=textpreword><span style='color:lime'> &nbsp; </span></p>
+<p class=textword>Следующее, чему мы уделим внимание, будет собственно считывание 
+  каждой строки текста в переменную. Это можно выполнить очень многими способами. 
+  Одна проблема в том, что не все строки содержат значимую информацию. Пустые 
+  линии и комментарии не должны быть считаны. Теперь создадим функцию <span
+lang=EN-US>readstr</span>(). Она будет считывать одну значимую строку в инициализированную 
+  строку. Вот этот код:</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword>void readstr(FILE *f,char *string)  // Считать в строку<span lang=EN-US></span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      do                            // Начинаем цикл</p>
+          <p class=textpreword>      {</p>
+          <p class=textpreword>            fgets(string, 255, f);  // Считываем одну линию</p>
+          <p class=textpreword>            // Проверяем её на условие повт. цикла</p>
+          <p class=textpreword>      <span
+lang=EN-US>} while ((string[0] == '/') || (string[0] == '\n'));</span></p>
+          <p class=textpreword><span>      </span>return;                       // Возврат</p>
+          <p class=textpreword>}</p>
+<p class=textpreword><span style='font-family:"Times New Roman";'> &nbsp; </span></p>
+<p class=textword>Далее мы должны считать данные сектора. В этом уроке мы будем 
+  иметь дело только с одним сектором, но достаточно просто реализовать многосекторный 
+  движок. Давайте вернёмся к <span lang=EN-US>SetupWorld</span>(). Наша программа 
+  должна знать сколько треугольников в секторе. В нашем файле данных мы обозначим 
+  количество треугольников следующим образом:</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>NUMPOLLIES n</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Вот код для чтения количества треугольников:</p>
+<p class=textword>&nbsp; </p>
+          <p class=textpreword>int numtriangles;            // Кол-во треугольников в секторе</p>
+          <p class=textpreword>char oneline[255];           // Строка для сохранения данных</p>
+          <p class=textpreword>...</p>
+          <p class=textpreword>readstr(filein,oneline);     // Считать одну линию данных</p>
+          <p class=textpreword >                             // Считать кол-во треугольников</p>
+          <p class=textpreword><span lang=EN-US>sscanf(oneline, &quot;NUMPOLLIES %d\n&quot;,    &amp;numtriangles);</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Остальная часть нашего процесса загрузки мира будет использовать 
+  тот же процесс. Далее мы инициализируем наш сектор и считываем в него некоторые 
+  данные:<br><br></p>
+<p class=textword>&nbsp; </p>  
+          <p class=textpreword>// Декларация выше: SECTOR sector1;</p>
+          <p class=textpreword>char oneline[255];                 // Строка для сохранения данных</p>
+          <p class=textpreword>int numtriangles;                  // Кол-во треугольников в секторе</p>
+          <p class=textpreword>float x, y, z, u, v;               // 3D и текстурные координаты</p>
+          <p class=textpreword>...</p>
+          <p class=textpreword>// Выделяем память для  numtriangles и устанавливаем ссылку</p>
+          <p class=textpreword><span lang=EN-US>sector1.triangle = new TRIANGLE[numtriangles];</span></p>
+          <p class=textpreword>// Определяем кол-во треугольников в Секторе 1</p>
+          <p class=textpreword><span lang=EN-US>sector1.numtriangles = numtriangles;</span></p>
+          <p class=textpreword>// Цикл для всех треугольников</p>
+          <p class=textpreword>// За каждый шаг цикла – один треугольник в секторе</p>
+          <p class=textpreword><span lang=EN-US>for (int triloop = 0; triloop &lt; numtriangles; triloop++)</span></p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      // Цикл для всех вершин</p>
+          <p class=textpreword>      // За каждый шаг цикла – одна вершина в треугольнике</p>
+          <p class=textpreword>      for (int vertloop = 0; vertloop &lt; 3; vertloop++)
+      {</p>
+          <p class=textpreword><span>      </span>      readstr(filein,oneline); // Считать строку для работы</p>
+          <p class=textpreword>            // Считать данные в соответствующие переменные вершин</p>
+          <p class=textpreword>            <span lang=EN-US>sscanf(oneline, &quot;%f %f    %f %f %f&quot;, &amp;x, &amp;y, &amp;z, &amp;u, &amp;v);</span></p>
+          <p class=textpreword><span>      </span>      // Сохранить эти данные<span lang=EN-US></span></p>
+          <p class=textpreword><span>      </span>      sector1.triangle[triloop].vertex[vertloop].x = x;</p>
+          <p class=textpreword><span>      </span>      // Сектор 1, Треугольник  triloop, Вершина vertloop, Значение x = x</p>
+          <p class=textpreword>            <span lang=EN-US>sector1.triangle[triloop].vertex[vertloop].y = y;</span></p>
+          <p class=textpreword><span>           </span> // Сектор 1, Треугольник  triloop, Вершина vertloop, Значение <span lang=EN-US>y</span> = y</p>
+          <p class=textpreword>            <span lang=EN-US>sector1.triangle[triloop].vertex[vertloop].z = z;</span></p>
+          <p class=textpreword><span>           </span> // Сектор 1, Треугольник  triloop, Вершина vertloop, Значение <span lang=EN-US>z</span> = z</p>
+          <p class=textpreword>            <span lang=EN-US>sector1.triangle[triloop].vertex[vertloop].u = u;</span></p>
+          <p class=textpreword><span>           </span> // Сектор 1, Треугольник  triloop, Вершина vertloop, Значение <span lang=EN-US>u</span> = u</p>
+          <p class=textpreword>            <span lang=EN-US>sector1.triangle[triloop].vertex[vertloop].v = v;</span></p>
+          <p class=textpreword><span>           </span> // Сектор 1, Треугольник  triloop, Вершина vertloop, Значение <span lang=EN-US>y</span> = v</p>
+          <p class=textpreword>      }</p>
+          <p class=textpreword>}</p>
+          <p class=textword>&nbsp; </p>
+<p class=textword>Каждый треугольник в нашем файле данных имеет следующую структуру:</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword><span lang=EN-US>X1 Y1 Z1 U1 V1</span></p>
+          <p class=textpreword><span lang=EN-US>X2 Y2 Z2 U2 V2</span></p>
+          <p class=textpreword><span lang=EN-US>X3 Y3 Z3 U3 V3</span></p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=head2word>Отображение миров</p>
+          <p class=head2word>&nbsp;</p>
+<p class=textword>Теперь, когда мы можем загружать наш сектор в память, нам нужно 
+  вывести его на экран. Итак, мы уже умеем делать немного простых вращений и проекций, 
+  но наша камера всегда находилась в начальном положении (0, 0, 0). Любой хороший 
+  3<span lang=EN-US>D</span> движок должен предоставлять пользователю возможность 
+  ходить и исследовать мир, так мы и сделаем. Одна из возможностей сделать это 
+  – перемещать камеру и перерисовывать 3<span lang=EN-US>D</span> среду относительно 
+  её положения. Это медленно выполняется и тяжело запрограммировать. Поэтому мы 
+  будем делать так:</p>
+<p class=textword>&nbsp; </p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;"%1\:1\:0\:\)" \0410\043D\0438\0441\0438\043C\043E\0432 20020108T1612;
+tab-stops:list 36.0pt'> 1)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span> Вращать и проецировать позицию камеры следуя командам пользователя.</p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;"%1\:2\:0\:\)" \0410\043D\0438\0441\0438\043C\043E\0432 20020108T1612;
+tab-stops:list 36.0pt'> 2)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span> Вращать мир вокруг начала координат противоположно вращению камеры (это 
+  даёт иллюзию того, что повернулась камера).</p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;"%1\:3\:0\:\)" \0410\043D\0438\0441\0438\043C\043E\0432 20020108T1612;
+tab-stops:list 36.0pt'> 3)<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span> Переместить мир способом, противоположным перемещению камеры (опять-таки, 
+  это даёт иллюзию того, что переместилась камера).</p>
+<p class=textword style='margin-left:18.0pt'>&nbsp; </p>
+          <p class=textword>Это красиво и легко реализовывается. Давайте начнём с первого 
+            этапа (Вращение и проецирование камеры).</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>if (keys[VK_RIGHT])              // Была ли нажата правая стрелка?</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      yrot -= 1.5f;              // Вращать сцену влево</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>if (keys[VK_LEFT])               // Была ли нажата левая стрелка?</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      yrot += 1.5f;              // Вращать сцену вправо</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>if (keys[VK_UP])                 // Была ли нажата стрелка вверх?</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      // Переместиться на X-плоскости, базируемой на направлении игрока</p>
+          <p class=textpreword>      <span
+lang=EN-US>xpos -= (float)sin(heading*piover180) * 0.05f;</span></p>
+          <p class=textpreword><span>      </span>// Переместиться на <span
+lang=EN-US>Z</span>-плоскости, базируемой на направлении игрока</p>
+          <p class=textpreword>      <span
+lang=EN-US>zpos -= (float)cos(heading*piover180) * 0.05f;</span></p>
+          <p class=textpreword><span>      </span>if (walkbiasangle &gt;= 359.0f)// walkbiasangle&gt;=359?</p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>      </span>      walkbiasangle = 0.0f; // Присвоить walkbiasangle  0</p>
+          <p class=textpreword><span>      </span>}</p>
+          <p class=textpreword>      else                        // В противном случае</p>
+          <p class=textpreword>      {</p>
+          <p class=textpreword>             // Если walkbiasangle &lt; 359 увеличить его на 10</p>
+          <p class=textpreword>             walkbiasangle+= 10;</p>
+          <p class=textpreword>      }</p>
+          <p class=textpreword>      // Иммитация походки человека</p>
+          <p class=textpreword>      <span
+lang=EN-US>walkbias = (float)sin(walkbiasangle * piover180)/20.0f;</span></p>
+          <p class=textpreword>}</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>if (keys[VK_DOWN])                  // Была ли нажата стрелка вниз?</p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      // Переместиться на X-плоскости, базируемой на направлении игрока</p>
+          <p class=textpreword>      <span
+lang=EN-US>xpos += (float)sin(heading*piover180) * 0.05f;</span></p>
+          <p class=textpreword><span>      </span>// Переместиться на <span
+lang=EN-US>Z</span>-плоскости, базируемой на направлении игрока</p>
+          <p class=textpreword>      <span
+lang=EN-US>zpos += (float)cos(heading*piover180) * 0.05f;</span></p>
+          <p class=textpreword><span>      </span>if (walkbiasangle &lt;= 1.0f)    // walkbiasangle&lt;=1?</p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword><span>      </span>      walkbiasangle = 359.0f; // Присвоить walkbiasangle 359</p>
+          <p class=textpreword><span>      </span>}</p>
+          <p class=textpreword>      else                          // В противном случае</p>
+          <p class=textpreword>      {</p>
+          <p class=textpreword>            // Если walkbiasangle &gt;1 уменьшить его на 10</p>
+          <p class=textpreword>            walkbiasangle-= 10;</p>
+          <p class=textpreword>      }</p>
+          <p class=textpreword>      // Иммитация походки человека</p>
+          <p class=textpreword>      <span
+lang=EN-US>walkbias</span> = (<span lang=EN-US>float</span>)<span lang=EN-US>sin</span>(<span lang=EN-US>walkbiasangle</span> * <span lang=EN-US>piover</span>180)/20.0<span
+lang=EN-US>f</span>; </p>
+          <p class=textpreword>}</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textword>Это было довольно просто. Когда нажата стрелка влево 
+            или стрелка вправо, переменная вращения <span lang=EN-US>yrot</span> 
+            увеличивает или уменьшает своё значение. Когда нажата стрелка вверх 
+            или стрелка вниз, новое положение камеры высчитывается с использованием 
+            синуса и косинуса (требуется немного тригонометрии <span>J</span>). 
+            <span lang=EN-US>Piover</span>180 это просто коэффициент преобразования 
+            для перевода градусов в радианы.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Далее вы спросите меня: что такое <span lang=EN-US>walkbias</span> 
+  (дословно: смещение походки)?  Это слово, которое я изобрёл <span>J</span>. 
+  Оно представляет собой смещение, которое происходит, когда персона идёт (голова 
+  смещается вверх и вниз как буй). Это легко устанавливается изменением <span
+lang=EN-US>Y</span> позиции камеры по синусоиде. Я решил использовать это, потому 
+  что простое перемещение вперёд и назад выглядит не реально.</p>
+<p class=textword>&nbsp; </p>
+          <p class=textword>Теперь когда эти переменные получили свои значения, мы можем 
+            сделать второй и третий шаги. Они будут сделаны в цикле отображения, 
+            так как наша программа на сложная, чтобы заслужить для этого отдельную 
+            функцию.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword><span lang=EN-US>int</span><span
+lang=EN-US> </span><span lang=EN-US>DrawGLScene</span>(<span
+lang=EN-US>GLvoid</span>)             // Нарисовать сцену <span lang=EN-US>OpenGL</span><span style='font-family:"Times New Roman";
+'></span></p>
+          <p class=textpreword>{</p>
+          <p class=textpreword>      // Очистить сцену и буфер глубины</p>
+          <p class=textpreword>      <span
+lang=EN-US>glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);</span></p>
+          <p class=textpreword><span>      </span>glLoadIdentity();             // Сбросить текущую матрицу</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>      // Вещ. перем. для временных X, Y, Z, U и V</p>
+          <p class=textpreword>      <span
+lang=EN-US>GLfloat x_m, y_m, z_m, u_m, v_m;</span></p>
+          <p class=textpreword><span>      </span>GLfloat xtrans = -xpos;       // Проекция игрока на ось X</p>
+          <p class=textpreword>      GLfloat ztrans = -zpos;       // Проекция игрока на ось Z</p>
+          <p class=textpreword>      // Для смещения изображения вверх и вниз</p>
+          <p class=textpreword>      <span
+lang=EN-US>GLfloat ytrans = -walkbias-0.25f;</span></p>
+          <p class=textpreword><span>      </span>// 360 градусный угол для поворота игрока</p>
+          <p class=textpreword>      <span
+lang=EN-US>GLfloat sceneroty = 360.0f - yrot;</span></p>
+          <p class=textpreword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword><span>      </span>int numtriangles;             // Количество треугольников</p>
+          <p class=textpreword>&nbsp; </p>
+          <p class=textpreword>      glRotatef(lookupdown,1.0f,0,0);// Вращать вверх и вниз</p>
+          <p class=textpreword>      // Вращать в соответствии с направлением взгляда игрока</p>
+          <p class=textpreword>      glRotatef(sceneroty,0,1.0f,0);</p>
+          <p class=textpreword>      </p>
+          <p class=textpreword>      // Проецировать сцену относительно игрока</p>
+          <p class=textpreword>      <span
+lang=EN-US>glTranslatef(xtrans, ytrans, ztrans);</span></p>
+          <p class=textpreword><span>      </span>// Выбрать текстуру<span lang=EN-US> filter</span></p>
+          <p class=textpreword><span>      </span>glBindTexture(GL_TEXTURE_2D, texture[filter]);</p>
+          <p class=textpreword><span>      </span></p>
+          <p class=textpreword><span>      </span>// Получить кол-во треугольников Сектора 1</p>
+          <p class=textpreword>      <span
+lang=EN-US>numtriangles = sector1.numtriangles;</span></p>
+          <p class=textpreword><span>      </span></p>
+          <p class=textpreword><span>      </span>// Процесс для каждого треугольника</p>
+          <p class=textpreword>      <span
+lang=EN-US>// </span>Цикл по треугольникам<span lang=EN-US> </span></p>
+          <p class=textpreword><span>      </span>for (int loop_m = 0; loop_m &lt; numtriangles; loop_m++)</p>
+          <p class=textpreword><span>      </span>{</p>
+          <p class=textpreword>            glBegin(GL_TRIANGLES);  // Начинаем рисовать треугольники</p>
+          <p class=textpreword>            // Нормализованный указатель вперёд</p>
+          <p class=textpreword>                  glNormal3f( 0.0f, 0.0f, 1.0f);</p>
+          <p class=textpreword>                  <span lang=EN-US>x_m = sector1.triangle[loop_m].vertex[0].x;// X 1-</span>ой точки<span lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>      y_m = sector1.triangle[loop_m].vertex[0].y;// Y 1-ой точки<span lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>      z_m = sector1.triangle[loop_m].vertex[0].z;// Z 1-ой точки<span lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>      // U текстурная координата<span
+lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>      u_m = sector1.triangle[loop_m].vertex[0].u;</p>
+          <p class=textpreword><span>            </span>      // V текстурная координата<span
+lang=EN-US></span></p>
+          <p class=textpreword><span>            </span>      v_m = sector1.triangle[loop_m].vertex[0].v;</p>
+          <p class=textpreword><span>            </span>      glTexCoord2f(u_m,v_m); glVertex3f(x_m,y_m,z_m);</p>
+          <p class=textpreword>                                    // Установить TexCoord и грань</p>
+          <p class=textpreword>                  </p>
+          <p class=textpreword>                  x_m = sector1.triangle[loop_m].vertex[1].x;// X 2-ой точки</p>
+          <p class=textpreword>                  y_m = sector1.triangle[loop_m].vertex[1].y;// Y 2-ой точки</p>
+          <p class=textpreword>                  z_m = sector1.triangle[loop_m].vertex[1].z;// Z 2-ой точки</p>
+          <p class=textpreword>                  // U текстурная координата</p>
+          <p class=textpreword>                  u_m = sector1.triangle[loop_m].vertex[1].u;</p>
+          <p class=textpreword>             // V текстурная координата</p>
+          <p class=textpreword>                  v_m = sector1.triangle[loop_m].vertex[1].v;</p>
+          <p class=textpreword>                  glTexCoord2f(u_m,v_m); glVertex3f(x_m,y_m,z_m);</p>
+          <p class=textpreword>                                    // Установить TexCoord и грань</p>
+          <p class=textpreword>                  </p>
+          <p class=textpreword>                  x_m = sector1.triangle[loop_m].vertex[2].x;// X 3-ой точки</p>
+          <p class=textpreword>                  y_m = sector1.triangle[loop_m].vertex[2].y;// Y 3-ой точки</p>
+          <p class=textpreword>                  z_m = sector1.triangle[loop_m].vertex[2].z;// Z 3-ой точки</p>
+          <p class=textpreword>                  // U текстурная координата</p>
+          <p class=textpreword>                  u_m = sector1.triangle[loop_m].vertex[2].u;</p>
+          <p class=textpreword>                  // V текстурная координата</p>
+          <p class=textpreword>                  v_m = sector1.triangle[loop_m].vertex[2].v;</p>
+          <p class=textpreword>                  glTexCoord2f(u_m,v_m); glVertex3f(x_m,y_m,z_m);</p>
+          <p class=textpreword>                                    // Установить TexCoord и грань</p>
+          <p class=textpreword>            glEnd();                // Заканчиваем рисовать треугольники</p>
+          <p class=textpreword>      }</p>
+          <p class=textpreword>      return TRUE;                  // Возвращаемся</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword>&nbsp; </p>
+<p class=textword>И вуаля! Мы только что нарисовали наш первый фрейм. Это не совсем 
+  <span lang=EN-US>Quake</span>, но эй, мы не совсем Carmack или Abrash. Когда 
+  вы запустите программу, можете нажать <span
+lang=EN-US>F</span>, <span lang=EN-US>B</span>, <span lang=EN-US>PgUp</span> и 
+  <span lang=EN-US>PgDown</span> и увидеть дополнительные эффекты. <span lang=EN-US>PgUp</span>/<span lang=EN-US>Down</span> 
+  просто наклоняет камеру вверх и вниз (наподобие панорамирования из стороны в 
+  сторону). Текстура – это моя обработанная школьная фотография <span>J</span>, 
+  если конечно <span lang=EN-US>NeHe</span> сохранит ее.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь, вы наверное задумываетесь чем заняться дальше. Даже 
+  не думайте использовать этот код для полнофункционального 3<span lang=EN-US>D</span> 
+  движка, так как код не был для этого предназначен. Вы наверное захотите более 
+  одного сектора в своей игре, особенно, если вы хотите использовать порталы. 
+  Вы также захотите использовать многоугольники с более чем тремя вершинами, опять-таки, 
+  особенно для движка с порталами. Моя текущая реализация этого кода позволяет 
+  загружать несколько секторов и производит удаление невидимых поверхностей (не 
+  рисуются многоугольники, не попадающие в камеру). Я напишу по этому поводу урок 
+  очень скоро, но это использует много математики, поэтому я собираюсь для начала 
+  написать урок по матрицам.</p>
+<p class=textword>&nbsp; </p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Lionel Brits</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+          <p> <a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;8 января 2002&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:andron-eiu@mail.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Andrew Aseev</b></font></a> 
+          </p>
+</div>
+
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

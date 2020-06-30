@@ -1,0 +1,579 @@
+<html>
+<head>
+<title>Глава 8</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+       
+      <p> 
+      <h1><a name=tth_chAp8>Chapter 8 </a><br>
+        Примеры интересных программ</h1>
+      <h2><a name=tth_sEc8.1>8.1</a>&nbsp;&nbsp;Вращение сцены</h2>    
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+        Когда построена сцена, наложены текстуры, включены источники света, 
+       присутствует анимация, кажеться, что больше и желать нечего. Однако, вы
+ наблюдаете сцену, все время из одной точки. Вы не видете ее с обратной стороны.
+ Было бы интересно иметь возможность управлять положением камеры или вращать всю 
+сцену целиком. На производительности
+это никак не скажется, т.к. каждый кадр рассчитывается заново. Для OpenGL все
+ равно, где находится камера или как повернута сцена. В этом параграфе 
+я продемонстрирую, как можно использовать мышь и клавиатуру для управления 
+положением сцены в трехмерном пространстве.
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+Надо сразу отметить, что передвигать мышью объекты в трехмерном пространстве
+во всех направлениях с той же легкостью, с которой вы перебрасываете папки на рабочем столе Windows
+вам не удастся. Связано это с тем, что мышь на экране бегает в двумерном пространстве.
+И следовательно в вашу программу, как вы знаете, передается только два параметра
+передвижения мыши - х,у. Но для перемещения объектов в трехмерном прострастве
+требуется еще и z-координата. По хорошему, еще, конечно, нужен вектор нормали к 
+объекту и угол поворота объекта вокруг вектора нормали. Объект в трехмерном пространстве
+может быть по-разному ориентирован относительно своего центра. Здесь мы ограничемся
+только вращением сцены вокруг двух осей координат. Для того чтобы можно было посмотреть
+на любую точку сцены этого вполне достаточно.
+ <br>&nbsp;&nbsp;&nbsp;&nbsp;
+ За основу мы возьмем нашего старого знакомого "Снеговика" из
+ первых глав этой книги. Для работы с мышью и клавиатурой возпользуемся
+функциями библиотеки GLAUX, которая выступает связующим звеном между
+операционной системой Windows и библиотекой OpenGL. Нам потребуется две 
+глобальных переменных для вращения сцены вокруг двух осей. Глобальными
+они сделаны потому, что к ним необходим доступ из нескольких разных функций,
+вообще же старайтесь избегать наличия глобальных переменных и сводите их количество
+ к минимуму. Далее приведен исходный код с комментариями:
+<pre>
+int alpha=0, beta=0; // объявляем переменные - углы поворота
+
+//эта функция вызывается всякий раз, когда поступает сообщение от мыши
+//см. также функцию main, в ней будут установлены функции-обработчики
+//мыши и клавиатуры
+void CALLBACK mouse(AUX_EVENTREC *event)
+{
+// в этих дву переменных будем хранить старые положения мыши
+static int x0,y0=-12345; 
+
+//если в x0, y0 содержаться предыдущие координаты мыши,
+//то прибавить переменным alpha и beta разницу между
+//положениями мыши
+if(y0!=-12345)
+{
+alpha += event->data[AUX_MOUSEX] - x0;
+beta += event->data[AUX_MOUSEY] - y0;
+}
+
+//сохраняем положение мыши
+x0 = event->data[AUX_MOUSEX];
+y0 = event->data[AUX_MOUSEY];
+}
+
+//функции-обработчики стрелок клавиатуры
+// с ними вы уже встречались в примерах arcanoid, fog, logicop
+void CALLBACK Key_LEFT(void)
+{
+  alpha -= 5;
+}
+
+void CALLBACK Key_RIGHT(void)
+{
+  alpha += 5;
+}
+
+
+void CALLBACK Key_UP(void)
+{
+  beta += 5;
+}
+
+void CALLBACK Key_DOWN(void)
+{
+  beta -= 5;
+}
+
+// рисуем снеговика
+void snowman()
+{
+  glPushMatrix();
+    
+	glColor3d(0.75,0.75,0.75);
+
+	glTranslated(0,-3,0);
+	auxSolidSphere(2.0);
+
+    glTranslated(0,3,0);
+	auxSolidSphere(1.5);
+   
+	glTranslated(0,2,0);
+	auxSolidSphere(1);
+   
+
+	glColor3d(0,0,0);
+
+	glTranslated(-0.3,0.3,1);
+    auxSolidSphere(0.1); 
+
+    glTranslated(0.6,0,0);
+    auxSolidSphere(0.1); 
+
+	glTranslated(-0.3,-0.3,0);
+	glColor3d(1,0,0);
+    auxSolidCone(0.3,0.5);
+
+	glTranslated(0,0.75,-1);
+    glColor3d(0,0,1);
+	glRotated(-90,1,0,0);
+    auxSolidCone(0.75,0.75);
+
+  glPopMatrix();
+}
+
+
+void CALLBACK display(void)
+{
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+ 
+// сохраняем старое положение сцены
+ glPushMatrix();
+  //вращаемся вокруг осей Х и Y
+   glRotated(alpha, 0,1,0);
+   glRotated(beta, -1,0,0);
+   snowman();
+//возвращаем координату на место
+ glPopMatrix();
+  
+  auxSwapBuffers();
+}
+
+
+
+void main()
+{
+float pos[4] = {3,3,3,1};
+float dir[3] = {-1,-1,-1};
+GLfloat mat_specular[] = {1,1,1,1};
+
+    auxInitPosition( 50, 10, 400, 400);
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    auxInitWindow( "Controls" );
+    auxIdleFunc(display);
+    auxReshapeFunc(resize);
+
+  
+    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, 128.0);
+
+//устанавливаем функции-обработчик клавиатуры и мыши
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+    auxKeyFunc(AUX_LEFT, Key_LEFT);
+    auxKeyFunc(AUX_RIGHT, Key_RIGHT);
+    auxKeyFunc(AUX_UP, Key_UP);
+    auxKeyFunc(AUX_DOWN, Key_DOWN);
+
+    auxMouseFunc(AUX_LEFTBUTTON, AUX_MOUSELOC, mouse);
+</pre></td></tr></table>
+    auxMainLoop(display);
+}
+
+</pre>
+
+<center><img src="chapter8/control/release/control.jpg"><br>
+Исходный файл смотрите <a href="chapter8/control/control.c">здесь</a>.
+Исполняемый файл <a href="chapter8/control/release/control.exe">здесь</a>.
+</center><br>
+
+      <h2>
+<a name=tth_sEc8.2>8.2</a>&nbsp;&nbsp;Управление лампами</h2>    
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Для управления лампами нам понадобится определить функции-обработчики
+ стрелок: вверх, вниз, влево, вправо. Здесь все точно также как и в предыдущем 
+пункте за исключением того, что управлять положением лампы гораздо удобнее
+в полярных координатах нежели в декартовых. Точка А в полярных координатах
+задается следующим образом, бэта - угол отклонения вектора ОВ в плоскости XZ,
+альфа - угол между вектором ОА и плоскостью XZ и третий параметр радиус - длина вектора.
+<center><img src=chapter8/polar.gif></center>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Стрелки влево, вправо будут управлять углом бэта, а стрелки вверх, вниз - углом альфа.
+Соответственно, лампа будет перемещаться по сфере. Радиус мы изменять не будем. 
+Для изменения положения лампы, нам понадобится выполнить следующие действия:
+<ul>
+ <li> получить текуищие координаты лампы
+ <li> преобразовать их в полярные
+ <li> в полярных координатах изменить соответсвующий угол
+ <li> преобразовать координаты из полярных в нормальные
+ <li> установить новое положение лампы
+</ul>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ За основу мы возьмем программу с тремя источниками света направленными на 
+сферу из главы "Освещение". Создайте новый проект и скопируйте в него файл lamps.c.
+Объявите функции-обработчики и отредактируйте соотвествующим образом функцию main.
+<pre>
+    auxKeyFunc(AUX_LEFT, Key_LEFT);
+    auxKeyFunc(AUX_RIGHT, Key_RIGHT);
+    auxKeyFunc(AUX_UP, Key_UP);
+    auxKeyFunc(AUX_DOWN, Key_DOWN);
+</pre>
+Код функции Key_LEFT будет следующим:
+<pre>
+void CALLBACK Key_LEFT(void)
+{
+float nor[4];
+float pol[3];
+
+  // получаем текущие координаты лампы
+  glGetLightfv(GL_LIGHT3, GL_POSITION, nor);
+  // конвертируем их в полярные
+  Normal2Polar(nor[0], nor[1], nor[2], pol);
+  // уменьшаем угол бэта на величину дельта
+  pol[1] -= delta;
+  // конвертируем обратно в нормальные координаты
+  Polar2Normal(pol[0], pol[1], pol[2], nor);
+  // устанавливаем новое положение лампы
+  glLightfv(GL_LIGHT3, GL_POSITION, nor);
+}
+</pre>
+После включение заголовочных файлов объявите две константы:
+<pre>
+#define M_PI        3.14159265358979323846
+
+float delta=0.1;
+</pre>
+Функции перевода из одной системы координат в другую:
+<pre>
+void Polar2Normal(float a, float b, float r, float nor[3])
+{
+nor[0] = r*cos(a)*cos(b);
+nor[1] = r*sin(a);
+nor[2] = -r*cos(a)*sin(b);
+}
+
+void Normal2Polar(float x, float y, float z, float pol[3]) 
+{
+pol[2] = sqrt(x*x+y*y+z*z);
+pol[0] = asin(y/pol[2]);
+pol[1] = acos(x/sqrt(x*x+z*z));
+if(z>0)
+ pol[1] = 2*M_PI - pol[1];
+}
+</pre>
+
+<h2><a name=tth_sEc8.3>8.3</a>&nbsp;&nbsp;Упражнение "Лампы"</h2>
+ Допишите данную программу так, чтобы можно было изменять радиус и
+переключаться между лампами цифрами - 1,2,3.
+
+<h2><a name=tth_sEc8.4>8.4</a>&nbsp;&nbsp;Управление камерой</h2>
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ За основу данного проекта мы возьмем программу из упражнения 
+"Список трехмерный фигур". Далее все примерно также, как и в впредыдущем пункте.
+Здесь нам потребуется три переменных x,y,z типа float для хранения текущего положения
+камеры, им также присвоим начальное значение (0,0,5). В функциях-обработчиках стрелок клавиатуры  мы будем вызывать функцию resize
+с размерами окна 400х400, эти размеры мы становили в функции main. Соответственно
+надо модифицировать код функции resize так, чтобы она устанавливала камеру
+в точку с координатами x,y,z.
+<pre>
+
+#define M_PI        3.14159265358979323846
+
+
+float delta=0.1;
+float x=0,y=0,z=5; 
+
+
+void CALLBACK resize(int width,int height)
+{
+   glViewport(0,0,width,height);
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+   glOrtho(-5,5, -5,5, 2,12);   
+<table width=100%><tr><td bgcolor><pre>
+   gluLookAt( x,y,z, 0,0,0, 0,1,0 );
+</pre></td></tr></table>
+   glMatrixMode( GL_MODELVIEW );
+}    
+</pre>
+
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Теперь модифицируйте немного функцию перевода из полярных в обычные координаты.
+Это связано с тем, что в нее удобнее передавать не массив из трех переменных, а 
+указатели на эти переменные. Указатели передаются за тем, чтобы функция смогла
+сохранить значение в эти переменные.
+
+<pre>
+void Polar2Normal(float a, float b, float r, 
+<table width=100%><tr><td bgcolor=#CCCCCC><pre>
+				  float* x, float* y, float* z)
+</pre></td></tr></table>
+{
+*x = r*cos(a)*cos(b);
+*y = r*sin(a);
+*z = -r*cos(a)*sin(b);
+}
+</pre>
+Функцию перевода из нормальных координат в полярные оставляем без изменений.
+<pre>
+void Normal2Polar(float x, float y, float z, float pol[3]) 
+{
+pol[2] = sqrt(x*x+y*y+z*z);
+pol[0] = asin(y/pol[2]);
+pol[1] = acos(x/sqrt(x*x+z*z));
+if(z>0)
+ pol[1] = 2*M_PI - pol[1];
+}
+</pre>
+
+Далее функции-обработчики кнопок.
+<pre>
+void CALLBACK Key_LEFT(void)
+{
+float pol[3];
+
+  Normal2Polar(x, y, z, pol);
+  pol[1] -= delta;
+  Polar2Normal(pol[0], pol[1], pol[2], &x, &y, &z);
+  resize(400,400);  
+}
+
+void CALLBACK Key_RIGHT(void)
+{
+float pol[3];
+
+  Normal2Polar(x, y, z, pol);
+  pol[1] += delta;
+  Polar2Normal(pol[0], pol[1], pol[2], &x, &y, &z);
+  resize(400,400);  
+}
+
+void CALLBACK Key_DOWN(void)
+{
+float pol[3];
+
+  Normal2Polar(x, y, z, pol);
+  pol[0] -= delta;
+  Polar2Normal(pol[0], pol[1], pol[2], &x, &y, &z);
+  resize(400,400);  
+}
+
+void CALLBACK Key_UP(void)
+{
+float pol[3];
+
+  Normal2Polar(x, y, z, pol);
+  pol[0] += delta;
+  Polar2Normal(pol[0], pol[1], pol[2], &x, &y, &z);
+  resize(400,400);  
+}
+</pre>
+ Не забудьте добавить в функцию main.
+<pre>
+    auxKeyFunc(AUX_LEFT, Key_LEFT);
+    auxKeyFunc(AUX_RIGHT, Key_RIGHT);
+    auxKeyFunc(AUX_UP, Key_UP);
+    auxKeyFunc(AUX_DOWN, Key_DOWN);
+</pre>
+
+<center><img src="chapter8/camera/release/camera.jpg"><br>
+Исходный файл смотрите <a href="chapter8/camera/camera.c">здесь</a>.
+Исполняемый файл <a href="chapter8/camera/release/camera.exe">здесь</a>.
+</center><br>
+
+
+<h2><a name=tth_sEc8.5>8.5</a>&nbsp;&nbsp;Рисуем кривые и поверхности</h2>    
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ В библиотеки glu имеются функции для создания кривых и поверхностей по точкам 
+аппроксимируя их сплайнами. Все это по-моему также круто, как и бесполезно.
+Здесь я рассмотрю создание поверхности по точкам, которые могут быть заданы в виде 
+массива точек - { (x<sub>0</sub>, y<sub>0</sub>, z<sub>0</sub>), 
+(x<sub>1</sub>, y<sub>1</sub>, z<sub>1</sub>), (x<sub>2</sub>, y<sub>2</sub>, z<sub>2</sub>), ...} или
+в виде уравнения z(x,y). Задача, как правило, чтоит в том, чтобы соединить каждые четыре 
+соседние вершины многоугольником и приписать к ним координаты текстуры.
+В данной программе я наложу тестуру на поверхность, которая колеблется по синусу.
+Уравнение такой поверхности: z=sin(x+t).  Параметр t - время, нужен для задания анимации.
+Создайте новый проект с именем flag и скопируйте туда шаблон glaux.c.
+Объявите в функции display эту переменую следующим образом:
+<pre>
+static double t=0;
+
+...
+ t+=0.1; // на каждом кадре увеливаем ее значение.
+  auxSwapBuffers();
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Код построения поверхности будет выглядить так. Вы проходите в двойном цикле
+по некой области в полоскости XY и вычисляете z взависимости от х и y.
+Каждые четыре соседние вершины соединяете многоугольником. В данном случае мы 
+проходим в плоскости XY от точки (0,0) до точки (7,8). Текстуру можно было бы 
+и не привязывать, но тогда бы был совсем не тот эффект. Привязка текстуры 
+делается способом описанным в главе "Работа с картинками". Левая нижняя 
+точка {0,0, z(0,0)} на поверхности соответсвует точке {0,0} на текстуре,
+ а правая верняя точка на поверхности {7,8,z(7,8)} соотвествует точке {1,1} 
+текстуры. Поэтому, если точка на поверхности имеет координаты (x,y), то к ней надо
+привязать точку текстуры с координатой (x/Max_X, y/Max_Y), т.е. просто приводим к диапозону
+0-1. Max_X и Max_Y, как вы понимаете, равны 7 и 8. Ниже следует код функции display
+c комментариями.
+
+<pre>
+// определяем шаг
+#define dx 0.7
+#define dy 0.8
+
+void CALLBACK display(void)
+{
+static double t=0;
+double x,y,z;
+
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+ // устанавливаем цвет поверхности белый
+ // с другим цветом будет складываться цвет текстуры
+ // а с белым будет видна сама текстура без искажений
+ glColor3d(1,1,1);
+
+
+ // немного повернем сцену
+ glPushMatrix();
+ glTranslated(-3,-3.5,0);
+
+Проходим от точки (0,0) до (7-dy,8-dx)
+for(y=0;y<9*dy;y+=dy)
+  for(x=0;x<9*dx;x+=dx)
+ {
+   // будем соединять, каждые четыре точки многоугольником
+ glBegin(GL_POLYGON);
+
+  // вячисляем z от координаты x и от времени t
+  z = sin(x+t); 
+  // привязываем координаты текстуры к координатам поверхности
+  glTexCoord2d(x/10/dx, y/10/dy); 
+  glVertex3d(x,y,z);
+
+
+  // здесь значение z точно такое же
+  // т.к. z не зависит от y, a x у нас не изменилось
+  glTexCoord2d(x/10/dx, (y+dy)/10/dy); 
+  glVertex3d(x,y+dy,z);
+
+
+  z = sin(x+dx+t);
+  glTexCoord2d((x+dx)/10/dx, (y+dy)/10/dy); 
+  glVertex3d(x+dx,y+dy,z);
+
+  glTexCoord2d((x+dx)/10/dx, y/10/dy); 
+  glVertex3d(x+dx,y,z);
+ glEnd();
+  }
+
+glPopMatrix();
+
+
+ t+=0.1;
+  auxSwapBuffers();
+
+}
+</pre>
+
+
+Теперь измениете положение камеры в функции resize:
+<pre>
+gluLookAt( -2,3,5, 0,0,0, 0,1,0 );
+</pre>
+
+  И нам осталось загрузить тестуру. Объявите глобальную переменную
+<pre>
+AUX_RGBImageRec* image;
+</pre>
+ Функцию main отредактируйте следующим образом.
+<pre>
+void main()
+{
+float pos[4] = {3,3,3,1};
+float dir[3] = {-1,-1,-1};
+
+    GLfloat mat_specular[] = {1,1,1,1};
+
+    auxInitPosition( 50, 10, 400, 400);
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    auxInitWindow( "Glaux Template" );
+    auxIdleFunc(display);
+    auxReshapeFunc(resize);
+
+  
+    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_AUTO_NORMAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, 128.0);
+
+
+<table width=100%><tr><td bgcolor=#CCCCCC><pre>
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	image = auxDIBImageLoad("photo.bmp");
+
+	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
+
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 
+		         image->sizeX,
+				 image->sizeY,
+				 0, GL_RGB, GL_UNSIGNED_BYTE,
+				 image->data);
+
+
+
+  glEnable(GL_TEXTURE_2D);
+</pre></td></tr></table>
+    auxMainLoop(display);
+}
+</pre>
+
+<center><img src="chapter8/flag/release/flag.jpg"><br>
+Исходный файл смотрите <a href="chapter8/flag/flag.c">здесь</a>.
+Исполняемый файл <a href="chapter8/flag/release/flag.exe">здесь</a>.
+</center><br>
+
+PS:<br>
+В анимированном виде я смотрюсь гораздо лучше. Пивзавод балтика должен мне
+за рекламу продукта бочку пива поставить. И при том не одну.;-)
+
+   </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<html>
+<head>
+<title>Глава 6</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+      <p> 
+      <p> 
+      <h1><a name=tth_chAp6>Chapter 6 </a><br>
+        Освещение и все что с ним связано</h1>
+      <h2><a name=tth_sEc6.1>6.1</a>&nbsp;&nbsp;Общие понятия</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Создавать объекты и накладывать на них текcтуры вы научились. Осталась последняя 
+      из основных тем - это освещение объектов. Освоив освещение, вы сможете создавать 
+      полноценные трехмерные сцены. Освещение любого объекта зависит от двух факторов. 
+      Первый - это материал, из которого сделан объект. Второй - это свет, которым 
+      он освещен. В этой главе мы подробно рассмотрим все особенности OpenGL, 
+      касающиеся освещения объектов.     
+      <p> 
+      <h2><a name=tth_sEc6.2>6.2</a>&nbsp;&nbsp;Модель освещения</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      <a 
+name=GL\_LIGHTING62></a>По умолчанию освещение отключено. Включается оно командой 
+      glEnable(GL_LIGHTING). В базовом шаблоне освещение я включил, потому что 
+      без освещения работать практически невозможно. Сфера всегда будет показываться 
+      как круг, а конус - как круг или треугольник. Если монотонное тело у вас равномерно 
+      освещено, то вы не можете увидеть его рельеф. Поэтому нам нужно использовать 
+      источники света. Сначала рассмотрим функцию, которая устанавливает базовые 
+      настройки. Когда вы разрешили освещение, то вы можете уже устанавливать фоновую 
+      освещенность. По умолчанию, значение фоновой освещенности равно (0.2, 0.2, 
+      0.2, 1). Создайте новый проект, скопируйте туда шаблонный файл и отключите 
+      освещение. Вы с трудом сможете различить сферу на экране. <a 
+name=glLightModel62></a>С помощью функции glLightModel вы можете установить фоновое 
+      освещение. Если вы повысите его до (1,1,1,1), т.е. до максимума, то включать 
+      источники света вам не понадобится. Вы их действия просто не заметите, 
+      т.к. объект уже максимально освещен. И получится, что вы как бы отключили 
+      освещение. В общем, добавьте в main вызов следующей функции: 
+      <pre>float ambient[4] = {0.5, 0.5, 0.5, 1};
+...
+glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Попробуйте изменить параметры и посмотрите на результат. Нулевую лампу (glEnable(GL_LIGHT0)) 
+      лучше отключить. 
+
+<center><img src="chapter6/light/release/light.jpg"><br>
+Исходный файл смотрите <a href="chapter6/light/light.c">здесь</a>.
+Исполняемый файл <a href="chapter6/light/release/light.exe">здесь</a>.
+</center><br>    
+      <p> 
+      <h2><a name=tth_sEc6.3>6.3</a>&nbsp;&nbsp;Материал</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Материал может рассеивать, отражать и излучать свет. Свойства материала 
+      устанавливаются при помощи функции <a name=glMaterialfv63></a>
+      <pre>glMaterialfv(GLenum face, GLenum pname, GLtype* params) 
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Первый параметр определяет грань, для которой устанавливаются свойства. Он 
+      может принимать одно из следующих значений: <a name=GL\_BACK63></a><a 
+name=GL\_FRONT63></a><a name=GL\_FRONT\_AND\_BACK63></a>
+      <pre>  
+GL_BACK             задняя грань
+GL_FONT             передняя грань
+GL_FRONT_AND_BACK   обе грани
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Второй парметр функции glMaterialfv определяет свойство материала, которое 
+      будет установлено, и может принимать следующие значения. <a 
+name=GL\_AMBIENT63></a><a name=GL\_DIFFUSE63></a><a name=GL\_SPECULAR63></a><a 
+name=GL\_EMISSION63></a><a name=GL\_SHININESS63></a><a 
+name=GL\_AMBIENT\_AND\_DIFFUSE63></a>
+      <pre>GL_AMBIENT  рассеянный свет
+GL_DIFFUSE  тоже рассеянный свет, пояснения смотри ниже
+GL_SPECULAR отраженный свет
+GL_EMISSION излучаемый свет
+GL_SHININESS степень отраженного света
+GL_AMBIENT_AND_DIFFUSE оба рассеянных света
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Ambient и diffuse переводятся на русский как "рассеянный". Разница между 
+      ними не очень понятна. Я использую только GL_DIFFUSE. Третий параметр определяет 
+      цвет соответствующего света, кроме случая GL_SHININESS. Цвет задается в виде 
+      массива из четырех элементов - RGBA. В случае GL_SHININESS params указывает 
+      на число типа float, которое должно быть в диапазоне от 0 до 128. Я написал 
+      простенький пример с цилиндром и раскрасил его грани в разные цвета. Вам 
+      надо всего лишь модифицировать функцию display. 
+      <pre>void CALLBACK display(void)
+{
+GLUquadricObj *quadObj; 
+GLfloat front_color[] = {0,1,0,1};
+GLfloat back_color[] = {0,0,1,1};
+
+quadObj = gluNewQuadric(); 
+
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+glMaterialfv(GL_FRONT, GL_DIFFUSE, front_color);
+glMaterialfv(GL_BACK, GL_DIFFUSE, back_color);
+
+
+glPushMatrix();
+ glRotated(110, -1,1,0);
+ gluCylinder(quadObj, 1, 0.5, 2, 10, 10); 
+glPopMatrix();
+
+gluDeleteQuadric(quadObj);
+auxSwapBuffers();
+}
+</pre>
+      И вы должны разрешить режим освещенности для двух граней. По умолчанию он 
+      запрещен. Добавьте в функцию main следующую строчку. 
+      <pre>glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+</pre>
+      <a name=GL\_LIGHT\_MODEL\_TWO\_SIDE63></a> 
+      <p> 
+<center><img src="chapter6/materials/release/material.jpg"><br>
+Исходный файл смотрите <a href="chapter6/materials/materials.c">здесь</a>.
+Исполняемый файл <a href="chapter6/materials/release/materials.exe">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc6.4>6.4</a>&nbsp;&nbsp;Лампы и их свойства</h2>  
+      Все параметры лампы задаются с помощью функции glLight, которая имеет
+      следующий прототип:
+<pre>
+void glLight[if][v](
+GLenum light, 
+GLenum pname, 
+GLfloat param)
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Первый аргумент определяет номер лампы. Его можно задавать двумя способами.
+Первый - явно указать GL_LIHGTi, где GL_LIGHTi предопрелено в файле gl.h
+следующим образом:</p>
+<pre>
+/* LightName */
+#define GL_LIGHT0                         0x4000
+#define GL_LIGHT1                         0x4001
+#define GL_LIGHT2                         0x4002
+#define GL_LIGHT3                         0x4003
+#define GL_LIGHT4                         0x4004
+#define GL_LIGHT5                         0x4005
+#define GL_LIGHT6                         0x4006
+#define GL_LIGHT7                         0x4007
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Второй способ - GL_LIGHT0 + i, где i номер лампы. Такой способ используется, 
+когда вам надо в цикле изменять параметры ламп. Второй аргумент определяет
+имя параметра, а третий его значение. Я здесь не буду перечислять всевозможные
+параметры и их допустимые значения, для этого есть справочник и MSDN. Я покажу
+и прокомментирую лишь небольшой пример, использующий три лампы. Для начала,
+давайте разберем шаблонный пример. С помощью следующих функций разрешаем
+освещение и включаем нулевую лампу.
+<pre>
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Массивы pos и dir содержат координаты местоположения лампы и направления, 
+куда она светит. Массив dir содержит три координаты - x,y,z. Массив pos
+- четыре, назначение четвертого мне не очень ясно. Если его значение отличается
+от нуля, то изображение вполне логичное получается. Если же он ноль, то получается что-то
+непотребное.
+
+<pre>
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+</pre>
+
+
+ Создайте
+новый проект с именем lamps. Скопируйте шаблонный файл glaux.c. 
+Отредактируйте функцию main:
+<pre>
+void main()
+{
+float pos[4] = {3,3,3,1};
+float color[4] = {1,1,1,1};
+float sp[4] = {1,1,1,1};
+float mat_specular[] = {1,1,1,1};
+
+    auxInitPosition( 50, 10, 400, 400);
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    auxInitWindow( "Glaux Template" );
+    auxIdleFunc(display);
+    auxReshapeFunc(resize);
+
+  
+    glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT3);
+	glEnable(GL_LIGHT5);
+	glEnable(GL_LIGHT6);
+
+
+    
+    glLightfv(GL_LIGHT3, GL_SPECULAR, sp); 
+    glLightfv(GL_LIGHT5, GL_SPECULAR, sp); 
+    glLightfv(GL_LIGHT6, GL_SPECULAR, sp); 
+
+
+    color[1]=color[2]=0;
+    glLightfv(GL_LIGHT3, GL_DIFFUSE, color);
+
+    color[0]=0;
+	color[1]=1;
+    glLightfv(GL_LIGHT5, GL_DIFFUSE, color);
+
+    color[1]=0;
+	color[2]=1;
+    glLightfv(GL_LIGHT6, GL_DIFFUSE, color);
+
+
+    glLightfv(GL_LIGHT3, GL_POSITION, pos);
+	pos[0] = -3;
+    glLightfv(GL_LIGHT5, GL_POSITION, pos);
+	pos[0]=0;pos[1]=-3;
+    glLightfv(GL_LIGHT6, GL_POSITION, pos);
+
+
+
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, 128.0);
+
+    
+    auxMainLoop(display);
+}
+
+</pre>
+
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Здесь надо сделать пояснения для вызовов функции glLight с параметрами
+GL_DIFFUSE и GL_SPECULAR. GL_DIFFUSE - определяет цвет света источника.
+В данном примере у нас три лампы - с красным источником света, с зеленым
+и с синим. GL_SPECULAR определяет отраженный свет, см. предыдущий пункт.
+
+<p>
+Теперь измените функциb display:
+<pre>
+    glColor3d(1,1,1);
+    auxSolidSphere(2);
+</pre>
+
+
+      <p> 
+<center><img src="chapter6/lamps/release/lamps.jpg"><br>
+Исходный файл смотрите <a href="chapter6/lamps/lamps.c">здесь</a>.
+Исполняемый файл <a href="chapter6/lamps/release/lamps.exe">здесь</a>.
+</center><br>
+ 
+  </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td>
+      <h2><a name=tth_sEc6.5>6.5</a>&nbsp;&nbsp;Тени</h2>
+       <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+        Тени напрямую не поддерживаются библиотекой OpenGL, поэтому этот материал
+для второй части книги. А если честно, то я с ними пока еще не разбирался.;-)
+    </td>
+  </tr>
+</table>
+</body>
+</html>

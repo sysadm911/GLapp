@@ -1,0 +1,574 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 13. Растровые шрифты</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe13.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 13. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 13. Растровые шрифты</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=13" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Bitmap Fonts</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Добро пожаловать еще на один урок. На сей раз, я буду учить 
+  Вас, как использовать растровые шрифты. Вы можете сказать себе &quot;разве так 
+  трудно вывести текст на экран&quot;. Если Вы когда-либо пробовали это, то вы 
+  знаете, что это не просто!<br>
+  <br>
+</p>
+<p class=textword>Уверен, Вы сможете запустить графический редактор, написать 
+  текст на изображении, загрузить изображение в вашу программу OpenGL, включить 
+  смешивание, затем отобразить текст на экран. Но это съедает время, конечный 
+  результат обычно выглядит расплывчатым или грубым в зависимости от типа фильтрации, 
+  который Вы использовали, и если ваше изображение имеет альфа канал, ваш текст 
+  будет в довершении прозрачным (смешанный с объектами на экране) после наложения 
+  на экран.<br>
+  <br>
+</p>
+<p class=textword>Если Вы когда-либо использовали Wordpad, Microsoft Word или 
+  другой текстовый процессор, Вы, возможно, заметили, сколько разных типов доступных 
+  шрифтов. В этом уроке Вы научитесь, как использовать те же самые шрифты в ваших 
+  собственных программах OpenGL. Фактически, любой шрифт, который Вы установлен 
+  на вашем компьютере, может использоваться в ваших примерах.<br>
+  <br>
+</p>
+<p class=textword>Растровые шрифты не только в 100 раз лучше выглядят, чем графические 
+  шрифты (текстуры). Вы можете изменять текст на лету. Не нужно делать текстуры 
+  для каждого слова или символа, которые Вы хочет вывести на экран. Только позиционируйте 
+  текст, и используйте мою удобную новую gl команду, чтобы отобразить текст на 
+  экране.<br>
+  <br>
+</p>
+<p class=textword>Я попробовал сделать команду настолько простой насколько это 
+  возможно. Все, что Вы должны сделать, так это, набрать <b>glPrint</b> <b>(&quot;Привет&quot;)</b>. 
+  Это легко. Как бы то ни было, Вы можете сказать, что здесь довольно длинное 
+  введение, которое я счастлив, дать Вам в этом уроке. Мне потребуется около полутора 
+  часов, чтобы создать программу. Почему так долго? Поскольку нет почти никакой 
+  информации, доступной по использованию растровых шрифтов, если конечно Вы не 
+  наслаждаетесь кодом MFC. Чтобы сохранить по возможности полученный код как можно 
+  проще, я решил, что будет хорошо, если я напишу все это в простом для понимания 
+  коде Cи :).<br>
+  <br>
+</p>
+<p class=textword>Небольшое примечание, этот код применим только в Windows. Он 
+  использует функции wgl Windows, для построения шрифтов. Очевидно, Apple имеет 
+  функции agl, которые должны делать то же самое, а X имеет glx. К сожалению, 
+  я не могу гарантировать, что этот код переносим. Если кто-нибудь имеет платформо-незавизимый 
+  код для вывода шрифтов на экран, пришлите мне его, и я напишу другой урок по 
+  шрифтам.<br>
+  <br>
+</p>
+<p class=textword>Мы начнем с такого же кода как в уроке 1. Мы будем добавлять 
+  заголовочный файл <b>stdio</b><b>.</b><b>h</b> для стандартных операций ввода/вывода; 
+  <b>stdarg</b><b>.</b><b>h</b> для разбора текста и конвертирования переменных 
+  в текст, и, наконец <b>math</b><b>.</b><b>h</b>, для того чтобы перемещать текст 
+  по экрану, используя <b>SIN</b> и <b>COS</b>.</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>#include &lt;windows.h&gt;  // Заголовочный файл для Windows</p>
+<p class=textpreword>#include &lt;stdio.h&gt;    // Заголовочный файл для стандартной 
+  библиотеки ввода/вывода</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;    // Заголовочный файл для библиотеки 
+  OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;   // Заголовочный файл для библиотеки 
+  GLu32 </p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt; // Заголовочный файл для библиотеки 
+  GLaux </p>
+<p class=textpreword>#include &lt;math.h&gt;     // Заголовочный файл для математической 
+  библиотеки ( НОВОЕ )</p>
+<p class=textpreword>#include &lt;stdarg.h&gt;   // Заголовочный файл для функций 
+  для работы с переменным</p>
+<p class=textpreword>                      //  количеством аргументов ( НОВОЕ 
+  )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>HDC        hDC=NULL;  // Приватный контекст устройства GDI</p>
+<p class=textpreword>HGLRC      hRC=NULL;  // Постоянный контекст рендеринга</p>
+<p class=textpreword>HWND       hWnd=NULL; // Сохраняет дескриптор окна</p>
+<p class=textpreword>HINSTANCE  hInstance; // Сохраняет экземпляр приложения</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Мы также собираемся добавить 3 новых переменных. В <b>base</b> 
+  будет сохранен номер первого списка отображения, который мы создаем. Каждому 
+  символу требуется собственный список отображения. Символ 'A' - 65 список отображения, 
+  'B' - 66, 'C' - 67, и т.д. Поэтому 'A' будет сохранен в списке<b> </b>отображения<b> 
+  base+65</b>.<br>
+  <br>
+</p>
+<p class=textword>Затем мы добавляем два счетчика (<b>cnt1</b> и <b>cnt2</b>). 
+  Эти счетчики будут изменяться с разной частотой, и используются для перемещения 
+  текста по экрану, используя <b>SIN</b> и <b>COS</b>. Это будет создавать эффект 
+  хаотичного движения строки текста по экрану. Мы будем также использовать эти 
+  счетчики, чтобы изменять цвет символов (но об этом чуть позже).</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>GLuint  base;      // База списка отображения для фонта</p>
+<p class=textpreword>GLfloat  cnt1;     // Первый счетчик для передвижения и закрашивания 
+  текста</p>
+<p class=textpreword>GLfloat  cnt2;     // Второй счетчик для передвижения и закрашивания 
+  текста</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>bool  keys[256];      // Массив для работы с клавиатурой</p>
+<p class=textpreword>bool  active=TRUE;    // Флаг активации окна, по умолчанию 
+  = TRUE</p>
+<p class=textpreword>bool  fullscreen=TRUE;// Флаг полноэкранного режима</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>LRESULT  CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);  // 
+  Объявление WndProc</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textword>В следующей секции кода происходит построение шрифта. Это наиболее 
+  трудная часть кода. Объявление <b>'</b><b>HFONT </b><b>font'</b>  задает шрифт 
+  в Windows.<br>
+  <br>
+</p>
+<p class=textword>Затем мы определяем <b>base</b>. Мы создаем группу из 96 списков 
+  отображения, используя <b>glGenLists(96)</b>. После того, как списки отображения 
+  созданы, переменная <b>base</b> будет содержать номер первого списка.</p>
+ <p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLvoid BuildFont(GLvoid)  // Построение нашего растрового 
+  шрифта</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  HFONT  font;            // Идентификатор фонта</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  base = glGenLists(96);  // Выделим место для 96 символов 
+  ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь позабавимся. Мы собираемся создать наш шрифт. Мы начинаем, 
+  задавая размер шрифта. Вы заметили, что это отрицательное число. Вставляя минус, 
+  мы сообщаем Windows, что надо найти нам шрифт, основанный на высоте СИМВОЛОВ. 
+  Если мы используем положительное число, мы выбираем шрифт, основанный на высоте 
+  ЯЧЕЙКИ.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>font = CreateFont(  -24,        // Высота фонта ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Затем мы определяем ширину ячейки. Вы увидите, что я установил 
+  ее в 0. При помощи установки значения в 0, Windows будет использовать значение 
+  по умолчанию. Вы можете поиграть с этим значением, если Вы хотите. Сделайте 
+  шрифт широким, и т.д.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        0,        // Ширина фонта</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Угол отношения (Angle of Escapement) позволяет вращать шрифт. 
+  К сожалению, это - не очень полезная возможность. Исключая 0, 90, 180, и 270 
+  градусов, у шрифта будет обрезаться то, что не попало внутрь невидимой квадратной 
+  границы. Угол наклона (Orientation Angle), цитируя справку MSDN, определяет 
+  угол, в десятых долях градуса, между базовой линией символа и осью X устройства. 
+  К сожалению, я не имею понятия о том, что это означает :(.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>        0,        // Угол отношения</p>
+<p class=textpreword>        0,        // Угол наклона</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Ширина шрифта – отличный параметр. Вы можете использовать числа 
+  от 0 - 1000, или Вы можете использовать одно из предопределенных значений. <b>FW_DONTCARE</b> 
+  - 0, <b>FW_NORMAL</b> - 400, <b>FW_BOLD - 700</b>, и <b>FW_BLACK</b> - 900. 
+  Есть множество других предопределенные значений, но и эти 4 дают хорошее разнообразие. 
+  Чем выше значение, тем более толстый шрифт (более жирный).</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        FW_BOLD,      // Ширина шрифта</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Курсив, подчеркивание и перечеркивание может быть или <b>TRUE</b> 
+  или <b>FALSE</b>. Если подчеркивание <b>TRUE</b>, шрифт будет подчеркнут. Если 
+  <b>FALSE</b> то, нет. Довольно просто :).</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        FALSE,        // Курсив</p>
+<p class=textpreword>        FALSE,        // Подчеркивание</p>
+<p class=textpreword>        FALSE,        // Перечеркивание</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Идентификатор набора символов описывает тип набора символов, 
+  который Вы хотите использовать. Есть множество типов, и обо всех их не рассказать 
+  в этом уроке. <b>CHINESEBIG5_CHARSET</b>, <b>GREEK_CHARSET</b>, <b>RUSSIAN_CHARSET</b>, 
+  <b>DEFAULT_CHARSET</b>, и т.д. ANSI – тот набор, который я использую, хотя ЗНАЧЕНИЕ 
+  ПО УМОЛЧАНИЮ, вероятно, работало бы точно также.<br>
+  <br>
+</p>
+<p class=textword>Если Вы хотите использовать шрифт типа Webdings или Wingdings, 
+  Вы должны использовать <b>SYMBOL_CHARSET</b> вместо <b>ANSI_CHARSET</b>.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        ANSI_CHARSET,      // Идентификатор набора символов</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Точность вывода очень важна. Этот параметр сообщает Windows 
+  какой из наборов символов использовать, если их доступно больше чем один. <b>OUT_TT_PRECIS</b> 
+  сообщает Windows что, если доступен больше чем один тип шрифта, то выбрать с 
+  тем же самым названием Truetype версию шрифта. Truetype шрифты всегда смотрят 
+  лучше, особенно когда Вы сделаете их большими по размеру. Вы можете также использовать 
+  <b>OUT_TT_ONLY_PRECIS</b>, при этом ВСЕГДА используется Truetype шрифт.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        OUT_TT_PRECIS,      // Точность вывода</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Точность отсечения - тип отсечения, который применяется, когда 
+  вывод символов идет вне области отсечения. Об этом много говорить нечего, оставьте 
+  значение по умолчанию.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        CLIP_DEFAULT_PRECIS,    // Точность отсечения</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Качество вывода - очень важный параметр. Вы можете выбрать <b>PROOF</b>, 
+  <b>DRAFT</b>, <b>NONANTIALIASED</b>, <b>DEFAULT</b> или <b>ANTIALIASED</b>. 
+  Всем известно, что при <b>ANTIALIASED</b> шрифты выглядят отлично :). Сглаживание 
+  (Antialiasing) шрифта – это тот же самый эффект, который Вы получаете, когда 
+  Вы включаете сглаживание шрифта в Windows. При этом буквы выглядят менее ступенчато.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        ANTIALIASED_QUALITY,    // Качество вывода</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Затем идут настройка шага и семейство. Для настройки шага Вы 
+  можете выбрать <b>DEFAULT_PITCH</b>, <b>FIXED_PITCH</b> и <b>VARIABLE_PITCH</b>, 
+  а для настройки семейства, Вы можете выбрать <b>FF</b><b>_DECORATIVE</b>, <b>FF</b><b>_MODERN</b>, 
+  <b>FF</b><b>_ROMAN</b>, <b>FF</b><b>_SCRIPT</b>,<b> </b><b>FF</b><b>_SWISS</b>, 
+  <b>FF</b><b>_DONTCARE</b>. Проиграйтесь с этими константами, чтобы выяснить, 
+  что они делают. Я оставил их по умолчанию.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        FF_DONTCARE|DEFAULT_PITCH,  // Семейство и шаг</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Наконец... Фактическое название шрифта. Загрузите Microsoft 
+  Word или другой текстовый редактор. Щелчок по шрифту - выпадет вниз меню, и 
+  ищите шрифт, который Вам нравится. Чтобы его использовать, замените 'Courier 
+  New' на название шрифта, который Вы хотите использовать.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>        &quot;Courier New&quot;);      // Имя шрифта</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Теперь мы выберем шрифт, привязав его к нашему DC, и построим 
+  96 списков отображения, начиная с символа 32 (который является пробелом). Вы 
+  можете построить все 256 символов, если Вы хотите. Проверьте, что Вы удаляете 
+  все 256 списков отображения, когда Вы выходите из программы, и проверьте, что 
+  Вы задаете вместо 32 значение 0 и вместо 96 значение 255 в строке кода ниже.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  SelectObject(hDC, font);        // Выбрать шрифт, созданный 
+  нами ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  wglUseFontBitmaps(hDC, 32, 96, base); // Построить 96 символов 
+  начиная с пробела ( НОВОЕ )</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Следующий код очень прост. Он удаляет 96 списков отображения 
+  из памяти, начиная с первого списка, заданного <b>'</b><b>base'</b>. Я не уверен, 
+  что windows сделала бы это за Вас, поэтому лучше быть осмотрительным, чем потом 
+  жалеть :).</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>GLvoid KillFont(GLvoid)            // Удаление шрифта</p>
+<p class=textpreword>{</p>
+<p class=textpreword>   glDeleteLists(base, 96);        // Удаление всех 96 списков 
+  отображения ( НОВОЕ )</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь моя удобная первоклассная функция вывода текста GL. Вы 
+  вызываете этот раздел кода по команде glPrint (&quot;здесь сообщение&quot;). 
+  Текст находится в строке символов *fmt.</p>
+<p class=textpreword>&nbsp;</p>
+<p class=textpreword>GLvoid glPrint(const char *fmt, ...)        // Заказная функция 
+  «Печати» GL</p>
+<p class=textpreword>{</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>В первой строке кода ниже выделяется память для строки на 256 
+  символов. <b>text</b> – это строка, которую мы хотим напечатать на экране. Во 
+  второй строке ниже создается указатель, который указывает на список параметров, 
+  которые мы передаем наряду со строкой. Если мы посылаем переменные вместе с 
+  текстом, она укажет на них.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  char    text[256];      // Место для нашей строки</p>
+<p class=textpreword>  va_list    ap;          // Указатель на список аргументов</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>В следующих двух строках кода проверяется, если, что-нибудь 
+  для вывода? Если нет текста, <b>fmt</b> не будет равняться ничему (<b>NULL</b>), 
+  и ничего не будет выведено на экран.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (fmt == NULL)     // Если нет текста</p>
+<p class=textpreword>    return;            // Ничего не делать</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>  va_start(ap, fmt);           // Разбор строки переменных</p>
+<p class=textpreword>      vsprintf(text, fmt, ap); // И конвертирование символов 
+  в реальные коды</p>
+<p class=textpreword>  va_end(ap);                  // Результат помещается в 
+  строку</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Затем мы проталкиваем в стек <b>GL_</b><b>LIST_</b><b>BIT</b>, 
+  это защищает другие списки отображения, которые мы можем использовать в нашей 
+  программе,<b> </b>от влияния <b>glListBase</b>.<br>
+  <br>
+</p>
+<p class=textword>Команду <b>glListBase(</b><b>base-32) </b>немного трудно объяснить. 
+  Скажем, что мы рисуем символ 'A', он задан номером 65. Без <b>glListBase(</b><b>base-32)</b> 
+  OpenGL, не понял бы, где найти этот символ. Он стал бы искать этот символ в 
+  65 списке отображения, но если бы база была равна 1000, 'A' был бы фактически 
+  сохранен в 1065 списке отображения. Поэтому при помощи, установки базовой отправной 
+  точки, OpenGL знает, где находится нужный список отображения. Причина, по которой 
+  мы вычитаем 32, состоит в том, что мы не сделали первые 32 списка отображения. 
+  Мы опустили их. Так что мы должны указать OpenGL про это, вычитая 32 из базового 
+  значения. Символы, кодируются, начиная с нуля, код символа пробела имеет значение 
+  32, поэтому если, мы хотим вывести пробел, то мы должны иметь тридцать второй 
+  список отображения, а у нас он нулевой. Поэтому мы искусственно занижаем значение 
+  базы, с тем, чтобы OpenGL брал нужные списки. Я надеюсь, что это понятно.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glPushAttrib(GL_LIST_BIT);      // Протолкнуть биты списка 
+  отображения ( НОВОЕ )</p>
+<p class=textpreword>  glListBase(base - 32);          // Задать базу символа 
+  в 32 ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь, когда OpenGL знает, где находятся Символы, мы можем 
+  сообщить ему, что пора выводить текст на экран. <b>glCallLists</b> - очень интересная 
+  команда. Она может вывести больше, чем один список отображения на экран одновременно.<br>
+  <br>
+</p>
+<p class=textword>В строке ниже делает следующее. Сначала она сообщает OpenGL, 
+  что мы собираемся показывать на экране списки отображения. При вызове функции 
+  <b>strlen(</b><b>text)</b> вычисляется, сколько символов мы собираемся отобразить 
+  на экране. Затем необходимо указать максимальное значение посылаемых символов. 
+  Мы не посылаем больше чем 255 символов. Так что мы можем использовать <b>UNSIGNED_BYTE</b>. 
+  (Вспомните, что байт - любое значение от 0 - 255). Наконец мы сообщаем, что 
+  надо вывести, передачей строки <b>'</b><b>text'</b>.<br>
+  <br>
+</p>
+<p class=textword>Возможно, Вы задаетесь вопросом, почему символы не наезжают 
+  друг на друга. Каждый список отображения для каждого символа знает, где правая 
+  сторона у символа. После того, как символ выведен, OpenGL переходит на правую 
+  сторону выведенного символа. Следующий символ или выведенный объект будут выведены, 
+  начиная с последнего места вывода GL, которое будет справа от последнего символа.<br>
+  <br>
+</p>
+<p class=textword>Наконец мы возвращаем настройки GL <b>GL_</b><b>LIST_</b><b>BIT</b> 
+  обратно, как было прежде, чем мы установили нашу базу, используя <b>glListBase(</b><b>base-32)</b>.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword> glCallLists(strlen(text), GL_UNSIGNED_BYTE, text);// Текст 
+  списками отображения(НОВОЕ)</p>
+<p class=textpreword> glPopAttrib(); // Возврат битов списка отображения ( НОВОЕ 
+  )</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>В коде Init изменилось только одно: добавлена строчка <b>BuildFont()</b>. 
+  Она вызывает код выше, для построения шрифта, чтобы OpenGL мог использовать 
+  его позже.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>int InitGL(GLvoid)            // Все начальные настройки 
+  OpenGL здесь</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  glShadeModel(GL_SMOOTH);    // Разрешить плавное затенение</p>
+<p class=textpreword>  glClearColor(0.0f, 0.0f, 0.0f, 0.5f); // Черный фон</p>
+<p class=textpreword>  glClearDepth(1.0f);         // Установка буфера глубины</p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST);    // Разрешение теста глубины</p>
+<p class=textpreword>  glDepthFunc(GL_LEQUAL);     // Тип теста глубины</p>
+<p class=textpreword>  // Действительно хорошие вычисления перспективы</p>
+<p class=textpreword>  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);</p>
+<p class=textpreword>  BuildFont();            // Построить шрифт</p>
+<p class=textpreword>  return TRUE;            // Инициализация окончена</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь о коде для отрисовки. Вначале мы, очищаем экран и буфер 
+  глубины. Мы вызываем <b>glLoadIdentity()</b> чтобы все сбросить. Затем мы перемещаемся 
+  на одну единицу вглубь экрана. Если не сделать перемещения, текст не будет отображен. 
+  Растровые шрифты лучше применять с ортографической проекцией, а не с перспективной, 
+  но ортографическая проекция выглядит плохо, поэтому, когда работаем в этой проекции, 
+  перемещаем.<br>
+  <br>
+</p>
+<p class=textword>Вы можете заметить, что, если бы Вы переместили текст даже вглубь 
+  экрана, размер шрифта не уменьшиться, как бы Вы этого ожидали. Что реально происходит, 
+  когда Вы глубже перемещаете текст, то, что Вы имеете возможность контролировать, 
+  где текст находится на экране. Если Вы переместили на 1 единицу в экран, Вы 
+  можете расположить текст, где-нибудь от -0.5 до +0.5 по оси X. Если Вы переместите 
+  на 10 единиц в экран, то Вы должны располагать текст от -5 до +5. Это даст Вам 
+  возможность лучше контролировать точное позиционирование текста, не используя 
+  десятичные разряды. При этом размер текста не измениться. И даже с помощью <b>glScalef(</b><b>x,</b><b>y,</b><b>z)</b>. 
+  Если Вы хотите шрифт, больше или меньше, сделайте его большим или маленьким 
+  во время его создания!</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>int DrawGLScene(GLvoid) // Здесь мы будем рисовать все</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 
+  Очистка экран и буфера глубины</p>
+<p class=textpreword>  glLoadIdentity(); // Сброс просмотра</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,-1.0f); // Передвижение на одну 
+  единицу вглубь</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Теперь мы воспользуемся нестандартными вычислениями, чтобы сделать 
+  цветовую пульсацию. Не волнуйтесь, если Вы не понимаете то, что я делаю. Я люблю 
+  пользоваться множеством переменных, и дурацкими уловками, чтобы достигнуть результата 
+  :).</p>
+<p class=textword> <br>
+</p>
+<p class=textword>На этот раз, я использую два счетчика, которые мы создали для 
+  перемещения текста по экрану, и для манипулирования красным, зеленым и синим 
+  цветом. Красный меняется от -1.0 до 1.0 используя <b>COS</b> и счетчик 1. Зеленый 
+  меняется от -1.0 до 1.0 используя <b>SIN</b> и счетчик 2. Синий меняется от 
+  0.5 до 1.5 используя COS и счетчики 1 + 2. Тем самым синий никогда не будет 
+  равен 0, и текст не должен никогда полностью исчезнуть. Глупо, но это работает 
+  :).</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Цветовая пульсация, основанная на положении текста</p>
+<p class=textpreword>  glColor3f(1.0f*float(cos(cnt1)),1.0f*float(sin(cnt2)),1.0f-0.5f*float(cos(cnt1+cnt2)));</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Теперь новая команда. <b>glRasterPos2</b><b>f(</b><b>x,</b><b>y)</b> 
+  будет позиционировать растровый шрифт на экране. Центр экрана как прежде в 0,0. 
+  Заметьте, что нет координаты Z. Растровые шрифты используют только ось X (лево/право) 
+  и ось Y (вверх/вниз). Поскольку мы перемещаем на одну единицу в экран, левый 
+  край равен -0.5, и правый край равен +0.5. Вы увидите, что я перемещаю на 0.45 
+  пикселей влево по оси X. Это устанавливает текст в центр экрана. Иначе он было 
+  бы правее на экране, потому что текст будет выводиться от центра направо.<br>
+  <br>
+</p>
+<p class=textword>Нестандартные вычисления делают в большой степени то же самое, 
+  как и при вычислении цвета. Происходит перемещение текста по оси X от -0.50 
+  до -0.40 (вспомните, мы вычли справа от начала 0.45). При этом текст на экране 
+  будет всегда. Текст будет ритмично раскачиваться влево и вправо, используя <b>COS</b> 
+  и счетчик 1. Текст будет перемещаться от -0.35 до +0.35 по оси Y, используя 
+  <b>SIN</b> и счетчик 2.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Позиционирование текста на экране</p>
+<p class=textpreword>  glRasterPos2f(-0.45f+0.05f*float(cos(cnt1)), 0.35f*float(sin(cnt2)));</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Теперь моя любимая часть... Реальный вывод текста на экран. 
+  Я попробовал сделать его очень простым, и крайне дружелюбным способом. Вы увидите, 
+  что вывод текста выглядит как большинство команд OpenGL, при этом в комбинации 
+  с командой Print, сделанной на старый добрый манер :). Все, что Вам надо сделать, 
+  чтобы ввести текст на экран - <b>glPrint</b> (&quot;{любой текст, который Вы 
+  хотите}&quot;). Это очень просто. Текст будет выведен на экран точно в том месте, 
+  где Вы установили его.<br>
+  <br>
+</p>
+<p class=textword>Shawn T. прислал мне модифицированный код, который позволяет 
+  <b>glPrint</b> передавать переменные для вывода на экран. Например, Вы можете 
+  увеличить счетчик и отобразить результат на экране! Это работает примерно так... 
+  В линии ниже Вы увидите нормальный текст. Затем идет пробел, тире, пробел, затем 
+  &quot;символ&quot; (%7.2f). Посмотрев на %7.2f Вы можете сказать, что эта рогулька 
+  означает. Все очень просто. Символ % - подобен метке, которая говорит, не печатать 
+  7.2f на экран, потому что здесь будет напечатано значение переменной. При этом 
+  7 означает, что максимум 7 цифр будут отображены слева от десятичной точки. 
+  Затем десятичная точка, и справа после десятичной точки - 2. 2 означает, что 
+  только две цифры будут отображены справа от десятичной точки. Наконец, f. f 
+  означает, что число, которое мы хотим отобразить - число с плавающей запятой. 
+  Мы хотим вывести значение <b>cnt1</b> на экран. Предположим, что <b>cnt1</b> 
+  равен 300.12345f, окончательно мы бы увидели на экране 300.12. Цифры 3, 4, и 
+  5 после десятичной точки были бы обрезаны, потому что мы хотим, чтобы появились 
+  только 2 цифры после десятичной точки.<br>
+  <br>
+</p>
+<p class=textword>Конечно, если Вы профессиональный программист на Си, то, это 
+  ненужный рассказ, но этот урок могут читать люди, которые и не использовали 
+  <b>printf</b>.  Если Вы хотите больше узнать о маркерах, купите книгу, или посмотрите 
+  MSDN.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glPrint(&quot;Active OpenGL Text With NeHe - %7.2f&quot;, 
+  cnt1);  // Печать текста GL на экран</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>И в завершении увеличим значение обоих счетчиков на разную величину, 
+  чтобы была цветовая пульсация и передвижение текста.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  cnt1+=0.051f;  // Увеличение первого счетчика</p>
+<p class=textpreword>  cnt2+=0.005f;  // Увеличение второго счетчика</p>
+<p class=textpreword>  return TRUE;   // Все отлично</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Также необходимо добавить KillFont() в конец KillGLWindow() 
+  как, показано ниже. Важно добавить эту строку. При этом списки отображения очищаются 
+  прежде, чем мы выходим из нашей программы.</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (!UnregisterClass(&quot;OpenGL&quot;,hInstance))    
+  // Если класс не зарегистрирован</p>
+<p class=textpreword>  {</p>
+<p class=textpreword>    MessageBox(NULL,&quot;Could Not Unregister Class.&quot;,&quot;SHUTDOWN 
+  ERROR&quot;,<br>MB_OK | MB_ICONINFORMATION);</p>
+<p class=textpreword>    hInstance=NULL;          // Установить копию приложения 
+  в ноль</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  KillFont();            // Уничтожить шрифт</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Вот и все... Все, что Вы должны знать, чтобы использовать растровые 
+  шрифты в ваших собственных проектах OpenGL. Я поискал в сети подобный материал, 
+  и ничего похожего не нашел. Возможно мой сайт первый раскрывает эту тему на 
+  простом понятном коде Cи? Возможно. Получайте удовольствие от этого урока, и 
+  счастливого кодирования!<br>
+  <br>
+</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</div>
+
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;29 июля 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:pmg-ru@narod.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Сергей Анисимов</b></font></a> 
+          </p>
+</div>
+
+<div id="counter">
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

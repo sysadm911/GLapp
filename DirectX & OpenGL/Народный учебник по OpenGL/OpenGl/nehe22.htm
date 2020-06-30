@@ -1,0 +1,1919 @@
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 22. Наложение микрорельефа методом тиснения, мультитекстурирование и использование расширений OpenGL</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe22.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 22. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 22. Наложение микрорельефа методом тиснения, мультитекстурирование и использование расширений OpenGL</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=22" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Bump-Mapping, Multi-Texturing & Extensions</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Этот урок, написанный Дженсом Шнайдером (<i>Jens Schneider</i>), 
+  основан на материале Урока 6, но содержит существенные изменения и дополнения. 
+  Здесь вы узнаете:</p>
+<ul>
+  <li> <span class="textword"> как управлять функциями мультитекстурирования видеокарты; 
+    </span></li>
+  <li><span class="textword"> как выполнять &quot;поддельное&quot; наложение микрорельефа 
+    методом тиснения; </span></li>
+  <li><span class="textword">как, используя смешивание, отображать эффектно смотрящиеся 
+    логотипы, &quot;летающие&quot; по просчитанной сцене; </span></li>
+  <li><span class="textword">как просто и быстро выполнять преобразование матриц; 
+    </span></li>
+  <li><span class="textword">познакомитесь с основами техники многопроходной визуализации.</span></li>
+</ul>
+<p class=textword>По меньшей мере, три из перечисленных пунктов могут быть отнесены 
+  к &quot;продвинутым техникам текстурирования&quot;, поэтому для работы с ними 
+  нужно хорошо понимать основы функционирования конвейера визуализации в OpenGL. 
+  Требуется знать большинство команд, изученных в предыдущих уроках и быть достаточно 
+  близко знакомым с векторной математикой. Иногда будут попадаться блоки, озаглавленные 
+  &quot;начало теории(…)&quot; и оканчивающиеся фразой &quot;конец теории(…)&quot;. 
+  В таких местах рассматриваются теоретические основы вопросов, указанных в скобках, 
+  и если вы их знаете, то можете пропустить. Если возникают проблемы с пониманием 
+  кода, лучше вернуться к теоретической части и попробовать разобраться. И еще: 
+  в уроке более 1200 строк кода, значительные фрагменты которого очевидны и скучны 
+  для тех, кто читал предыдущие главы. Поэтому я не стал комментировать каждую 
+  строку, пояснил только главное. Если встретите что-то вроде &gt;…&lt;, это значит, 
+  что строки кода были пропущены. <br>
+  <br>
+  Итак:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>#include &lt;windows.h&gt;         // Файл заголовков функций 
+  Windows</p>
+<p class=textpreword>#include &lt;stdio.h&gt;           // Файл заголовков для 
+  библиотеки ввода-вывода</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;           // Файл заголовков для 
+  библиотеки OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;          // Файл заголовков для 
+  библиотеки GLu32</p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt;        // Файл заголовков для 
+  библиотеки GLaux</p>
+<p class=textpreword>#include &quot;glext.h&quot;           // Файл заголовков 
+  для мультитекстурирования</p>
+<p class=textpreword>#include &lt;string.h&gt;          // Файл заголовков для 
+  работы со строками</p>
+<p class=textpreword>#include &lt;math.h&gt;            // Файл заголовков для 
+  математической библиотеки</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Параметр GLfloat MAX_EMBOSS задает &quot;интенсивность&quot; 
+  эффекта рельефности. Увеличение этого числа значительно усиливает эффект, но 
+  приводит к снижению качества и появлению так называемых &quot;артефактов&quot; 
+  изображения по краям поверхностей.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Коэффициент рельефности. Увеличьте, чтобы усилить эффект</p>
+<p class=textpreword>#define MAX_EMBOSS (GLfloat)0.008f</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Давайте подготовимся к использованию расширения GL_ARB_multitexture. 
+  Это просто.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>В настоящее время подавляющая часть акселераторов имеет более 
+  одного блока текстурирования на чипе. Чтобы определить, верно ли это для используемой 
+  карточки, надо проверить ее на поддержку опции GL_ARB_multitexture, которая 
+  позволяет накладывать две или более текстур на примитив за один проход. Звучит 
+  не слишком впечатляюще, но на самом деле это мощный инструмент! Практически 
+  любая сцена выглядит гораздо красивее, если ее на объекты наложено несколько 
+  текстур. Обычно для этого требуется сделать несколько &quot;проходов&quot;, 
+  состоящих из выбора текстуры и отрисовки геометрии; при увеличении числа таких 
+  операций работа серьезно тормозится. Однако не беспокойтесь, позже все прояснится.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Вернемся к коду: __ARB_ENABLE используется, чтобы при необходимости 
+  отключить мультитекстурирование. Если хотите видеть OpenGL-расширения, раскомментируйте 
+  строку #define EXT_INFO. Доступность расширений будет проверяться во время выполнения, 
+  чтобы сохранить переносимость кода, поэтому нужны будут несколько переменных 
+  строкового типа&nbsp;— они заданы двумя следующими строками. Кроме того, желательно 
+  различать доступность мультитекстурирования и его использование, то есть нужны 
+  еще два флага. Наконец, нужно знать, сколько блоков текстурирования доступно 
+  (хотя мы будем использовать всего два). По меньшей мере один такой блок обязательно 
+  присутствует на любой OpenGL-совместимой карте, так что переменную maxTexelUnits 
+  надо инициализировать единичкой.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>#define __ARB_ENABLE true          // Используется, чтобы 
+  полностью отключить расширения</p>
+<p class=textpreword>// #define EXT_INFO        // Раскомментируйте, чтобы увидеть 
+  при запуске доступные расширения</p>
+<p class=textpreword>#define MAX_EXTENSION_SPACE 10240  // Символы строк-описателей 
+  расширений</p>
+<p class=textpreword>#define MAX_EXTENSION_LENGTH 256   // Максимальное число 
+  символов в одной строке-описателе</p>
+<p class=textpreword>bool multitextureSupported=false;  // Флаг, определяющий, 
+  поддерживается ли мультитекстурирование</p>
+<p class=textpreword>bool useMultitexture=true;         // Использовать его, если 
+  оно доступно?</p>
+<p class=textpreword>GLint maxTexelUnits=1;             // Число текстурных блоков. 
+  Как минимум 1 есть всегда</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Следующие строки нужны, чтобы сопоставить расширениям соответствующие 
+  вызовы функций C++. Просто считайте, что PFN-и-как-там-дальше&nbsp;— предварительно 
+  определенный тип данных, нужный для описания вызовов функций. Мы не уверены, 
+  что к этим прототипам будут доступны функции, а потому установим их в NULL. 
+  Команды glMultiTexCoordifARB задают привязку к хорошо известным glTexCoordif, 
+  описывающим i-мерные текстурные координаты. Заметьте, что они могут полностью 
+  заменить команды, связанные с glTexCoordif. Мы пользуемся версиями с GLfloat, 
+  и нам нужны прототипы тех команд, которые оканчиваются на &quot;f&quot;; другие 
+  команды при этом также остаются доступны (&quot;fv&quot;, &quot;i&quot; и т.д.). 
+  Два последних прототипа задают функцию выбора активного блока текстурирования 
+  (texture-unit), занятого привязкой текстур ( glActiveTextureARB() ), и функцию, 
+  определяющую, какой из текстурных блоков связан с командой выбора указателя 
+  на массив (glClientActiveTextureARB). К слову: ARB&nbsp;— это сокращение от 
+  &quot;Architectural Review Board&quot;, &quot;комитет по архитектуре&quot;. 
+  Расширения, содержащие в имени строку ARB, не требуются для реализации системы, 
+  соответствующей спецификации OpenGL, но ожидается, что такие расширения найдут 
+  широкую поддержку у производителей. Пока ARB-статус имеют только расширения, 
+  связанные с мультитекстурированием. Такая ситуация, скорее всего, указывает 
+  на то, что мультитекстурирование наносит страшный удар по производительности, 
+  когда дело касается некоторых продвинутых техник визуализации.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Пропущенные строки относятся к указателям на контекст GDI и 
+  прочему.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>PFNGLMULTITEXCOORD1FARBPROC  glMultiTexCoord1fARB  = NULL;</p>
+<p class=textpreword>PFNGLMULTITEXCOORD2FARBPROC  glMultiTexCoord2fARB  = NULL;</p>
+<p class=textpreword>PFNGLMULTITEXCOORD3FARBPROC  glMultiTexCoord3fARB  = NULL;</p>
+<p class=textpreword>PFNGLMULTITEXCOORD4FARBPROC  glMultiTexCoord4fARB  = NULL;</p>
+<p class=textpreword>PFNGLACTIVETEXTUREARBPROC  glActiveTextureARB  = NULL;</p>
+<p class=textpreword>PFNGLCLIENTACTIVETEXTUREARBPROC  glClientActiveTextureARB= 
+  NULL;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Создаем глобальные переменные:</p>
+<ul>
+  <li> <span class="textword">filter задает используемый фильтр (см. Урок 06). 
+    Обычно берем GL_LINEAR, поэтому инициализируем переменную единичкой. </span></li>
+  <li class="textword"> texture хранит текстуру, три копии, по одной на фильтр. 
+  </li>
+  <li class="textword">bump хранит карты микрорельефа. </li>
+  <li class="textword">invbump хранит инвертированную карту микрорельефа. Причина 
+    объясняется позже, в теоретическом разделе. </li>
+  <li class="textword">Переменные, относящиеся к логотипам, в имени которых есть 
+    слово &quot;Logo&quot; - хранят текстуры, добавляемые к сцене на последнем 
+    проходе. </li>
+  <li class="textword">Переменные, относящиеся к свету, в имени которых есть слово 
+    “Light” - хранят параметры источника света.</li>
+</ul>
+<p class=textpreword>GLuint  filter=1;           // Какой фильтр использовать</p>
+<p class=textpreword>GLuint  texture[3];         // Хранит 3 текстуры </p>
+<p class=textpreword>GLuint  bump[3];            // Рельефы </p>
+<p class=textpreword>GLuint  invbump[3];         // Инвертированные рельефы</p>
+<p class=textpreword>GLuint  glLogo;             // Указатель на OpenGL-логотип</p>
+<p class=textpreword>GLuint  multiLogo;          // Указатель на мультитекстурированный 
+  логотип</p>
+<p class=textpreword>GLfloat LightAmbient[]  = { 0.2f, 0.2f, 0.2f};  // Фоновое 
+  освещение&nbsp;— 20% белого</p>
+<p class=textpreword>GLfloat LightDiffuse[]  = { 1.0f, 1.0f, 1.0f};  // Рассеянный 
+  свет&nbsp;—  чисто белый</p>
+<p class=textpreword>GLfloat LightPosition[]  = { 0.0f, 0.0f, 2.0f}; // Положение 
+  источника&nbsp;— перед экраном</p>
+<p class=textpreword>GLfloat Gray[]    = { 0.5f, 0.5f, 0.5f, 1.0f};</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Очередной фрагмент кода содержит числовое описание текстурированного 
+  куба, сделанного из GL_QUADS-ов. Каждые пять чисел представляют собой пару из 
+  двумерных текстурных и трехмерных вершинных координат. Это удобно для построения 
+  куба в цикле for…, учитывая, что нам потребуется сделать это несколько раз. 
+  Блок данных заканчивается прототипом функции WndProc(), хорошо известной из 
+  предыдущих уроков.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Данные содержат грани куба в формате &quot;2 текстурные 
+  координаты, 3 вершинные&quot;.</p>
+<p class=textpreword>// Обратите внимание, что мозаичность куба минимальна.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLfloat data[]= {</p>
+<p class=textpreword>  // ЛИЦЕВАЯ ГРАНЬ</p>
+<p class=textpreword>  0.0f, 0.0f,    -1.0f, -1.0f, +1.0f,</p>
+<p class=textpreword>  1.0f, 0.0f,    +1.0f, -1.0f, +1.0f,</p>
+<p class=textpreword>  1.0f, 1.0f,    +1.0f, +1.0f, +1.0f,</p>
+<p class=textpreword>  0.0f, 1.0f,    -1.0f, +1.0f, +1.0f,</p>
+<p class=textpreword>  // ЗАДНЯЯ ГРАНЬ</p>
+<p class=textpreword>  1.0f, 0.0f,    -1.0f, -1.0f, -1.0f,</p>
+<p class=textpreword>  1.0f, 1.0f,    -1.0f, +1.0f, -1.0f,</p>
+<p class=textpreword>  0.0f, 1.0f,    +1.0f, +1.0f, -1.0f,</p>
+<p class=textpreword>  0.0f, 0.0f,    +1.0f, -1.0f, -1.0f,</p>
+<p class=textpreword>  // ВЕРХНЯЯ ГРАНЬ</p>
+<p class=textpreword>  0.0f, 1.0f,    -1.0f, +1.0f, -1.0f,</p>
+<p class=textpreword>  0.0f, 0.0f,    -1.0f, +1.0f, +1.0f,</p>
+<p class=textpreword>  1.0f, 0.0f,    +1.0f, +1.0f, +1.0f,</p>
+<p class=textpreword>  1.0f, 1.0f,    +1.0f, +1.0f, -1.0f,</p>
+<p class=textpreword>  // НИЖНЯЯ ГРАНЬ</p>
+<p class=textpreword>  1.0f, 1.0f,    -1.0f, -1.0f, -1.0f,</p>
+<p class=textpreword>  0.0f, 1.0f,    +1.0f, -1.0f, -1.0f,</p>
+<p class=textpreword>  0.0f, 0.0f,    +1.0f, -1.0f, +1.0f,</p>
+<p class=textpreword>  1.0f, 0.0f,    -1.0f, -1.0f, +1.0f,</p>
+<p class=textpreword>  // ПРАВАЯ ГРАНЬ</p>
+<p class=textpreword>  1.0f, 0.0f,    +1.0f, -1.0f, -1.0f,</p>
+<p class=textpreword>  1.0f, 1.0f,    +1.0f, +1.0f, -1.0f,</p>
+<p class=textpreword>  0.0f, 1.0f,    +1.0f, +1.0f, +1.0f,</p>
+<p class=textpreword>  0.0f, 0.0f,    +1.0f, -1.0f, +1.0f,</p>
+<p class=textpreword>  // ЛЕВАЯ ГРАНЬ</p>
+<p class=textpreword>  0.0f, 0.0f,    -1.0f, -1.0f, -1.0f,</p>
+<p class=textpreword>  1.0f, 0.0f,    -1.0f, -1.0f, +1.0f,</p>
+<p class=textpreword>  1.0f, 1.0f,    -1.0f, +1.0f, +1.0f,</p>
+<p class=textpreword>  0.0f, 1.0f,    -1.0f, +1.0f, -1.0f</p>
+<p class=textpreword>};</p>
+<p class=textword>&nbsp;  </p>
+<p class=textpreword>LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);        
+  // Объявление WndProc</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>В следующем блоке кода реализована проверка поддержки расширений 
+  во время выполнения.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Во-первых, предположим, что у нас есть длинная строка, содержащая 
+  список всех поддерживаемых расширений, представленных в виде подстрок, разделенных 
+  символом ‘\n’. Таким образом, надо провести поиск этого символа и начать сравнение 
+  string с search до достижения либо очередного ‘\n’, либо отличия в сравниваемых 
+  строках. В первом случае вернем в &quot;найдено&quot; значение true, во втором&nbsp;— 
+  возьмем следующую подстроку, и так до тех пор, пока не кончится string. Со string 
+  придется немного повозиться, поскольку она начинается не с символа ‘\n’.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Кстати: проверку доступности любого данного расширения во время 
+  выполнения программы надо выполнять ВСЕГДА!</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool isInString(char *string, const char 
+  *search) {</p>
+<p class=textpreword>  int pos=0;</p>
+<p class=textpreword>  int maxpos=strlen(search)-1;</p>
+<p class=textpreword>  int len=strlen(string);</p>
+<p class=textpreword>  char *other;</p>
+<p class=textpreword>  for (int i=0; i&lt;len; i++) {</p>
+<p class=textpreword>    if ((i==0) || ((i&gt;1) &amp;&amp; string[i-1]=='\n')) 
+  { // Новые расширения начинаются здесь!</p>
+<p class=textpreword>      other=&amp;string[i];</p>
+<p class=textpreword>      pos=0; // Начать новый поиск</p>
+<p class=textpreword>      while (string[i]!='\n') { // Поиск по всей строке расширения</p>
+<p class=textpreword>        if (string[i]==search[pos]) pos++; // 
+  Следующий символ</p>
+<p class=textpreword>        if ((pos&gt;maxpos) &amp;&amp; string[i+1]=='\n') 
+  return true; // А вот и она!</p>
+<p class=textpreword>        i++;</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  return false; // Простите, не нашли!</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь извлечем строку расширений и преобразуем ее в строки, 
+  разделенные символом ‘\n’, чтобы провести поиск. Если будет обнаружена строка 
+  ”GL_ARB_multitexture”, значит, эта опция поддерживается. Но чтобы ее использовать, 
+  нужно, во-первых, чтобы __ARB_ENABLE была установлена в true, а во-вторых, чтобы 
+  карточка поддерживала расширение GL_EXT_texture_env_combine, которое указывает, 
+  что аппаратура разрешает некоторые новые способы взаимодействия между своими 
+  текстурными блоками. Это необходимо, поскольку GL_ARB_multitexture обеспечивает 
+  лишь вывод обработанных данных последовательно с текстурного блока с меньшим 
+  номером на блок с большим, а поддержка GL_EXT_texture_env_combine означает возможность 
+  использования уравнений смешивания повышенной сложности, эффект от которых совсем 
+  другой. Если все необходимые расширения поддерживаются и мы не запретили их 
+  сами, определим количество доступных текстурных блоков. Это число будет храниться 
+  в maxTexelUnits. Затем установим связь между функциями и их именами, для этого 
+  воспользуемся вызовом wglGetProcAdress(), передавая ей в качестве параметра 
+  строку-имя искомой функции и проводя преобразование типа результата, чтобы гарантировать 
+  совпадение ожидаемого и полученного типов.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool initMultitexture(void) {</p>
+<p class=textpreword>  char *extensions;</p>
+<p class=textpreword>  extensions=strdup((char *) glGetString(GL_EXTENSIONS)); 
+  // Получим строку расширений</p>
+<p class=textpreword>  int len=strlen(extensions);</p>
+<p class=textpreword>  for (int i=0; i&lt;len; i++) // Разделим ее символами новой 
+  строки вместо пробелов</p>
+<p class=textpreword>    if (extensions[i]==' ') extensions[i]='\n';</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>#ifdef EXT_INFO</p>
+<p class=textpreword>  MessageBox(hWnd,extensions,&quot;поддерживаются 
+  расширения GL:&quot;,MB_OK | MB_ICONINFORMATION);</p>
+<p class=textpreword>#endif</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (isInString(extensions,&quot;GL_ARB_multitexture&quot;) 
+  // Мультитекстурирование поддерживается?</p>
+<p class=textpreword>    &amp;&amp; __ARB_ENABLE  // Проверим флаг</p>
+<p class=textpreword>    // Поддерживается среда комбинирования текстур?</p>
+<p class=textpreword>    &amp;&amp; isInString(extensions,&quot;GL_EXT_texture_env_combine&quot;))</p>
+<p class=textpreword>  {&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </p>
+<p class=textpreword>    glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB,&amp;maxTexelUnits);</p>
+<p class=textpreword>    glMultiTexCoord1fARB = (PFNGLMULTITEXCOORD1FARBPROC) 
+  wglGetProcAddress(&quot;glMultiTexCoord1fARB&quot;);</p>
+<p class=textpreword>    glMultiTexCoord2fARB = (PFNGLMULTITEXCOORD2FARBPROC) 
+  wglGetProcAddress(&quot;glMultiTexCoord2fARB&quot;);</p>
+<p class=textpreword>    glMultiTexCoord3fARB = (PFNGLMULTITEXCOORD3FARBPROC) 
+  wglGetProcAddress(&quot;glMultiTexCoord3fARB&quot;);</p>
+<p class=textpreword>    glMultiTexCoord4fARB = (PFNGLMULTITEXCOORD4FARBPROC) 
+  wglGetProcAddress(&quot;glMultiTexCoord4fARB&quot;);</p>
+<p class=textpreword>    glActiveTextureARB   = (PFNGLACTIVETEXTUREARBPROC) 
+  wglGetProcAddress(&quot;glActiveTextureARB&quot;);</p>
+<p class=textpreword>    glClientActiveTextureARB= (PFNGLCLIENTACTIVETEXTUREARBPROC) 
+  wglGetProcAddress(&quot;glClientActiveTextureARB&quot;);</p>
+<p class=textpreword>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </p>
+<p class=textpreword>#ifdef EXT_INFO</p>
+<p class=textpreword>    MessageBox(hWnd,&quot;Будет использовано 
+  расширение GL_ARB_multitexture.&quot;,</p>
+<p class=textpreword>     &quot;опция поддерживается!&quot;,MB_OK 
+  | MB_ICONINFORMATION);</p>
+<p class=textpreword>#endif</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    return true;</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  useMultitexture=false;// Невозможно использовать то, что 
+  не поддерживается аппаратурой</p>
+<p class=textpreword>  return false;</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>InitLights() инициализирует освещение OpenGL, будучи вызвана 
+  позже из InitGL().</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>void initLights(void) {</p>
+<p class=textpreword>        // Загрузка параметров освещения в GL_LIGHT1</p>
+<p class=textpreword>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; glLightfv(GL_LIGHT1, GL_AMBIENT, LightAmbient);</p>
+<p class=textpreword>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  glLightfv(GL_LIGHT1, GL_DIFFUSE, LightDiffuse);</p>
+<p class=textpreword>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  glLightfv(GL_LIGHT1, GL_POSITION, LightPosition);</p>
+<p class=textpreword>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  glEnable(GL_LIGHT1);</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Здесь грузится УЙМА текстур. Поскольку у функции auxDIBImageLoad() 
+  есть собственный обработчик ошибок, а LoadBMP() труднопредсказуема и требует 
+  блока try-catch, я отказался от нее. Но вернемся к процедуре загрузки. Сначала 
+  берем базовую картинку и создаем на ее основе три фильтрованных текстуры (в 
+  режимах GL_NEAREST, GL_LINEAR и GL_LINEAR_MIPMAP_NEAREST). Обратите внимание, 
+  для хранения растра используется лишь один экземпляр структуры данных, поскольку 
+  в один момент открытой нужна лишь одна картинка. Здесь применяется новая структура 
+  данных, alpha&nbsp;— в ней содержится альфа-слой текстур. Такой подход позволяет 
+  хранить RGBA-изображения в виде двух картинок: основного 24-битного RGB растра 
+  и 8-битного альфа-канала в шкале серого. Чтобы индикатор состояния работал корректно, 
+  нужно удалять Image-блок после каждой загрузки и сбрасывать его в NULL.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Еще одна особенность: при задании типа текстуры используется 
+  GL_RGB8 вместо обычного &quot;3&quot;. Это сделано для совместимости с будущими 
+  версиями OpenGL-ICD и рекомендуется к использованию вместо любого другого числа. 
+  Такие параметры я пометил оранжевым.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>int LoadGLTextures() {           // Загрузка растра и преобразование 
+  в текстуры</p>
+<p class=textpreword>  bool status=true;              // Индикатор состояния</p>
+<p class=textpreword>  AUX_RGBImageRec *Image=NULL;   // Создадим место для хранения 
+  текстур</p>
+<p class=textpreword>  char *alpha=NULL;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Загрузим базовый растр</p>
+<p class=textpreword>  if (Image=auxDIBImageLoad(&quot;Data/Base.bmp&quot;)) 
+  {</p>
+<p class=textpreword>    glGenTextures(3, texture);    // Создадим три текстуры</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // Создаем текстуру с фильтром по ближайшему </p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D, texture[0]);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);</p>
+<p class=textpreword>    glTexImage2D(GL_TEXTURE_2D, 0, <span style='color:#FF9900;'>GL_RGB8</span>, Image-&gt;sizeX, Image-&gt;sizeY, 0,</p>
+<p class=textpreword>      GL_RGB, GL_UNSIGNED_BYTE, Image-&gt;data);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    // Создаем текстуру с фильтром усреднения</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D, texture[1]);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+<p class=textpreword>    glTexImage2D(GL_TEXTURE_2D, 0, <span style='color:#FF9900;'>GL_RGB8</span>, Image-&gt;sizeX, Image-&gt;sizeY, 0,</p>
+<p class=textpreword>       GL_RGB, GL_UNSIGNED_BYTE, Image-&gt;data);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    // Создаем текстуру с мип-наложением</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D, texture[2]);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);</p>
+<p class=textpreword>    gluBuild2DMipmaps(GL_TEXTURE_2D, <span style='color:#FF9900;'>GL_RGB8</span>, Image-&gt;sizeX, Image-&gt;sizeY,</p>
+<p class=textpreword>      GL_RGB, GL_UNSIGNED_BYTE, Image-&gt;data);</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  else status=false;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (Image) { // Если текстура существует</p>
+<p class=textpreword>    if (Image-&gt;data) delete Image-&gt;data; 
+  // Если изображение существует</p>
+<p class=textpreword>    delete Image;</p>
+<p class=textpreword>    Image=NULL;</p>
+<p class=textpreword>  }</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Загрузим рельеф. По причинам, объясняемым ниже, текстура рельефа 
+  должна иметь 50% яркость, поэтому ее надо промасштабировать. Сделаем это через 
+  команды glPixelTransferf(), которые описывают попиксельное преобразование данных 
+  растра в текстуру. Если вы до сих пор не пользовались командами семейства glPixelTransfer(), 
+  рекомендую обратить на них пристальное внимание, поскольку они часто бывают 
+  очень удобны и полезны.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь учтем, что нам не нужно, чтобы базовая картинка многократно 
+  повторялась в текстуре. Чтобы получить картинку единожды, растянутой в нужное 
+  количество раз, ее надо привязать к текстурным координатам с (s,t)=(0.0f, 0.0f) 
+  по (s,t)=(1.0f, 1.0f). Все остальные координаты привязываются к чистому черному 
+  цвету через вызовы glTexParameteri(), которые даже не требуют пояснений.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  // Загрузим рельефы</p>
+<p class=textpreword>  if (Image=auxDIBImageLoad(&quot;Data/Bump.bmp&quot;)) 
+  {</p>
+<p class=textpreword>    glPixelTransferf(GL_RED_SCALE,0.5f);   // 
+  Промасштабируем яркость до 50%,</p>
+<p class=textpreword>    glPixelTransferf(GL_GREEN_SCALE,0.5f); // поскольку нам 
+  нужна половинная интенсивность</p>
+<p class=textpreword>    glPixelTransferf(GL_BLUE_SCALE,0.5f);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);  
+  // Не укладывать паркетом</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);</p>
+<p class=textpreword>    glGenTextures(3, bump);  // Создать три текстуры</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // Создать текстуру с фильтром по ближайшему</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // Создать текстуру с фильтром усреднения</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // Создать текстуру с мип-наложением</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>С этой фразой вы уже знакомы: по причинам, объясненным ниже, 
+  нужно создать инвертированную карту рельефа с той же 50% яркостью. Для этого 
+  вычтем полученный ранее растр из чистого белого цвета {255, 255, 255}. Поскольку 
+  мы НЕ возвращали RGB-масштабирование на 100% уровень (я три часа разбирался, 
+  пока понял, что здесь скрывалась основная ошибка первой версии урока!), инверсный 
+  рельеф тоже получится 50% яркости.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>    for (int i=0; i&lt;3*Image-&gt;sizeX*Image-&gt;sizeY; 
+  i++) // Проинвертируем растр</p>
+<p class=textpreword>      Image-&gt;data[i]=255-Image-&gt;data[i];</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>    glGenTextures(3, invbump); // Создадим три текстуры</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // с фильтром по ближайшему</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // с фильтром усреднения</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // с мип-наложением</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  else status=false;</p>
+<p class=textpreword>  if (Image) { // Если текстура существует</p>
+<p class=textpreword>    if (Image-&gt;data) delete Image-&gt;data; // Если изображение 
+  текстуры существует</p>
+<p class=textpreword>    delete Image;</p>
+<p class=textpreword>    Image=NULL;</p>
+<p class=textpreword>  }</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Загрузка изображения логотипа очень проста, кроме, разве что, 
+  фрагмента рекомбинации RGB-A. Он, впрочем, тоже достаточно очевиден. Заметьте, 
+  что текстура строится на основе alpha-, а не Image-блока! Здесь применена только 
+  одна фильтрация.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  // Загрузка картинки логотипа</p>
+<p class=textpreword>  if (Image=auxDIBImageLoad(&quot;Data/OpenGL_ALPHA.bmp&quot;)) 
+  {</p>
+<p class=textpreword>    alpha=new char[4*Image-&gt;sizeX*Image-&gt;sizeY];</p>
+<p class=textpreword>    // Выделим память для RGBA8-текстуры</p>
+<p class=textpreword>    for (int a=0; a&lt;Image-&gt;sizeX*Image-&gt;sizeY; a++)</p>
+<p class=textpreword>      alpha[4*a+3]=Image-&gt;data[a*3]; // Берем красную 
+  величину как альфа-канал</p>
+<p class=textpreword>    if (!(Image=auxDIBImageLoad(&quot;Data/OpenGL.bmp&quot;))) status=false;</p>
+<p class=textpreword>    for (a=0; a&lt;Image-&gt;sizeX*Image-&gt;sizeY; 
+  a++) {</p>
+<p class=textpreword>      alpha[4*a]=Image-&gt;data[a*3];        
+  // R</p>
+<p class=textpreword>      alpha[4*a+1]=Image-&gt;data[a*3+1];    
+  // G</p>
+<p class=textpreword>      alpha[4*a+2]=Image-&gt;data[a*3+2];    
+  // B</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    glGenTextures(1, &amp;glLogo);  // Создать одну текстуру</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>    // Создать RGBA8-текстуру с фильтром усреднения</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D, glLogo);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);</p>
+<p class=textpreword>    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);</p>
+<p class=textpreword>    glTexImage2D(GL_TEXTURE_2D, 0, <span style='color:#FF9900;'>GL_RGBA8</span>, Image-&gt;sizeX, Image-&gt;sizeY, 0,</p>
+<p class=textpreword>       GL_RGBA, GL_UNSIGNED_BYTE, alpha);</p>
+<p class=textpreword>    delete alpha;</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  else status=false;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (Image) { // Если текстура существует</p>
+<p class=textpreword>    if (Image-&gt;data) delete Image-&gt;data; // Если изображение 
+  текстуры существует</p>
+<p class=textpreword>    delete Image;</p>
+<p class=textpreword>    Image=NULL;</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Загрузим логотип &quot;Extension 
+  Enabled&quot;</p>
+<p class=textpreword>  if (Image=auxDIBImageLoad(&quot;Data/multi_on_alpha.bmp&quot;)) 
+  {</p>
+<p class=textpreword>    alpha=new char[4*Image-&gt;sizeX*Image-&gt;sizeY]; 
+  // Выделить память для RGBA8-текстуры</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>    glGenTextures(1, &amp;multiLogo); // Создать одну текстуру</p>
+<p class=textpreword>    // Создать RGBA8-текстуру с фильтром усреднения</p>
+<p class=textpreword>    &gt;…&lt;</p>
+<p class=textpreword>    delete alpha;</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  else status=false;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (Image) { // Если текстура существует</p>
+<p class=textpreword>    if (Image-&gt;data) delete Image-&gt;data; // Если изображение 
+  текстуры существует</p>
+<p class=textpreword>    delete Image;</p>
+<p class=textpreword>    Image=NULL;</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  return status;  // Вернем состояние</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Далее идет практически единственная неизмененная функция ReSizeGLScene(), 
+  и ее я пропустил. За ней следует функция doCube(), рисующая куб с единичными 
+  нормалями. Она задействует только текстурный блок №0, потому что glTexCoord2f(s,t) 
+  делает то же самое, что и glMultiTexCoord2f(GL_TEXTURE0_ARB,s,t). Обратите внимание, 
+  что куб нельзя создать, используя чередующиеся массивы, но это тема для отдельного 
+  разговора. Кроме того, учтите, что куб НЕВОЗМОЖНО создать, пользуясь списками 
+  отображения. Видимо, точность внутреннего представления данных, используемая 
+  в этих списках, не соответствует точности, применяемой в GLfloat. Это ведет 
+  к неприятным эффектам, которые называются проблемами деколирования (когда источник 
+  света не влияет на закрашивание объекта), поэтому от списков я решил отказаться. 
+  Вообще, я полагаю, что надо либо делать всю геометрию, пользуясь списками, либо 
+  не применять их вообще. Смешивание разных подходов приводит к проблемам, которые 
+  где-нибудь да проявятся, даже если на вашей аппаратуре все пройдет успешно.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>GLvoid ReSizeGLScene(GLsizei width, GLsizei 
+  height)</p>
+<p class=textpreword>// Изменить размер и инициализировать окно GL</p>
+<p class=textpreword>&gt;…&lt;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>void doCube (void) {</p>
+<p class=textpreword>  int i;</p>
+<p class=textpreword>  glBegin(GL_QUADS);</p>
+<p class=textpreword>    // Передняя грань</p>
+<p class=textpreword>    glNormal3f( 0.0f, 0.0f, +1.0f);</p>
+<p class=textpreword>    for (i=0; i&lt;4; i++) {</p>
+<p class=textpreword>      glTexCoord2f(data[5*i],data[5*i+1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2],data[5*i+3],data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Задняя грань</p>
+<p class=textpreword>    glNormal3f( 0.0f, 0.0f,-1.0f);</p>
+<p class=textpreword>    for (i=4; i&lt;8; i++) {</p>
+<p class=textpreword>      glTexCoord2f(data[5*i],data[5*i+1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2],data[5*i+3],data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Верхняя грань</p>
+<p class=textpreword>    glNormal3f( 0.0f, 1.0f, 0.0f);</p>
+<p class=textpreword>    for (i=8; i&lt;12; i++) {</p>
+<p class=textpreword>      glTexCoord2f(data[5*i],data[5*i+1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2],data[5*i+3],data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Нижняя грань</p>
+<p class=textpreword>    glNormal3f( 0.0f,-1.0f, 0.0f);</p>
+<p class=textpreword>    for (i=12; i&lt;16; i++) {</p>
+<p class=textpreword>      glTexCoord2f(data[5*i],data[5*i+1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2],data[5*i+3],data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Правая грань</p>
+<p class=textpreword>    glNormal3f( 1.0f, 0.0f, 0.0f);</p>
+<p class=textpreword>    for (i=16; i&lt;20; i++) {</p>
+<p class=textpreword>      glTexCoord2f(data[5*i],data[5*i+1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2],data[5*i+3],data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Левая грань</p>
+<p class=textpreword>    glNormal3f(-1.0f, 0.0f, 0.0f);</p>
+<p class=textpreword>    for (i=20; i&lt;24; i++) {</p>
+<p class=textpreword>      glTexCoord2f(data[5*i],data[5*i+1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2],data[5*i+3],data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  glEnd();</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Время инициализировать OpenGL. Все как в Уроке 06, кроме вызова 
+  initLights() вместо прямой инициализации источников света в теле функции. Да, 
+  и еще одно: я выполняю здесь настройку мультитекстурирования.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>int InitGL(GLvoid)                      // Все настройки 
+  OpenGL проходят здесь</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  multitextureSupported=initMultitexture();</p>
+<p class=textpreword>  if (!LoadGLTextures()) return false;  // Переход 
+  к процедуре загрузки текстур</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D);              // Включить 
+  привязку текстур</p>
+<p class=textpreword>  glShadeModel(GL_SMOOTH);              // Включит сглаживание</p>
+<p class=textpreword>  glClearColor(0.0f, 0.0f, 0.0f, 0.5f); 
+  // Черный фон</p>
+<p class=textpreword>  glClearDepth(1.0f);                   // Установка буфера 
+  глубины</p>
+<p class=textpreword>  glEnable(GL_DEPTH_TEST);              // Включить проверку 
+  глубины</p>
+<p class=textpreword>  glDepthFunc(GL_LEQUAL);               // Тип проверки глубины</p>
+<p class=textpreword>  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); 
+  // Наилучшая коррекция перспективы</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  initLights();                         // Инициализация 
+  освещения OpenGL</p>
+<p class=textpreword>  return true                           // Инициализация 
+  закончилась успешно</p>
+<p class=textpreword>}</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>95% всей работы содержится здесь. Все, что упоминалось под грифом 
+  &quot;по причинам, объясненным ниже&quot;, будет расписано в этом теоретическом 
+  блоке.</p>
+<p class=textword><i><span style='font-size:14.0pt;color:teal'>Начало теории ( Наложение 
+  микрорельефа методом тиснения )</span></i></p>
+<p class=head3word>&nbsp; </p>
+<p class=textword>Если у вас установлен просмотрщик Powerpoint-презентаций, я 
+  настоятельно рекомендую скачать следующую презентацию:</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu><a
+href="http://nehe.gamedev.net/tutorials/extras/lesson22/EmbossBumpMapping.ppt"
+title="Download Powerpoint Document"><u>&quot;Emboss Bump Mapping&quot; by Michael I. Gold, nVidia 
+  Corp. </u><u>[.ppt, 309K]</u></a></p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Для тех, у кого нет просмотрщика, я попытался перевести презентацию 
+  в html-формат. Вот она:</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu>Наложение микрорельефа методом тиснения</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Майкл И. Голд</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Корпорация Nvidia</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu>Наложение микрорельефа (bump 
+  mapping)</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Действительное наложение микрорельефа использует попиксельные 
+  вычисления освещенности</p>
+<ul>
+  <li> <span class="textword">Вычисление освещенности в каждой точке базируется 
+    на возмущенном векторе нормали. </span></li>
+  <li class="textword">Вычисления весьма ресурсоемкие. </li>
+  <li class="textword">Более детальное описание читайте здесь: Blinn, J. : Simulation 
+    of Wrinkled Surfaces (<i>Моделирование складчатых поверхностей</i>), Computer 
+    Graphics. 12,3 (August 1978) 286-292. </li>
+  <li class="textword">Информация в сети: на <b><u><a
+href="http://www.objectecture.com/"><u>http://www.objectecture.com/</u></a></u></b> 
+    лежит Cass Everitt’s Orthogonal Illumination Thesis (<i>Диссертация по ортогональному 
+    освещению Касса Эверитта</i>).</li>
+</ul>
+<p class=textwordbu>Наложение микрорельефа методом тиснения (emboss 
+  bump mapping)</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Микрорельеф, наложенный тиснением, похож на резьбу по материалу</p>
+<ul>
+  <li> <span class="textword"> Учитывается только рассеянный свет, нет зеркальной 
+    составляющей</span></li>
+  <li class="textword">Возможны артефакты изображения из-за недостаточного размера 
+    текстуры рельефа (в результате, например, движение приводит к сильному размытию&nbsp;— 
+    <i>прим. Дженса</i>) </li>
+  <li class="textword">Выполнение возможно на пользовательском оборудовании современного 
+    уровня (как показано&nbsp;— <i>прим. Дженса</i>) </li>
+  <li class="textword">Если рельеф выглядит хорошо, используйте его!</li>
+</ul>
+<p class=textwordbu>Расчет рассеяния света</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>C=(L*N) x 
+  Dl x 
+  Dm</p>
+<ul>
+  <li> <span class="textword"><b>L</b>&nbsp;— вектор освещения </span></li>
+  <li class="textword"><b>N</b>&nbsp;— вектор нормали </li>
+  <li class="textword"><b>Dl</b>&nbsp;— цвет падающего света </li>
+  <li class="textword"><b>Dm</b>&nbsp;— цвет рассеяния материала </li>
+  <li class="textword">При наложении микрорельефа попиксельно меняется <b>N</b> 
+  </li>
+  <li class="textword">При наложении микрорельефа методом тиснения используется 
+    аппроксимация <b>(L*N)</b></li>
+</ul>
+<p class=textwordbu>Аппроксимация коэффициента рассеяния L*N</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>В текстурной карте содержится поле высот</p>
+<p class=textword>&nbsp; </p>
+<ul>
+  <li> <span class="textword">[0,1]&nbsp;— диапазон значений, принимаемых функцией 
+    рельефности </span></li>
+  <li class="textword">Первая производная определяет величину уклона <b>m</b> 
+    (материала) в данной точке (Заметьте, что <b>m</b>&nbsp;— чисто одномерная 
+    величина. Считайте, что <b>m</b>&nbsp;— это оценка <b>grad(s,t)</b> (градиента) 
+    в данной точке&nbsp;— <i>прим. Дженса</i>) </li>
+  <li class="textword"><b>m</b> увеличивает/уменьшает базовый коэффициент рассеяния 
+    <b>Fd</b> </li>
+  <li class="textword">  (<b>Fd+m</b>) 
+    приближенно определяет <b>(L*N)</b> для каждого пикселя</li>
+</ul>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu>Приближенное вычисление производной</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Используется приближенное вычисление производной</p>
+<ul>
+  <li> <span class="textword">Берется высота <b>H0</b> в точке <b>(s,t)</b> </span></li>
+  <li class="textword"> Определяется высота <b>H1</b> в точке, слегка сдвинутой 
+    в направлении источника света, <b>(s+ds,t+dt)</b> </li>
+  <li class="textword"> Исходная высота <b>H0</b> вычитается из возмущенной высоты 
+    <b>H1</b> </li>
+  <li class="textword"> Разница является оценкой мгновенного угла наклона <b>m=H1-H0</b></li>
+</ul>
+<p class=textwordbu>Вычисление рельефа</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword> <img border=0 width=140 height=48
+src="image001.jpg" v:shapes="_x0000_i1025"> </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>1) Исходный рельеф (<b>H0</b>).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword> <img border=0 width=216 height=91
+src="image002.jpg" v:shapes="_x0000_i1026"> </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>2) На исходный рельеф (<b>H0</b>) накладывается другой, (<b>H1</b>), 
+  слегка сдвинутый в направлении источника света.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword> <img border=0 width=173 height=48
+src="image003.jpg" v:shapes="_x0000_i1027"> </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>3) Из второго вычитается первый (<b>H0</b>-<b>H1</b>). Появляются 
+  освещенные (<b>B</b>, <b>bright</b>) и затемненные (<b>D</b>, <b>dark</b>) участки.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu>Вычисление освещенности</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Вычисляется цвет фрагмента Cf</p>
+<ul>
+  <li> <b><span class="textword">Cf </span></b><span class="textword">= <b>(L*N) 
+    x Dl x Dm</b> </span></li>
+  <li> <span class="textword"><b>(L*N)</b> ~ <b>(Fd + (H1-H0))</b> </span></li>
+  <li> <span class="textword"><b>Dm x Dl</b> закодировано в текстуре поверхности 
+    <b>Ct</b>.</span>
+    <ul>
+      <li class="textword"> Если хватит соображения, можно управлять <b>Dl</b> 
+        по отдельности (мы управляем им, пользуясь освещением OpenGL&nbsp;— <i>прим. 
+        Дженса</i>) </li>
+    </ul>
+  </li>
+  <li> <b><span class="textword">Cf</span></b><span class="textword"> = <b>(Fd 
+    + (H0-H1)) x Ct</b></span></li>
+</ul>
+<p class=textwordbu>И все? Так просто!</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Нет, мы еще не закончили. Мы должны:</p>
+<ul>
+  <li> <span class="textword">Нарисовать текстуру (в любом графическом редакторе&nbsp;— 
+    <i>прим. Дженса</i>) </span></li>
+  <li class="textword"> Вычислить сдвиги координат текстуры <b>(ds,dt)</b> </li>
+  <li class="textword"> Вычислить коэффициент рассеяния <b>Fd</b> (управляется 
+    с помощью освещения в OpenGL&nbsp;— <i>прим. Дженса</i>) </li>
+  <li class="textword"> Обе величины используют вектора нормали <b>N</b> и освещения 
+    <b>L</b> (в нашем случае явным образом вычисляются только <b>(ds,dt)</b>&nbsp;— 
+    <i>прим. Дженса</i>) </li>
+  <li class="textword"> Теперь займемся математикой</li>
+</ul>
+<p class=textwordbu>Создание текстуры</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Берегите текстуры!</p>
+<ul>
+  <li class="textword"> В настоящее время аппаратура мультитекстурирования поддерживает 
+    максимум две текстуры! (Это утверждение устарело, но его надо иметь в виду, 
+    если хотите сохранить обратную совместимость&nbsp;— <i>прим. Дженса</i>) </li>
+  <li><span class="textword"> Рельеф использует канал <b>АЛЬФА</b> (у нас это 
+    не так; но если на вашей машине карточка с чипом TNT, можете попробовать повторить 
+    предложенное здесь самостоятельно&nbsp;— <i>прим. Дженса</i>) </span> 
+    <ul>
+      <li class="textword"> Максимальная высота = 1.0 </li>
+      <li class="textword">Уровень нулевой высоты = 0.5 </li>
+      <li class="textword">Максимальная глубина = 0.0 </li>
+    </ul>
+  </li>
+  <li class="textword"> Цвета поверхности&nbsp;— каналы <b>RGB</b> </li>
+  <li class="textword"> Внутренний формат должен быть <b>GL_RGBA8</b> !!</li>
+</ul>
+<p class=textwordbu>Вычисление смещения текстур</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Отображение вектора освещения в пространство нормали</p>
+<ul>
+  <li class="textword"> Нужно получить систему координат нормали</li>
+  <li><span class="textword"> Создадим систему координат из нормали к поверхности 
+    и вектора &quot;вверх&quot; (мы передаем направления texCoord генератору смещения 
+    в явном виде&nbsp;— <i>прим. Дженса</i>) </span> 
+    <ul>
+      <li class="textword"> Нормаль&nbsp;— ось z </li>
+      <li class="textword">Перпендикулярно ей идет ось x </li>
+      <li class="textword">Направление &quot;вверх&quot;, или ось y, получена 
+        как произведение x- и z-векторов </li>
+    </ul>
+  </li>
+  <li class="textword"> Построим матрицу 3x3<b> Mn </b>из осей </li>
+  <li class="textword"> Отобразим вектор освещения в пространстве нормали.(<b>Mn</b> 
+    называют также ортонормальным базисом. Можете рассматривать <b>Mn*v</b> как 
+    представление v в базисе, формирующем касательное пространство, а не обычное. 
+    Заметьте, что ортонормальный базис инвариантен к масштабированию, то есть 
+    при умножении векторов нормализация не теряется!&nbsp;— <i>прим. Дженса</i>)</li>
+</ul>
+<p class=textwordbu>Вычисление смещения текстур (продолжение)</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Используем вектор освещения в пространстве нормали для смещения</p>
+<ul>
+  <li> <span class="textword"><b>L’</b> = <b>Mn</b> x <b>L</b> </span></li>
+  <li class="textword"> Используем <b>L’x</b>, <b>L’y</b> для <b>(ds,dt)</b> </li>
+  <li><span class="textword"> Используем <b>L’z</b> как коэффициент диффузного 
+    отражения (Совсем нет! Если вы не владелец TNT-карточки, используйте освещение 
+    OpenGL, потому что вам обязательно придется выполнять дополнительный проход&nbsp;— 
+    <i>прим. Дженса</i>) </span> 
+    <ul>
+      <li class="textword"> Если вектор освещения близок к нормали, <b>L’x </b>и 
+        <b>L’y</b> малы. </li>
+      <li class="textword">Если вектор освещения близок к касательной, <b>L’x</b> 
+        и <b>L’y</b> значительны. </li>
+    </ul>
+  </li>
+  <li><span class="textword"> Что, если <b>L’z</b> меньше нуля? </span> 
+    <ul>
+      <li class="textword">Свет на стороне, обратной к нормали </li>
+      <li class="textword">Приравняем его вклад к нулю</li>
+    </ul>
+  </li>
+</ul>
+<p class=textwordbu>Реализация на TNT</p>
+<ul>
+  <li class="textword"> Вычисления векторов и координат текстур  на хосте </li>
+  <li><span class="textword"> Передаем коэффициент рассеяния как <b>alpha</b> 
+    </span> 
+    <ul>
+      <li class="textword"> Можно использовать цвет вершины для передачи цвета 
+        диффузного рассеяния источника света</li>
+    </ul>
+  </li>
+  <li> <span class="textword"><b>H0</b> и цвет поверхности берем из текстурного 
+    блока 0 </span></li>
+  <li> <span class="textword"><b>H1</b> берем из текстурного блока 1 (та же самая 
+    текстура, но с другими координатами) </span></li>
+  <li class="textword"> Используем расширение <b>ARB_multitexture</b> </li>
+  <li class="textword"> Это расширение для комбайнов (точнее, речь идет о расширении 
+    <b>NVIDIA_multitexture_combiners</b>, поддерживаемом всеми карточками семейства 
+    TNT&nbsp;— <i>прим. Дженса</i>)</li>
+</ul>
+<p class=textwordbu>Реализация на TNT (продолжение)</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordb>Первичная установка комбайна 0:</p>
+<ul>
+  <li> <span class="textword"><b>(1-T0a) + T1a - 0.5</b> (<b>T0a</b> означает 
+    &quot;текстурный блок 0, альфа-канал&quot;&nbsp;— <i>прим. Дженса</i>) </span> 
+    <ul>
+      <li class="textword"> <b>(T1a-T0a)</b> отображается в диапазон (-1,1), но 
+        аппаратура сжимает его до (0,1) </li>
+      <li class="textword">Смещение на 0.5 балансирует потерю от сжатия (подумайте 
+        о применении масштабирования с коэффициентом 0.5, ведь можно использовать 
+        разные карты рельефа&nbsp;— <i>прим. Дженса</i>) </li>
+    </ul>
+  </li>
+  <li class="textword"> Цвет диффузного рассеяния источника света можно регулировать 
+    с помощью <b>T0c</b> </li>
+</ul>
+<p class=textwordb>Установка RGB комбайна 1:</p>
+<ul>
+  <li> <span class="textword"><b>(T0c * C0a + T0c * Fda - 0.5 )*2 </b> </span> 
+    <ul>
+      <li class="textword"> Смещение на 0.5 балансирует потерю от сжатия</li>
+      <li class="textword">Умножение на 2 осветляет изображение</li>
+    </ul>
+  </li>
+</ul>
+<p class=textword><i><span style='font-size:14.0pt;color:teal'>Конец теории ( 
+  Наложение микрорельефа методом тиснения )</span></i></p>
+<p class=head3word>&nbsp; </p>
+<p class=textword>Мы у себя делаем все не совсем так, как это предложено для TNT, 
+  поскольку хотим, чтобы наша программа работала на любом железе, однако здесь 
+  есть пара-тройка ценных идей. Во-первых, то, что на большинстве карточек наложение 
+  рельефа&nbsp;— многопроходная операция (хотя это не относится к семейству TNT, 
+  где рельефность можно реализовать за один двухтекстурный проход). Сейчас вы, 
+  наверное, оценили, какая отличная вещь&nbsp;— возможность мультитекстурирования. 
+  Теперь мы напишем 3-проходный немультитекстурный алгоритм, который можно (и 
+  мы это сделаем) реализовать за два мультитекстурных прохода.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Кроме того, вы, вероятно, поняли, что нам придется проводить 
+  умножения матриц на матрицы и матриц на вектора. Но об этом можно не беспокоиться: 
+  в OpenGL операция умножения матриц реализована (если точность правильная) и 
+  умножения матрицы на вектор реализована в функции <b>VMatMult(M,v),</b> где 
+  матрица <b>M</b> умножается на вектор <b>v</b> и результат сохраняется в <b>v</b>, 
+  то есть <b>v:=M*v</b>. Все передаваемые матрицы и вектора должны быть гомогенны 
+  (то бишь в одной системе координат&nbsp;— <i>прим. перев.</i>) и представлять 
+  собой матрицы 4x4 и четырехмерные вектора. Такие требования гарантируют быстрое 
+  и правильное умножение векторов и матриц по правилам OpenGL.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Вычисляет v=vM, M&nbsp;— матрица 4x4 в порядке столбец-строка, 
+  v&nbsp;— четырехмерный вектор-строка (т.е. транспонированный)</p>
+<p class=textpreword>void VMatMult(GLfloat *M, GLfloat *v) {</p>
+<p class=textpreword>  GLfloat res[3];</p>
+<p class=textpreword>  res[0]=M[ 0]*v[0]+M[ 1]*v[1]+M[ 2]*v[2]+M[ 
+  3]*v[3];</p>
+<p class=textpreword>  res[1]=M[ 4]*v[0]+M[ 5]*v[1]+M[ 6]*v[2]+M[ 
+  7]*v[3];</p>
+<p class=textpreword>  res[2]=M[ 8]*v[0]+M[ 9]*v[1]+M[10]*v[2]+M[11]*v[3];</p>
+<p class=textpreword>  v[0]=res[0];</p>
+<p class=textpreword>  v[1]=res[1];</p>
+<p class=textpreword>  v[2]=res[2];</p>
+<p class=textpreword>  v[3]=M[15];  // Гомогенные координаты</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword><i><span style='font-size:14.0pt;color:teal'>Начало теории ( 
+  Алгоритмы наложения микрорельефа методом тиснения )</span></i></p>
+<p class=head3word>&nbsp; </p>
+<p class=textword>Сейчас мы обсудим два разных алгоритма. Первый я нашел несколько 
+  дней назад здесь:<br>
+  <a
+href="http://www.nvidia.com/marketing/Developer/DevRel.nsf/TechnicalDemosFrame?OpenPage"><u>http://www.nvidia.com/marketing/Developer/DevRel.nsf/TechnicalDemosFrame?OpenPage</u></a></p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Программа называется <b>GL_BUMP</b> и была написана Диего Тартара 
+  (<i>Diego Tartara</i>) в 1999 году. Диего создал очень симпатичный пример наложения 
+  микрорельефа, хотя и не лишенный некоторых недостатков.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Однако давайте взглянем на алгоритм:</p>
+<ol>
+  <li class="textword">Все вектора должны быть заданы ЛИБО в координатах 
+    объекта, ЛИБО в мировых координатах. </li>
+  <li class="textword">Вычисляется вектор v направления из текущей вершины к источнику 
+    света </li>
+  <li class="textword">v нормализуется </li>
+  <li class="textword">v проецируется на касательную плоскость (Касательная плоскость&nbsp;— 
+    такая, которая касается поверхности в данной точке. Для нас эта точка&nbsp;— 
+    текущая вершина.). </li>
+  <li class="textword"><b>(s,t) </b>сдвигается на величины соответственно x и 
+    y координат спроецированного вектора v.</li>
+</ol>
+<p class=textword>Выглядит неплохо! В основном здесь повторен алгоритм, предложенный 
+  Майклом Голдом&nbsp;— мы рассмотрели его в предыдущем теоретическом блоке. Однако 
+  у нового варианта есть существенный недочет: Тартара берет проекцию только в 
+  плоскости <b>xy</b>! Для наших целей этого недостаточно, поскольку теряется 
+  необходимая z-компонента вектора v.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Диего выполняет освещение так же, как и мы: через встроенный 
+  в OpenGL механизм расчета. Поскольку мы не можем позволить себе комбинаторный 
+  метод, предложенный Голдом (наша программа должна работать на любом оборудовании, 
+  а не только на чипах TNT!), хранить коэффициент диффузного рассеяния в альфа-канале 
+  нельзя. Вспомним, что нас в любом случае будет 3 прохода немультитекстурного 
+  / 2 прохода мультитекстурного наложения. Почему бы не применить механизм освещения 
+  из OpenGL в последнем проходе, чтобы разобраться с окружающим освещением и цветами? 
+  Правда, это возможно (и красиво выглядит) только потому, что у нас нет геометрически 
+  сложных сцен&nbsp;— имейте это в виду. Если, не дай Бог, возникнет нужда просчитать 
+  рельеф нескольких тысяч треугольников, придется вам изобретать что-то новое.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Далее, Диего использует мультитекстурирование, которое как мы 
+  увидим впоследствии, далеко не так просто, как может показаться для данного 
+  случая.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Вернемся к нашей реализации. Она практически совпадает с рассмотренным 
+  алгоритмом, за исключением шага проецирования, где мы используем другой подход:</p>
+<ul>
+  <li> <span class="textword">Мы применяем СИСТЕМУ КООРДИНАТ ОБЪЕКТА, то есть 
+    не используем в вычислениях матрицу вида модели (<i>modelview</i>). Из-за 
+    этого возникает неприятный побочный эффект: если куб приходится вращать, его 
+    система координат остается неизменной, в то время как мировая система (она 
+    же система координат наблюдателя) поворачивается. Однако положение источника 
+    света не должно изменяться, то есть мировые координаты источника должны оставаться 
+    постоянными. Чтобы скомпенсировать поворот, применим широко распространенный 
+    трюк: вместо пересчета каждой вершины куба в пространство мировых координат 
+    для последующего расчета рельефа, повернем источник в том же пространстве 
+    на величину, обратную повороту куба (используем инвертированную матрицу вида 
+    модели куба). Это делается очень быстро, поскольку раз мы знаем, как матрица 
+    вида модели была создана, то можем оперативно ее инвертировать. Позже мы вернемся 
+    к этому вопросу. </span></li>
+  <li class="textword"> Вычислим текущую вершину <b>&quot;c&quot;</b> нашей поверхности 
+    (просто взяв ее из массива <b>data</b>). </li>
+  <li class="textword"> Затем вычислим нормаль <b>n</b> длиной 1 (в военное время 
+    длина нормали может достигать четырех! :)&nbsp;— <i>прим. перев.</i>) Обычно 
+    вектор нормали известен для каждой грани куба. Это важно, так как, получая 
+    нормализованные вектора, мы уменьшаем время расчета. Определим вектор освещения 
+    <b>v</b> от <b>c</b> к источнику света l. </li>
+  <li class="textword"> Осталось рассчитать матрицу <b>Mn</b> для получения ортонормальной 
+    проекции. Получится <b>f</b>. </li>
+  <li class="textword"> Вычислим сдвиг текстурных координат, умножив каждый из 
+    параметров <b>s</b> и <b>t</b> на <b>v</b> и <b>MAX_EMBOSS</b>: <b>ds = s*v*MAX_EMBOSS</b>, 
+    <b>dt=t*v*MAX_EMBOSS</b>. Обратите внимание: <b>s, t</b> и <b>v</b>&nbsp;— 
+    вектора, а <b>MAX_EMBOSS</b>&nbsp;— нет. </li>
+  <li class="textword"> Во втором проходе добавим сдвиг к текстурным координатам.</li>
+</ul>
+<p class=textwordbu>Что в модели хорошего:</p>
+<ul>
+  <li> <span class="textword">Она быстрая (вычисляется только один квадратный 
+    корень и пара умножений на вершину). </span></li>
+  <li class="textword"> Она здорово выглядит. </li>
+  <li class="textword"> Работает с любыми поверхностями, не только с плоскостями. 
+  </li>
+  <li class="textword"> Работает на всех акселераторах. </li>
+  <li class="textword"> glBegin/glEnd-совместима: не требует &quot;запрещенных&quot; 
+    GL-команд.</li>
+</ul>
+<p class=textwordbu>Какие недостатки:</p>
+<ul>
+  <li> <span class="textword">Модель не вполне физически корректна. </span></li>
+  <li class="textword"> Остаются мелкие артефакты.</li>
+</ul>
+<p class=textword> <img border=0 width=412 height=243
+src="image004.jpg" v:shapes="_x0000_i1028"> </p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>На этом рисунке показано, где расположены вектора. <b>t</b> 
+  и <b>s</b> можно получить путем вычитания смежных векторов, но нужно следить 
+  за тем, чтобы они были верно направлены и нормализованы. Синей точкой помечена 
+  вершина, к которой проведена привязка texCoord2f(0.0f,0.0f).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword><i><span style='font-size:14.0pt;color:teal'>Конец 
+  теории ( Алгоритмы наложения микрорельефа методом тиснения )</span></i></p>
+<p class=textword>Давайте сначала рассмотрим формирование сдвига текстурных координат. 
+  Функция называется SetUpBumps(), потому что именно этим она и занимается:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>// Выполнение сдвига текстуры </p>
+<p class=textpreword>// n : нормаль к поверхности. Должна иметь длину 1</p>
+<p class=textpreword>// c : текущая вершина на поверхности (координаты местоположения)</p>
+<p class=textpreword>// l : положение источника света</p>
+<p class=textpreword>// s : направление s-координаты текстуры в пространстве объекта</p>
+<p class=textpreword>//     (должна быть нормализована!)</p>
+<p class=textpreword>// t : направление t-координаты текстуры в пространстве объекта</p>
+<p class=textpreword>//     (должна быть нормализована!)</p>
+<p class=textpreword>void SetUpBumps(GLfloat *n, GLfloat *c, GLfloat *l, GLfloat 
+  *s, GLfloat *t) {</p>
+<p class=textpreword>  GLfloat v[3];                // Вектор от текущей точки 
+  к свету</p>
+<p class=textpreword>  GLfloat lenQ;                // Используется для нормализации</p>
+<p class=textpreword>  // Вычислим и нормализуем v</p>
+<p class=textpreword>  v[0]=l[0]-c[0];</p>
+<p class=textpreword>  v[1]=l[1]-c[1];</p>
+<p class=textpreword>  v[2]=l[2]-c[2];</p>
+<p class=textpreword>  lenQ=(GLfloat) sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);</p>
+<p class=textpreword>  v[0]/=lenQ;</p>
+<p class=textpreword>  v[1]/=lenQ;</p>
+<p class=textpreword>  v[2]/=lenQ;</p>
+<p class=textpreword>  // Получим величины проекции v вдоль каждой оси системы 
+  текстурных координат</p>
+<p class=textpreword>  c[0]=(s[0]*v[0]+s[1]*v[1]+s[2]*v[2])*MAX_EMBOSS;</p>
+<p class=textpreword>  c[1]=(t[0]*v[0]+t[1]*v[1]+t[2]*v[2])*MAX_EMBOSS;</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textword>Не так уж все и сложно, а? Но знание теории необходимо для понимания 
+  и управления эффектом (я даже сам разобрался в ЭТОМ, пока писал урок).</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Мне нравится, чтобы во время работы презентационных программ 
+  по экрану летал логотип. У нас их целых два. Вызов <b>doLogo()</b> сбрасывает 
+  матрицу <b>GL_MODELVIEW</b>, поэтому он будет выполнен на последней стадии визуализации.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Функция отображает два логотипа: OpenGL и логотип мультитекстурного 
+  режима, если он включен. Логотипы содержат альфа-канал и, соответственно, полупрозрачны. 
+  Для реализации этого эффекта использованы <b>GL_SRC_ALPHA</b> и <b>GL_ONE_MINUS_SRC_ALPHA</b>, 
+  как рекомендовано OpenGL-документацией. Логотипы планарны, поэтому проводить 
+  z-сортировку нет необходимости. Числа, взятые для их высот, подобраны эмпирически 
+  (a.k.a. методом научного тыка) так, чтобы все помещалось в края экрана. Нужно 
+  включить смешивание и выключить освещение, чтобы избежать неприятных эффектов, 
+  а чтобы гарантировать размещение логотипов поверх сцены, достаточно сбросить 
+  матрицу <b>GL_MODELVIEW </b>и установить функцию глубины в <b>GL_ALWAYS</b>.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>void doLogo(void) {</p>
+<p class=textpreword>  // ВЫЗЫВАТЬ В ПОСЛЕДНЮЮ ОЧЕРЕДЬ!!! отображает 
+  два логотипа</p>
+<p class=textpreword>  glDepthFunc(GL_ALWAYS);</p>
+<p class=textpreword>  glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);</p>
+<p class=textpreword>  glEnable(GL_BLEND);</p>
+<p class=textpreword>  glDisable(GL_LIGHTING);</p>
+<p class=textpreword>  glLoadIdentity();</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D,glLogo);</p>
+<p class=textpreword>  glBegin(GL_QUADS);</p>
+<p class=textpreword>    glTexCoord2f(0.0f,0.0f);  glVertex3f(0.23f, 
+  -0.4f,-1.0f);</p>
+<p class=textpreword>    glTexCoord2f(1.0f,0.0f);  glVertex3f(0.53f, 
+  -0.4f,-1.0f);</p>
+<p class=textpreword>    glTexCoord2f(1.0f,1.0f);  glVertex3f(0.53f, 
+  -0.25f,-1.0f);</p>
+<p class=textpreword>    glTexCoord2f(0.0f,1.0f);  glVertex3f(0.23f, 
+  -0.25f,-1.0f);</p>
+<p class=textpreword>  glEnd();</p>
+<p class=textpreword>  if (useMultitexture) {</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D,multiLogo);</p>
+<p class=textpreword>    glBegin(GL_QUADS);</p>
+<p class=textpreword>      glTexCoord2f(0.0f,0.0f);  glVertex3f(-0.53f, 
+  -0.25f,-1.0f);</p>
+<p class=textpreword>      glTexCoord2f(1.0f,0.0f);  glVertex3f(-0.33f, 
+  -0.25f,-1.0f);</p>
+<p class=textpreword>      glTexCoord2f(1.0f,1.0f);  glVertex3f(-0.33f, 
+  -0.15f,-1.0f);</p>
+<p class=textpreword>      glTexCoord2f(0.0f,1.0f);  glVertex3f(-0.53f, 
+  -0.15f,-1.0f);</p>
+<p class=textpreword>    glEnd();</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Здесь начинается функция, реализующая наложение микрорельефа 
+  без использования мультитекстурирования. Это трехпроходная реализация. На первом 
+  шаге <b>GL_MODELVIEW</b> инвертируется путем применения к тождественной ей матрице 
+  всех шагов, применяемых позже к <b>GL_MODELVIEW</b>, но в обратном порядке и 
+  с инвертированными величинами. Такая матрица преобразования, будучи применена 
+  к объекту, &quot;отменяет&quot; воздействие <b>GL_MODELVIEW</b>. Мы получим 
+  ее от OpenGL вызовом <b>glGetFloatv()</b>. Напоминаю, что матрица должна быть 
+  массивом из 16 величин и что она транспонирована!</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Кстати: если вы не уверены, в каком порядке была создана матрица 
+  вида модели, подумайте о возможности использования мировой системы координат, 
+  потому что классическая инверсия произвольной матрицы&nbsp;— вычислительно очень 
+  дорогостоящая операция. Впрочем, при обработке значительного числа вершин инверсия 
+  матрицы вида модели может быть более приемлемым выходом и, возможно, будет выполняться 
+  быстрее, чем расчет мировых координат для каждой вершины.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool doMesh1TexelUnits(void) {</p>
+<p class=textpreword>  GLfloat c[4]={0.0f,0.0f,0.0f,1.0f};       
+  // Текущая вершина</p>
+<p class=textpreword>  GLfloat n[4]={0.0f,0.0f,0.0f,1.0f};       
+  // Нормаль к текущей поверхности</p>
+<p class=textpreword>  GLfloat s[4]={0.0f,0.0f,0.0f,1.0f};       // s-вектор, 
+  нормализованный</p>
+<p class=textpreword>  GLfloat t[4]={0.0f,0.0f,0.0f,1.0f};       // t-вектор, 
+  нормализованный</p>
+<p class=textpreword>  GLfloat l[4];                             // Содержит координаты 
+  источника освещения,</p>
+<p class=textpreword>                                            // который будет 
+  переведен в мировые координаты</p>
+<p class=textpreword>  GLfloat Minv[16];                         // Инвертированная 
+  матрица вида модели</p>
+<p class=textpreword>  int i;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+  // Очистка экрана и буфера глубины</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Инвертируем матрицу вида модели. Заменяет 
+  один Push/Pop и один glLoadIdentity();</p>
+<p class=textpreword>  // Выполняется проведением всех преобразований в обратную 
+  сторону в обратном порядке</p>
+<p class=textpreword>  glLoadIdentity();</p>
+<p class=textpreword>  glRotatef(-yrot,0.0f,1.0f,0.0f);</p>
+<p class=textpreword>  glRotatef(-xrot,1.0f,0.0f,0.0f);</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,-z);</p>
+<p class=textpreword>  glGetFloatv(GL_MODELVIEW_MATRIX,Minv);</p>
+<p class=textpreword>  glLoadIdentity();</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,z);</p>
+<p class=textpreword>  glRotatef(xrot,1.0f,0.0f,0.0f);</p>
+<p class=textpreword>  glRotatef(yrot,0.0f,1.0f,0.0f);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Преобразование положения источника в систему 
+  координат объекта:</p>
+<p class=textpreword>  l[0]=LightPosition[0];</p>
+<p class=textpreword>  l[1]=LightPosition[1];</p>
+<p class=textpreword>  l[2]=LightPosition[2];</p>
+<p class=textpreword>  l[3]=1.0f;                // Гомогенные координаты</p>
+<p class=textpreword>  VMatMult(Minv,l);</p>
+<p class=textword>&nbsp;  </p>
+<p class=textwordbu>На первом шаге надо:</p>
+<ul>
+  <li> <span class="textword">Использовать текстуру рельефа </span></li>
+  <li class="textword"> Отключить смешивание </li>
+  <li class="textword"> Отключить освещение </li>
+  <li class="textword"> Использовать несмещенные текстурные координаты </li>
+  <li class="textword"> Построить геометрию</li>
+</ul>
+<p class=textword>Будет визуализирован куб, содержащий только текстуру рельефа.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, bump[filter]);</p>
+<p class=textpreword>  glDisable(GL_BLEND);</p>
+<p class=textpreword>  glDisable(GL_LIGHTING);</p>
+<p class=textpreword>  doCube();</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textwordbu>На втором шаге надо:</p>
+<ul>
+  <li> <span class="textword">Использовать инвертированную текстуру рельефа </span></li>
+  <li class="textword"> Включить смешивание <b>GL_ONE</b>, <b>GL_ONE</b> </li>
+  <li class="textword"> Освещение остается отключенным </li>
+  <li class="textword"> Использовать смещенные координаты текстуры (это значит, 
+    что перед просчетом каждой грани куба придется вызывать SetUpBumps()). </li>
+  <li class="textword"> Построить геометрию</li>
+</ul>
+<p class=textword>Здесь будет визуализирован куб с корректно наложенной картой 
+  высот, но без цветов.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Можно было бы уменьшить время вычисления, повернув вектор освещения 
+  в обратную сторону. Однако этот способ не работает корректно, так что мы сделаем 
+  все просто: повернем каждую нормаль и центр так же, как делаем это с геометрией.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D,invbump[filter]);</p>
+<p class=textpreword>  glBlendFunc(GL_ONE,GL_ONE);</p>
+<p class=textpreword>  glDepthFunc(GL_LEQUAL);</p>
+<p class=textpreword>  glEnable(GL_BLEND);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glBegin(GL_QUADS);</p>
+<p class=textpreword>    // Передняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=1.0f;</p>
+<p class=textpreword>    s[0]=1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=0; i&lt;4; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glTexCoord2f(data[5*i]+c[0], data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Задняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=-1.0f;</p>
+<p class=textpreword>    s[0]=-1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=4; i&lt;8; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glTexCoord2f(data[5*i]+c[0], data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Верхняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=1.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=0.0f;</p>
+<p class=textpreword>    t[2]=-1.0f;</p>
+<p class=textpreword>    for (i=8; i&lt;12; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glTexCoord2f(data[5*i]+c[0], data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Нижняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=-1.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=-1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=0.0f;</p>
+<p class=textpreword>    t[2]=-1.0f;</p>
+<p class=textpreword>    for (i=12; i&lt;16; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glTexCoord2f(data[5*i]+c[0], data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Правая грань</p>
+<p class=textpreword>    n[0]=1.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=0.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=-1.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=16; i&lt;20; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glTexCoord2f(data[5*i]+c[0], data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Левая грань</p>
+<p class=textpreword>    n[0]=-1.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=0.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=1.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=20; i&lt;24; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glTexCoord2f(data[5*i]+c[0], data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  glEnd();</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu>На третьем шаге надо:</p>
+<ul>
+  <li> <span class="textword">Использовать основную (цветную) текстуру </span></li>
+  <li class="textword"> Включить смешивание <b>GL_DST_COLOR</b>, <b>GL_SRC_COLOR</b> 
+  </li>
+  <li class="textword"> Уравнения смешивания фактически получает множитель 2: 
+    (Cdst*Csrc)+(Csrc*Cdst)=2(Csrc*Cdst)! </li>
+  <li class="textword"> Включить освещение для расчета фонового и диффузного освещения</li>
+  <li class="textword"> Сбросить матрицу <b>GL_TEXTURE</b> с целью вернуться к 
+    &quot;нормальным&quot; текстурным координатам </li>
+  <li class="textword"> Построить геометрию</li>
+</ul>
+<p class=textword>Это заключительная стадия расчета, с учетом освещения. Чтобы 
+  корректно переключаться между мультитекстурным и однотекстурным режимами, надо 
+  сначала выставить среду текстурирования в &quot;нормальный&quot; режим <b>GL_MODULATE</b>. 
+  Если захочется отказаться от наложения цветной текстуры, достаточно ограничиться 
+  первыми двумя проходами и пропустить третий.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  if (!emboss) {</p>
+<p class=textpreword>    glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 
+  GL_MODULATE);</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D,texture[filter]);</p>
+<p class=textpreword>    glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);</p>
+<p class=textpreword>    glEnable(GL_LIGHTING);</p>
+<p class=textpreword>    doCube();</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textwordbu>На финальном шаге надо:</p>
+<ul>
+  <li> <span class="textword">Обновить геометрию (особенно вращение) </span></li>
+  <li class="textword"> Отобразить логотипы</li>
+</ul>
+<p class=textpreword>  xrot+=xspeed;</p>
+<p class=textpreword>  yrot+=yspeed;</p>
+<p class=textpreword>  if (xrot&gt;360.0f) xrot-=360.0f;</p>
+<p class=textpreword>  if (xrot&lt;0.0f) xrot+=360.0f;</p>
+<p class=textpreword>  if (yrot&gt;360.0f) yrot-=360.0f;</p>
+<p class=textpreword>  if (yrot&lt;0.0f) yrot+=360.0f;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  /* ПОСЛЕДНИЙ ПРОХОД: Даешь логотипы! */</p>
+<p class=textpreword>  doLogo();</p>
+<p class=textpreword>  return true;                // Продолжаем</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Следующая новая функция выполнит всю задачу за 2 прохода с использованием 
+  мультитекстурирования. Будут задействованы два текстурных блока, большее их 
+  количество резко усложнит уравнения смешивания. Лучше уж заниматься оптимизацией 
+  под TNT. Обратите внимание, практически единственное отличие от <b>doMesh1TexelUnits()</b> 
+  в том, что для каждой вершины отсылается не один, а два набора текстурных координат.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool doMesh2TexelUnits(void) {</p>
+<p class=textpreword>  GLfloat c[4]={0.0f,0.0f,0.0f,1.0f};     // Здесь храним 
+  текущую вершину</p>
+<p class=textpreword>  GLfloat n[4]={0.0f,0.0f,0.0f,1.0f};     // Вектор нормали 
+  к текущей поверхности</p>
+<p class=textpreword>  GLfloat s[4]={0.0f,0.0f,0.0f,1.0f};     // s-вектор, нормализованный</p>
+<p class=textpreword>  GLfloat t[4]={0.0f,0.0f,0.0f,1.0f};     // t-вектор, нормализованный</p>
+<p class=textpreword>  GLfloat l[4];                           // Хранит координаты 
+  источника света,</p>
+<p class=textpreword>                                          // для перевода 
+  в пространство координат объекта</p>
+<p class=textpreword>  GLfloat Minv[16];                       // Инвертированная 
+  матрица вида модели</p>
+<p class=textpreword>  int i;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+  // Очистим экран и буфер глубины</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Инвертируем матрицу вида модели. Заменяет 
+  один Push/Pop и один glLoadIdentity();</p>
+<p class=textpreword>  // Выполняется проведением всех преобразований в обратную 
+  сторону в обратном порядке</p>
+<p class=textpreword>  glLoadIdentity();</p>
+<p class=textpreword>  glRotatef(-yrot,0.0f,1.0f,0.0f);</p>
+<p class=textpreword>  glRotatef(-xrot,1.0f,0.0f,0.0f);</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,-z);</p>
+<p class=textpreword>  glGetFloatv(GL_MODELVIEW_MATRIX,Minv);</p>
+<p class=textpreword>  glLoadIdentity();</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,z);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glRotatef(xrot,1.0f,0.0f,0.0f);</p>
+<p class=textpreword>  glRotatef(yrot,0.0f,1.0f,0.0f);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Преобразуем координаты источника света 
+  в систему координат объекта</p>
+<p class=textpreword>  l[0]=LightPosition[0];</p>
+<p class=textpreword>  l[1]=LightPosition[1];</p>
+<p class=textpreword>  l[2]=LightPosition[2];</p>
+<p class=textpreword>  l[3]=1.0f;                // Гомогенные координаты</p>
+<p class=textpreword>  VMatMult(Minv,l);</p>
+<p class=textword>&nbsp;  </p>
+<p class=textwordbu>На первом шаге надо:</p>
+<ul>
+  <li> <span class="textword">Отменить смешивание</span></li>
+  <li class="textword"> Отменить освещение</li>
+</ul>
+<p class=textwordb>Установить текстурный комбайн 0 на</p>
+<ul>
+  <li> <span class="textword">Использование текстуры рельефа </span></li>
+  <li class="textword"> Использование несмещенных координат текстуры </li>
+  <li class="textword"> Выполнение операции <b>GL_REPLACE</b>, то есть простое 
+    отображение текстуры</li>
+</ul>
+<p class=textwordb>Установить текстурный комбайн 1 на</p>
+<ul>
+  <li> <span class="textword">Использование сдвинутых текстурных координат </span></li>
+  <li class="textword"> Выполнение операции <b>GL_ADD</b>, эквивалента однотекстурного 
+    ONE-ONE-смешивания.</li>
+</ul>
+<p class=textword>Будет рассчитан куб с наложенной картой эрозии поверхности.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  // ТЕКСТУРНЫЙ БЛОК 
+  #0</p>
+<p class=textpreword>  glActiveTextureARB(GL_TEXTURE0_ARB);</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D);</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, bump[filter]);</p>
+<p class=textpreword>  glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 
+  GL_COMBINE_EXT);</p>
+<p class=textpreword>  glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, 
+  GL_REPLACE);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // ТЕКСТУРНЫЙ БЛОК #1</p>
+<p class=textpreword>  glActiveTextureARB(GL_TEXTURE1_ARB);</p>
+<p class=textpreword>  glEnable(GL_TEXTURE_2D);</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D, invbump[filter]);</p>
+<p class=textpreword>  glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 
+  GL_COMBINE_EXT);</p>
+<p class=textpreword>  glTexEnvf (GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, 
+  GL_ADD);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  // Общие флаги</p>
+<p class=textpreword>  glDisable(GL_BLEND);</p>
+<p class=textpreword>  glDisable(GL_LIGHTING);</p>
+<p class=textword>&nbsp;  </p>
+<p class=textword>Теперь визуализируем грани одну за одной, как это было сделано 
+  в doMesh1TexelUnits(). Единственное отличие&nbsp;— вместо <b>glTexCoord2f()</b> 
+  используется <b>glMultiTexCoor2fARB()</b>. Обратите внимание, надо прямо указывать, 
+  какой текстурный блок вы имеете в виду. Параметр должен иметь вид <b>GL_TEXTUREi_ARB</b>, 
+  где <b>i</b> лежит в диапазоне [0..31]. ( Это что же за карточка с 32 текстурными 
+  блоками? И зачем она?)</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glBegin(GL_QUADS);</p>
+<p class=textpreword>    // Передняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=1.0f;</p>
+<p class=textpreword>    s[0]=1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=0; i&lt;4; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE0_ARB,data[5*i], 
+  data[5*i+1]);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE1_ARB,data[5*i]+c[0], 
+  data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Задняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=-1.0f;</p>
+<p class=textpreword>    s[0]=-1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=4; i&lt;8; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE0_ARB,data[5*i], 
+  data[5*i+1]);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE1_ARB,data[5*i]+c[0], 
+  data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Верхняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=1.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=0.0f;</p>
+<p class=textpreword>    t[2]=-1.0f;</p>
+<p class=textpreword>    for (i=8; i&lt;12; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE0_ARB,data[5*i], 
+  data[5*i+1]);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE1_ARB,data[5*i]+c[0], 
+  data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Нижняя грань</p>
+<p class=textpreword>    n[0]=0.0f;</p>
+<p class=textpreword>    n[1]=-1.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=-1.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=0.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=0.0f;</p>
+<p class=textpreword>    t[2]=-1.0f;</p>
+<p class=textpreword>    for (i=12; i&lt;16; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE0_ARB,data[5*i], 
+  data[5*i+1]);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE1_ARB,data[5*i]+c[0], 
+  data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Правая грань</p>
+<p class=textpreword>    n[0]=1.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=0.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=-1.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=16; i&lt;20; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE0_ARB,data[5*i], 
+  data[5*i+1]);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE1_ARB,data[5*i]+c[0], 
+  data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>    // Левая грань</p>
+<p class=textpreword>    n[0]=-1.0f;</p>
+<p class=textpreword>    n[1]=0.0f;</p>
+<p class=textpreword>    n[2]=0.0f;</p>
+<p class=textpreword>    s[0]=0.0f;</p>
+<p class=textpreword>    s[1]=0.0f;</p>
+<p class=textpreword>    s[2]=1.0f;</p>
+<p class=textpreword>    t[0]=0.0f;</p>
+<p class=textpreword>    t[1]=1.0f;</p>
+<p class=textpreword>    t[2]=0.0f;</p>
+<p class=textpreword>    for (i=20; i&lt;24; i++) {</p>
+<p class=textpreword>      c[0]=data[5*i+2];</p>
+<p class=textpreword>      c[1]=data[5*i+3];</p>
+<p class=textpreword>      c[2]=data[5*i+4];</p>
+<p class=textpreword>      SetUpBumps(n,c,l,s,t);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE0_ARB,data[5*i], 
+  data[5*i+1]);</p>
+<p class=textpreword>      glMultiTexCoord2fARB(GL_TEXTURE1_ARB,data[5*i]+c[0], 
+  data[5*i+1]+c[1]);</p>
+<p class=textpreword>      glVertex3f(data[5*i+2], data[5*i+3], data[5*i+4]);</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  glEnd();</p>
+<p class=textword>&nbsp; </p>
+<p class=textwordbu>На втором шаге надо:</p>
+<ul>
+  <li> <span class="textword">Использовать основную текстуру </span></li>
+  <li class="textword"> Включить освещение </li>
+  <li class="textword"> Отменить смещение текстурных координат =&gt; сброc матрицы 
+    <b>GL_TEXTURE</b> </li>
+  <li class="textword"> Текстурную среду вернуть в состояние <b>GL_MODULATE</b>, 
+    чтобы заработало освещение OpenGL (иначе не получится!)</li>
+</ul>
+<p class=textword>Здесь уже будет полностью готов куб.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>  glActiveTextureARB(GL_TEXTURE1_ARB);</p>
+<p class=textpreword>  glDisable(GL_TEXTURE_2D);</p>
+<p class=textpreword>  glActiveTextureARB(GL_TEXTURE0_ARB);</p>
+<p class=textpreword>  if (!emboss) {</p>
+<p class=textpreword>    glTexEnvf (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 
+  GL_MODULATE);</p>
+<p class=textpreword>    glBindTexture(GL_TEXTURE_2D,texture[filter]);</p>
+<p class=textpreword>    glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);</p>
+<p class=textpreword>    glEnable(GL_BLEND);</p>
+<p class=textpreword>    glEnable(GL_LIGHTING);</p>
+<p class=textpreword>    doCube();</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textwordbu>На последнем шаге надо</p>
+<ul>
+  <li> <span class="textword">Обновить геометрию (особенно вращение) </span></li>
+  <li class="textword"> Отобразить логотипы<b><u></u></b></li>
+</ul>
+<p class=textpreword>  xrot+=xspeed;</p>
+<p class=textpreword>  yrot+=yspeed;</p>
+<p class=textpreword>  if (xrot&gt;360.0f) xrot-=360.0f;</p>
+<p class=textpreword>  if (xrot&lt;0.0f) xrot+=360.0f;</p>
+<p class=textpreword>  if (yrot&gt;360.0f) yrot-=360.0f;</p>
+<p class=textpreword>  if (yrot&lt;0.0f) yrot+=360.0f;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  /* ПОСЛЕДНИЙ ПРОХОД: да будут логотипы! */</p>
+<p class=textpreword>  doLogo();</p>
+<p class=textpreword>  return true;                // Продолжим</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>И, для сравнения, функция, рисующая куб без рельефа&nbsp;— почувствуйте 
+  разницу!</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool doMeshNoBumps(void) {</p>
+<p class=textpreword>  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);      
+  // Очистить экран и буфер глубины</p>
+<p class=textpreword>  glLoadIdentity();              // Сбросить 
+  вид</p>
+<p class=textpreword>  glTranslatef(0.0f,0.0f,z);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glRotatef(xrot,1.0f,0.0f,0.0f);</p>
+<p class=textpreword>  glRotatef(yrot,0.0f,1.0f,0.0f);</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  if (useMultitexture) {</p>
+<p class=textpreword>    glActiveTextureARB(GL_TEXTURE1_ARB);</p>
+<p class=textpreword>    glDisable(GL_TEXTURE_2D);</p>
+<p class=textpreword>    glActiveTextureARB(GL_TEXTURE0_ARB);</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  glDisable(GL_BLEND);</p>
+<p class=textpreword>  glBindTexture(GL_TEXTURE_2D,texture[filter]);</p>
+<p class=textpreword>  glBlendFunc(GL_DST_COLOR,GL_SRC_COLOR);</p>
+<p class=textpreword>  glEnable(GL_LIGHTING);</p>
+<p class=textpreword>  doCube();</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  xrot+=xspeed;</p>
+<p class=textpreword>  yrot+=yspeed;</p>
+<p class=textpreword>  if (xrot&gt;360.0f) xrot-=360.0f;</p>
+<p class=textpreword>  if (xrot&lt;0.0f) xrot+=360.0f;</p>
+<p class=textpreword>  if (yrot&gt;360.0f) yrot-=360.0f;</p>
+<p class=textpreword>  if (yrot&lt;0.0f) yrot+=360.0f;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  /* ПОСЛЕДНИЙ ПРОХОД: логотипы */</p>
+<p class=textpreword>  doLogo();</p>
+<p class=textpreword>  return true;                // Продолжим</p>
+<p class=textpreword>}</p>
+<p class=textword><b><u> &nbsp; </u></b></p>
+<p class=textword>Все, что должна делать функция <b>drawGLScene()</b>&nbsp;— определить, 
+  какой из вариантов <b>doMesh</b> вызвать:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool DrawGLScene(GLvoid)              // Здесь все рисуется</p>
+<p class=textpreword>{</p>
+<p class=textpreword>  if (bumps) {</p>
+<p class=textpreword>    if (useMultitexture &amp;&amp; maxTexelUnits&gt;1)</p>
+<p class=textpreword>      return doMesh2TexelUnits();</p>
+<p class=textpreword>    else return doMesh1TexelUnits();</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  else return doMeshNoBumps();</p>
+<p class=textpreword>}</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Убиваем GLWindow. Функция не изменялась, а потому не приведена:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>GLvoid KillGLWindow(GLvoid)           // Уничтожим окно корректно</p>
+<p class=textpreword>&gt;…&lt;</p>
+<p class=textword><b><u> &nbsp; </u></b></p>
+<p class=textword>Функция создает GLWindow; не изменена, поэтому пропущена:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>BOOL CreateGLWindow(char* title, int width, 
+  int height, int bits, bool fullscreenflag)</p>
+<p class=textpreword>&gt;…&lt;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Основной цикл обработки сообщений; не изменен, поэтому пропущен:</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>LRESULT CALLBACK WndProc(  HWND hWnd, // Указатель окна</p>
+<p class=textpreword>        UINT uMsg,                    // Сообщение для этого 
+  окна</p>
+<p class=textpreword>        WPARAM wParam,                // Дополнительная информация 
+  о сообщении</p>
+<p class=textpreword>        LPARAM lParam)                // Дополнительная информация 
+  о сообщении</p>
+<p class=textpreword>&gt;…&lt;</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Основная функция окна. Здесь добавлена обработка различных дополнительных 
+  кнопок:</p>
+<ul>
+  <li> <b><span class="textword">E</span></b><span class="textword">: Переключает 
+    режимы чистого рельефа / рельефа с текстурой </span></li>
+  <li> <span class="textword"><b>M</b>: Включает/отключает мультитекстурирование 
+    </span></li>
+  <li> <span class="textword"><b>B</b>: Включает/отключает наложение микрорельефа. 
+    Опция является взаимоисключающей с настройками, управляемыми кнопкой <b>E</b> 
+    </span></li>
+  <li> <span class="textword"><b>F</b>: Переключает способы фильтрации. Вы увидите, 
+    насколько режим <b>GL_NEAREST</b> не создан для рельефного текстурирования 
+    </span></li>
+  <li> <span class="textword"><b>Клавиши управления курсором</b>: Вращение куба<b><u></u></b></span></li>
+</ul>
+<p class=textpreword>int WINAPI WinMain(  HINSTANCE hInstance, // Экземпляр приложения</p>
+<p class=textpreword>      HINSTANCE hPrevInstance,            // 
+  Предыдущий экземпляр</p>
+<p class=textpreword>      LPSTR lpCmdLine,                    // Параметры командной 
+  строки</p>
+<p class=textpreword>      int nCmdShow)                       // Показать состояние 
+  окна</p>
+<p class=textpreword>{</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>  &gt;…&lt;</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys['E'])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          keys['E']=false;</p>
+<p class=textpreword>          emboss=!emboss;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys['M'])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          keys['M']=false;</p>
+<p class=textpreword>          useMultitexture=((!useMultitexture) 
+  &amp;&amp; multitextureSupported);</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys['B'])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          keys['B']=false;</p>
+<p class=textpreword>          bumps=!bumps;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys['F'])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          keys['F']=false;</p>
+<p class=textpreword>          filter++;</p>
+<p class=textpreword>          filter%=3;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_PRIOR])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          z-=0.02f;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_NEXT])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          z+=0.02f;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_UP])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          xspeed-=0.01f;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_DOWN])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          xspeed+=0.01f;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_RIGHT])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          yspeed+=0.01f;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>&nbsp;  </p>
+<p class=textpreword>        if (keys[VK_LEFT])</p>
+<p class=textpreword>        {</p>
+<p class=textpreword>          yspeed-=0.01f;</p>
+<p class=textpreword>        }</p>
+<p class=textpreword>      }</p>
+<p class=textpreword>    }</p>
+<p class=textpreword>  }</p>
+<p class=textpreword>  // Выключаемся</p>
+<p class=textpreword>  KillGLWindow();      // Убить окно</p>
+<p class=textpreword>  return (msg.wParam); // Выйти из программы</p>
+<p class=textpreword>}</p>
+<p class=textword><b><u> &nbsp; </u></b></p>
+<p class=textword>Еще несколько слов о генерации текстур и наложении рельефа на 
+  объекты, прежде чем вы начнете ваять великие игры и поражаться, почему они идут 
+  так медленно и так ужасно выглядят:</p>
+<ul>
+  <li> <span class="textword">Не стоит использовать текстуры рельефа размером 
+    256x256, как в этом уроке. Все начинает сильно тормозить, поэтому такие размеры 
+    подходят только для демонстрационных целей (например, в уроках). </span></li>
+  <li class="textword"> Куб, имеющий рельеф&nbsp;— редкая вещь. Повернутый рельефный 
+    куб&nbsp;— и того реже. Причина в том, что угол зрения сильно влияет на качество 
+    изображения, и чем он больше, тем хуже результат. Практически все многопроходные 
+    алгоритмы подвержены этому недостатку. Чтобы не применять текстуры высокого 
+    разрешения, увеличьте минимальный угол зрения до приемлемой величины или уменьшите 
+    диапазон углов и проводите предварительную фильтрацию текстур так, чтобы удовлетворить 
+    этому диапазону. </li>
+  <li class="textword"> Сначала создайте основную текстуру. Рельеф можно сделать 
+    позже в любом редакторе, переведя картинку в шкалу серого. </li>
+  <li class="textword"> Рельеф должен быть &quot;острее&quot; и контрастнее основной 
+    текстуры. Это можно сделать, применив фильтр &quot;резкость&quot; (<i>sharpen</i>) 
+    к основной текстуре. Поначалу может смотреться странно, но поверьте: чтобы 
+    получить первоклассный оптический эффект, нужно <b>КАПИТАЛЬНО</b> &quot;заострить&quot; 
+    текстуру. </li>
+  <li class="textword"> Текстура рельефа должна быть отцентрована по 50% серому, 
+    (RGB=127,127,127), поскольку это эквивалентно отсутствию рельефа. Более яркие 
+    значения соответствуют выпуклостям, а менее яркие&nbsp;— провалам. Результат 
+    можно оценить, просмотрев текстуру в режиме гистограммы в каком-нибудь подходящем 
+    редакторе. </li>
+  <li class="textword"> Текстура рельефа может быть в четверть размера основной 
+    текстуры, и это не приведет к катастрофическим последствиям, хотя разница, 
+    конечно, будет заметна.<b><u></u></b></li>
+</ul>
+<p class=textword>Теперь у вас должно быть некоторое представление о вещах, обсужденных 
+  в этом уроке. Надеюсь, вам понравилось.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Вопросы, пожелания, предложения, просьбы, жалобы? <a
+href="mailto:schneide@pool.informatik.rwth-aachen.de"><b><u>Почтуйте</u></b></a>, 
+  потому что веб-странички у меня пока еще нет.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Это мой основной проект; надеюсь, вскоре последует продолжение.</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Моя признательность:</p>
+<ul>
+  <li> <b><span class="textword">Michael I. Gold</span></b><span class="textword"> 
+    за документацию по наложению микрорельефа </span></li>
+  <li> <span class="textword"><b>Diego Tartara</b> за код этого примера </span></li>
+  <li> <span class="textword"><b>NVidia</b> за размещение отличных примеров в 
+    Сети </span></li>
+  <li> <span class="textword"><b>И, конечно, NeHe за неоценимую помощь в освоении 
+    OpenGL.<u></u></b></span></li>
+</ul>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jens Schneider<br>
+    <b>Jeff Molofee (NeHe)</b><br>
+	&nbsp;</font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;5 ноября 2002&nbsp;(c)&nbsp;</font> 
+        <a href="mailto:vech2001@mail.ru"
+	onmouseover=" return event_over(this,'Почта переводчику')  " 
+	onmouseout=" return event_out(this) "> <font class="link"><b>Vasily Chernikov</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

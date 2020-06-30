@@ -1,0 +1,791 @@
+<html>
+<head>
+<title>Глава 4</title>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000CC" vlink="#0000CC" alink="#FF0000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#000000" align="center" height="40">
+  <tr> 
+    <td>&nbsp;<span class="h">OpenGL: книга Игоря Тарасова</span></td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center" bgcolor="#FFCC99" height="20">
+  <tr valign="middle"> 
+    <td>
+      <div align="center"><a href="index.html">Оглавление</a> - Главы: <a href="chapter1.html">1</a> 
+        <a href="chapter2.html">2</a> <a href="chapter3.html">3</a> <a href="chapter4.html">4</a> 
+        <a href="chapter5.html">5</a> <a href="chapter6.html">6</a> <a href="chapter7.html">7</a> 
+        <a href="chapter8.html">8</a> - <a href="append_a.html">Приложение А</a> 
+        - <a href="bibliography.html">Библиография</a> </div>
+    </td>
+  </tr>
+</table>
+<table width="600" border="0" cellspacing="0" cellpadding="0" align="center">
+  <tr>
+    <td> 
+      <p> 
+      <p> 
+      <h1><a name=tth_chAp4>Chapter 4 </a><br>
+        Полезные и бесполезные мелочи</h1>
+      <h2><a name=tth_sEc4.1>4.1</a>&nbsp;&nbsp;Построение поверхностей</h2>
+      <a name=quad></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Существует набор функций для посторения сфер, цилиндров и дисков. 
+      Эти функции представляют очень мощный контроль за построением трехмерных 
+      объектов. Непосредственно рисовать вы будете, используя следующие функции: 
+      <a 
+name=gluSphere41></a><a name=gluCylinder41></a><a name=gluDisk41></a><a 
+name=gluPartialDisk41></a>gluSphere, gluCylinder, gluDisk и gluPartialDisk. В 
+      начале книги вы научились строить трехмерные объекты с помощью функций из 
+      библиотеки Auxilary Library. Функции aux[Solid/Wire]Sphere, aux[Solid/Wire]Cylinder 
+      и aux[Solid/Wire]Cone просто вызывают gluSphere и gluCylinder. Как я уже 
+      ранее говорил, в aux[Solid/Wire]Cylinder и aux[Solid/Wire]Cone фирмы Microsoft 
+      имеются баги. Здесь будет подробно рассмотрено построение сфер и цилиндров, 
+      так что потребность в aux[Solid/Wire]Cylinder и aux[Solid/Wire]Cone отпадет. 
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;
+Первым параметром для gluSphere, gluCylinder, gluDisk является указатель 
+        на объект типа GLUquadricObj. <a name=GLUquadricObj41></a>Далее следуют 
+        параметры непосредственно создаваемой фигуры. Для сферы - это радиус; 
+        для цилиндра - радиус нижнего основания, радиус верхнего основания и высота; 
+        для диска - внутренний радиус, внешний радиус и для частичного диска - 
+        внутренний радиус, внешний радиус, угол, с которого начинать рисовать, 
+        длина дуги в градусах, которую рисовать. Последние два параметра у всех 
+        этих функций одинаковы. Это число разбиений вокруг оси Z и число разбиений 
+        вдоль оси Z. Как я уже говорил, все сложные объекты состоят из простых: 
+        точек, линий и многоугольников. Вы понимаете, что нарисовать/создать 
+        идеально гладкую сферу или цилиндр невозможно. Поэтому строится приближение 
+        из плоскостей. Для этого и нужно указать количество разбиений. Чем больше 
+        разбиение, тем лучше будет выглядеть ваша сфера. Однако, задавать здесть 
+        число с шестью нулями не стоит. Это лишено всякого смысла. Оптимальным, 
+        на мой взгляд, является число от 10 до 20. Чем больше объект, тем больше нужно 
+        разбиений. Число разбиений вдоль и поперек я выставляю одинаковыми. Сначала 
+        вы должны создать объект типа GLUquadricObj с помощью функции gluNewQuadric. 
+        <a name=gluNewQuadric41></a>Теперь устанавливаете свойства с помощью функции 
+        gluQuadricDrawStyle. <a name=gluQuadricDrawStyle41></a>Доступны стили: 
+        GLU_FILL - рисуется сплошной объект, <a name=GLU\_FILL41></a><a 
+name=GLU\_LINE41></a>GLU_LINE - проволочный объект, <a 
+name=GLU\_POINT41></a>GLU_POINT - рисуются только точки. Рисуете то, что хотите. 
+        И не забудьте удалить созданный объект, воспользовавшись gluDeleteQuadric. 
+        <a 
+name=gluDeleteQuadric41></a> 
+      <p>Настало время поэкспериментировать. Создайте очередное консольное приложение 
+        и отредактируйте функцию display следующим образом. 
+      <p>
+      <pre>void CALLBACK display(void)
+{
+ GLUquadricObj *quadObj; 
+
+ quadObj = gluNewQuadric(); // создаем новый объект 
+                            // для создания сфер и цилиндров
+                              
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+ 
+                          
+glPushMatrix(); 
+ glColor3d(1,0,0);
+  gluQuadricDrawStyle(quadObj, GLU_FILL); // устанавливаем
+                          // стиль: сплошной
+
+ gluSphere(quadObj, 0.5, 10, 10); // рисуем сферу
+                                  // радиусом 0.5
+ glTranslated(-2,0,0); // сдвигаемся влево
+ glRotated(45, 1,0,0); // поворачиваем
+ glColor3d(0,1,0);
+ gluQuadricDrawStyle(quadObj, GLU_LINE); // устанавливаем
+                          // стиль: проволочный
+
+ gluCylinder(quadObj, 0.5, 0.75, 1, 15, 15);    
+glPopMatrix();
+ 
+gluDeleteQuadric(quadObj);
+auxSwapBuffers();
+} 
+</pre>    
+      <h2><a name=tth_sEc4.2>4.2</a>&nbsp;&nbsp;Упражнение: "Сфера, цилиндр и 
+        диски"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Доработайте код, приведенный выше, чтобы в первой строке показывались три 
+      сферы. Цвет и стили(GLU_POINT, GLU_LINE и GLU_FILL) должны быть разными. 
+      В следующих трех строках должны быть цилиндры, диски и частичные диски. 
+      <p> 
+<center><img src="chapter4/quadric/release/quadric.jpg"><br>
+Исходный файл смотрите <a href="chapter4/quadric/quadric.c">здесь</a>.
+Исполняемый файл <a href="chapter4/quadric/release/quadric.exe">здесь</a>.
+</center><br>
+
+      <h2><a name=tth_sEc4.3>4.3</a>&nbsp;&nbsp;Интерполяция цветов</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Когда вы создаете многоугольник, вы можете задать цвет для каждой его вершины. 
+      Если разрешено сглаживание цветов, то многоугольник будет переливаться. 
+      Поясню на примере. Режим сглаживания по умолчанию разрешен. Он переключается 
+      функцией glShadeModel <a name=glShadeModel43></a>с аргументами <a name=GL\_FLAT43></a><a 
+name=GL\_SMOOTH43></a>GL_FLAT и GL_SMOOTH. GL_FLAT запрещает сглаживание. На мой 
+      взгляд, сглаживание редко нужно. Вещь красивая, но бесполезная. Я в своих 
+      неучебных программах этот режим никогда не использовал. Поэтому советую 
+      его отключать, особенно, при программировании анимированного 
+      приложения. Создайте очередной проект. В функцию main добавьте 
+      <pre> 
+ glShadeModel(GL_SMOOTH);
+</pre>
+      Функцию display отредактируйте следующим образом: 
+      <pre>void CALLBACK display(void)
+{
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+
+  glBegin(GL_TRIANGLES);
+
+   glColor3d(1,0,0);
+   glVertex2d(0,0);
+
+   glColor3d(0,1,0);
+   glVertex2d(0,3);
+
+   glColor3d(0,0,1);
+   glVertex2d(3,0);
+
+  glEnd();
+  
+  auxSwapBuffers();
+}
+
+
+</pre>
+      <p> 
+
+<center><img src="chapter4/shademodel/release/shade.jpg"><br>
+Исходный файл смотрите <a href="chapter4/shademodel/shademodel.c">здесь</a>.
+Исполняемый файл <a href="chapter4/shademodel/release/shademodel.exe">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc4.4>4.4</a>&nbsp;&nbsp;Прозрачность</h2>
+      <a name=Alpha></a>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+С помощью четвертого компонента цвета можно получать различные 
+      эффекты наложения объктов друг на друга, наложения цветов и т.п. Здесь я 
+      расскажу о наиболее нужном и распрострененном эффекте - прозрачности объектов. 
+      Для того, чтобы разрешить обрабатывать четвертый компонент цвета вы должны 
+      вызвать функцию glEnable с аргументом <a name=GL\_ALPHA\_TEST44></a>GL_ALPHA_TEST. 
+      Для получения требуемого эффекта прозрачности нужно разрешить наложение 
+      цветов - glEnable(GL_BLEND). <a name=GL\_BLEND44></a>И установить алгоритм, 
+      по которуму будут смешиваться два цвета - glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA). 
+      Учтите, что эти режимы очень затормаживают вывод изображения, поэтому я 
+      не рекомендую устанавливать эти режимы глобально, для воспроизведения всех 
+      объектов. Выделите из ваших объектов те, которым требуется этот режим, 
+      включайте и отключайте его своевременно. Именно поэтому, эти тесты я разместил 
+      в функции display. Создайте новый проект с именем transperence и отредактируйте 
+      функцию display, как показано ниже. 
+      <pre> 
+void CALLBACK display(void)
+{
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+  glEnable(GL_ALPHA_TEST);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glColor4d(1,0,0, 1);
+  auxSolidSphere( 1 );
+  
+  glColor4d(0,1,0, 0.6);
+  auxSolidCylinder(2,3);
+  
+  glDisable(GL_BLEND);
+  glDisable(GL_ALPHA_TEST);
+  
+  auxSwapBuffers();
+}    
+</pre>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      В заключение, добавлю, что если вы поменяете местами создание цилиндра и 
+      сферы, то никакого эффекта прозрачности не увидите. Это не баг, а фича - 
+      так задумано. Секрет прост: вы должны сначала рисовать дальние объекты, а 
+      потом ближние. Связано это с тем, что выполняется тест глубины. Теперь смотрите, 
+      что получается. Если вы сначала рисуете сферу(она удалена), а потом цилиндр, 
+      то выполняется это следующим образом. 
+      <ol type=1>
+        <p> 
+        <li>Создаем сферу. 
+        <li>Выполняется тест глубины успешно, т.к. цилиндра пока нет. 
+        <li>В буфере рисуется сфера. 
+        <li>Создаем цилиндр. 
+        <li>Выполняется тест глубины успешно, т.к. стенка цилиндра ближе, чем 
+          сфера. 
+        <li>В буфере рисуется цилиндр, он закрывает сферу с учетом прозрачности. 
+        </li>
+      </ol>
+      <p>Теперь смотрим, что происходит, если сначала нарисовать цилиндр, потом 
+        сферу. 
+      <ol type=1>
+        <p> 
+        <li>Создаем цилиндр. 
+        <li>Выполняется тест глубины успешно. 
+        <li>В буфере рисуется цилиндр. 
+        <li>Создаем сферу. 
+        <li>Вполняется тест глубины аварийно, т.к. сфера создается за цилиндром. 
+        <li>В буфере ничего не рисуется. </li>
+      </ol>
+      <p>В последнем случае вы увидите один цилиндр. 
+      <p> 
+
+<center><img src="chapter4/transparence/release/transp.jpg"><br>
+Исходный файл смотрите <a href="chapter4/transparence/transparence.c">здесь</a>.
+Исполняемый файл <a href="chapter4/transparence/release/transparence.exe">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc4.5>4.5</a>&nbsp;&nbsp;Упражнение: "Снег"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Ранее рассматривалось приложение "Снеговик". Анимацию создавать вы тоже уже 
+      научились. Добавьте косой снег, только сделайте снеговика прозрачным, чтобы 
+      снежинки как бы пролетали сквозь него.     
+
+      <h2><a name=tth_sEc4.6>4.6</a>&nbsp;&nbsp;Плоскости отсечения</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Если вам требуется нарисовать сферу или любой другой объект урезанным, то 
+      плоскости отсечения это то, что вам надо. Плоскостей отсечения может быть шесть 
+      штук. По умолчанию они все запрещены. Плоскость  отсечения включается командой 
+      glEnable(GL_CLIP_PLANE0). <a name=GL\_CLIP\_PLANE46></a>Ноль на конце GL_CLIP_PLANE 
+      означает нулевую плоскость; можно указать один, два, три и т.д. Сама плоскость 
+      устанавливается функцией glClipPlane. <a 
+name=glClipPlane46></a>Первый аргумент этой функции - это плоскость, второй - это 
+      массив из четырех элементов, в котором хранятся коэффициенты уравнения плоскости. 
+      Для тех, кто не помнит уравнения плоскости в трехмерном пространстве, напоминаю: 
+      A*x+B*y+C*z+D = 0. Вот эти самые A,B,C,D и являются теми четырьмя коэффициентами. 
+      Создайте новый проект с именем ClipPlane и отредактируйте функцию display, 
+      как показано ниже. 
+      <pre>void CALLBACK display(void)
+{
+GLdouble equation[4] = {-1,-0.25,0,2};
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+ glEnable(GL_CLIP_PLANE0);
+ glClipPlane(GL_CLIP_PLANE0, equation); 
+ 
+    glColor3d(1,0,0);
+    auxSolidSphere( 3 );
+
+ glDisable(GL_CLIP_PLANE0);
+ 
+  auxSwapBuffers();
+}
+</pre>
+      <p> 
+<center><img src="chapter4/clipplane/release/clip.jpg"><br>
+Исходный файл смотрите <a href="chapter4/clipplane/clipplane.c">здесь</a>.
+Исполняемый файл <a href="chapter4/clipplane/release/clipplane.exe">здесь</a>.
+</center><br>    
+
+      <h2><a name=tth_sEc4.7>4.7</a>&nbsp;&nbsp;Упражнение: "Три плоскости"</h2>
+      Добавьте еще две плоскости. Расположите их так, чтобы они отсекали двумерный 
+      угол [(<font face=symbol>p</font>)/2].     
+
+      <h2><a name=tth_sEc4.8>4.8</a>&nbsp;&nbsp;Трафарет I</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Зачем это может понадобиться, я не очень представляю. 
+      Рисовать прерывистую линию вы уже умеете. Трафарет - 
+      это то же самое, только для многоугольников. Вы разрешаете тест трафарета 
+      командой glEnable(GL_POLYGON_STIPPLE). <a name=GL\_POLYGON\_STIPPLE48></a>Аналогично, 
+      как и в случае с линями, нужно загружать массив, который задает битовую 
+      маску. Размер трафарета строго оговорен - 32х32 пикселя. 32х32 равняется 
+      1024. 1024 делим на восемь бит, получаем 128 байт, т.е., чтобы закодировать 
+      трафарет, нужен массив из 128-ми байт. Тут уже, как в случае с линиями, калькулятором 
+      не посчитаешь. Поэтому я написал утилиту - <a href="pcx_2bpp/release/pcx_2bpp.exe">pcx_2bpp</a>, 
+      которая конвертирует 
+      pcx-файл в формате два бита на пиксель в массив на языке Си. Запускается она 
+      так: 
+      <pre> &gt;pcx_2bpp filename.pcx &gt;array.c
+</pre>
+ <p align=justify>
+      Утилиту можете взять на моем сервере в архиве с исходными текстами программ(см. приложения А).
+      Знак "больше" означает перенаправление стандартного вывода в файл array.c. 
+      Эта утилита абсолютно переносима. Нарисовав в каком-нибудь графическом пакете 
+      рисунок в формате 32х32х2bpp, сохраните его и обработайте моей утилитой. 
+      Получите массив, который вставьте в свою программу. В фунции main добавьте 
+      следующий код: <a name=glPolygonStipple48></a>
+      <pre>glEnable(GL_POLYGON_STIPPLE);
+glPolygonStipple(array); 
+</pre>   
+
+      <h2><a name=tth_sEc4.9>4.9</a>&nbsp;&nbsp;Упражнение: "Совершенствуем Arcanoid"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+      Не знаю, правильно ли сказал. Мне кажется, что уродуем, а не совершенствуем. 
+      В общем, наложите трафарет на подставку и шар. Когда увидите трафарет на 
+      шаре, то поймете, что "Уродуем". 
+
+      <p> 
+<center><img src="chapter4/arcanoid/release/arcanoid.jpg"><br>
+Исходный файл смотрите <a href="chapter4/arcanoid/arcanoid.c">здесь</a>.
+Исполняемый файл <a href="chapter4/arcanoid/release/arcanoid.exe">здесь</a>.
+</center><br> 
+
+      <h2><a name=tth_sEc4.10>4.10</a>&nbsp;&nbsp;Туман</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+  Еще одна мелочь, которую мы рассмотрим - это включение тумана. 
+За основу возьмем нашего снеговика.
+Надо сказать, что
+ведет туман себя довольно странно. Если его цвет  установить белым, то при увелечении
+плотности тумана снеговик становится полностью белым, причем даже те его места, которые 
+изначально  были черными, т.к. не освещались. Когда я установил цвет тумана 
+темно-серым - (0.25, 0.25, 0.25), то при увелечении плотности не освещенные его части
+как им и положено оставались черными, а видимые теряли яркость. Я скорее охарактерезовал
+бы средство тумана, как средство для изменения яркости, потому как на реальный туман, это к сожалению,
+не похоже. Итак, создайте новый проект с именем fog, скопируйте snowman.c в fog.c.
+Для того чтобы включить туман и поэксперементировать с его влиянием на изображение
+мы добавим две функции, которые будут обрабатывать события от стрелок вверх\вниз 
+на клавиатуре. Код этих функций выглядит так, включите его сразу после включения
+заголовочных файлов:
+<pre>
+float density;
+
+void CALLBACK Key_UP(void )
+{
+	density+=(float)0.1;
+	glFogf(GL_FOG_DENSITY, density);
+}
+
+
+void CALLBACK Key_DOWN(void )
+{
+ density-=(float)0.1;
+ glFogf(GL_FOG_DENSITY, density);
+}
+</pre>
+<p align=justify>
+ Я также ввел глобальную переменную density, в ней хранится плотность тумана.
+При нажатие стрелок вверх\вниз будет вызываться соответсвующая функция и будет 
+изменено значение тумана. Снеговик у нас все время перерисовывается, поэтому при следующей 
+отрисовке кадра значение тумана обновится. Теперь надо отредактировать 
+функцию main, добавленный код выделен серым фоном:
+<pre>
+void main()
+{
+	float pos[4] = {3,3,3,1};
+	float dir[3] = {-1,-1,-1};
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+        float fogcolor[4] = {0.25,0.25,0.25,1}; // цвет тумана
+</pre></td></tr></table>
+
+    auxInitPosition( 50, 10, 400, 400);
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    auxInitWindow( "Snowman" );
+    auxIdleFunc(display);
+    auxReshapeFunc(resize);
+
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+    auxKeyFunc(AUX_UP, Key_UP);            // устанавливаем обработчик 
+    auxKeyFunc(AUX_DOWN, Key_DOWN);        // стрелок вверх/вниз
+
+    glEnable(GL_FOG);                      // разрешаем туман
+    glGetFloatv(GL_FOG_DENSITY, &density); // получаем значение плотности
+    glFogfv(GL_FOG_COLOR, fogcolor);       // устанавливаем цвет тумана
+</pre></td></tr></table>	
+
+    glEnable(GL_ALPHA_TEST);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+
+	    
+    auxMainLoop(display);
+}
+</pre>
+Я полагаю здесь все ясно, прокомментирую тут только одну функцию:
+<pre>
+    glGetFloatv(GL_FOG_DENSITY, &density);
+</pre>
+<p align=justify>
+  С помощью этой функции я получаю значение плотности тумана, установленное 
+по умолчанию. Первый аргумент этой функции указывает OpenGL значение какого параметра мы хотим получить.
+Второй аргумент - это адрес в памяти куда будет записано значение данного параметра.
+
+      <h2><a name=tth_sEc4.11>4.11</a>&nbsp;&nbsp;Логические операции</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Логические операции позволяют вам складывать цвет фрагмента находящегося в 
+буфере с цветом, который туда поступает. Этот режим разрешается и запрещается
+вызовом функций glEnable\glDisable с параметром GL_COLOR_LOGIC_OP. Правило, 
+по которому будут складываться цвета задается функцией glLogicOp.
+У нее один параметр - одна из следующих констант определенных в файле gl.h.
+<pre>
+/* LogicOp */
+#define GL_CLEAR                          0x1500
+#define GL_AND                            0x1501
+#define GL_AND_REVERSE                    0x1502
+#define GL_COPY                           0x1503
+#define GL_AND_INVERTED                   0x1504
+#define GL_NOOP                           0x1505
+#define GL_XOR                            0x1506
+#define GL_OR                             0x1507
+#define GL_NOR                            0x1508
+#define GL_EQUIV                          0x1509
+#define GL_INVERT                         0x150A
+#define GL_OR_REVERSE                     0x150B
+#define GL_COPY_INVERTED                  0x150C
+#define GL_OR_INVERTED                    0x150D
+#define GL_NAND                           0x150E
+#define GL_SET                            0x150F
+</pre>
+<p align=justify>
+ Мне не удалось найти разумного применения
+этой функции поэтому я приведу здесь лишь текст моей программы с комментариями, которая
+позволяет перебрать и посмотреть действие всех логических операций. Как и в предыдущем 
+пункте у меня определена глобальная переменная и две функции реагирующие на нажатие
+стрелок на клавеатуре. 
+<pre>
+/*
+ * (c) Copyright 1995-2000, Igor Tarasov
+ * FidoNet: 2:5020/370.2 620.20 1103.5
+ * email: igor@itsoft.miem.edu.ru itarasov@rtuis.miem.edu.ru
+ * Phone: (095)916-89-51 916-89-63
+ */
+
+#include <windows.h>
+
+#include &lt;GL/gl.h&gt;
+#include &lt;GL/glu.h&gt;
+#include &lt;GL/glaux.h&gt;
+
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+int logicop = GL_CLEAR;
+
+void CALLBACK Key_UP(void )
+{
+	if(logicop&lt;GL_SET)
+		logicop++;
+}
+
+void CALLBACK Key_DOWN(void )
+{
+ if(logicop&gt;GL_CLEAR)
+	 logicop--;
+}
+</pre></td></tr></table>	
+
+void CALLBACK resize(int width,int height)
+{
+   glViewport(0,0,width,height);
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+   glOrtho(-5,5, -5,5, 2,12);   
+   gluLookAt( 0,0,5, 0,0,0, 0,1,0 );
+   glMatrixMode( GL_MODELVIEW );
+}    
+
+
+
+void CALLBACK display(void)
+{
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+ 
+
+  glColor4d(1,0,0, 1);
+  auxSolidSphere( 1 );
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+glEnable(GL_COLOR_LOGIC_OP);
+glLogicOp(logicop);
+</pre></td></tr></table>	
+  glColor4d(0,1,0, 0.7);
+  auxSolidCylinder(2,3);
+
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+glDisable(GL_COLOR_LOGIC_OP);
+</pre></td></tr></table>	
+  auxSwapBuffers();
+
+}
+
+
+
+void main()
+{
+float pos[4] = {3,3,3,1};
+float dir[3] = {-1,-1,-1};
+
+    GLfloat mat_specular[] = { 1,1,1,1};
+
+
+    auxInitPosition( 50, 10, 400, 400);
+    auxInitDisplayMode( AUX_RGB | AUX_DEPTH | AUX_DOUBLE );
+    auxInitWindow( "Glaux Template" );
+    auxIdleFunc(display);
+    auxReshapeFunc(resize);
+
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>  
+    auxKeyFunc(AUX_UP, Key_UP);
+    auxKeyFunc(AUX_DOWN, Key_DOWN);
+</pre></td></tr></table>	
+  
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_COLOR_MATERIAL);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+//    glLightfv(GL_LIGHT0, GL_POSITION, pos);
+//    glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, dir);
+</pre></td></tr></table>	
+
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, 128);
+
+
+    auxMainLoop(display);
+}
+
+</pre>
+
+      <h2><a name=tth_sEc4.12>4.12</a>&nbsp;&nbsp;Трафарет II</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Ранее вы познакомились с надоложение трафарета состоящего из массива бит 32х32 точки.
+Недостатки такого трафарета в его небольшой площади и то, что каждые его элемент
+является битом, т.е. у такого трафарета всего две зоны(рисуем и не рисуем). 
+Далее вы познакомитесь с полноценным трафаретом.
+<br>&nbsp;&nbsp;&nbsp;&nbsp;
+В OpenGL есть буфер трафарета, который предоставляет огромные возможности для творчества.
+Тест трафарета на мой взгляд бесспорно полезная вещь. С ее помощью реализуются самые
+разнообразные эффекты, начиная от простого вырезания одной фигуры из другой до реализации
+теней, отражений и прочих нетривиальных функций, требующих от вас уже не только знакомство
+с библиотекой OpenGL, но и понимания алгоритмов машинной графики.
+Здесь мы рассмотрим самое простое применение буфера трафарета. Пусть у нас есть
+два объекта на экране - сфера и куб, и пусть сфера находится внутри куба и немного
+из него выходит за его грани.
+      <p> 
+<center><img src="chapter4/stencil/release/sc.jpg"><br>
+  рис. 4.12.1
+</center><br> 
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+  Мы поставим себе задачу изобразить три рисунка:
+куб минус сфера, сфера минус куб, пересечение куба и сферы. Как вы понимаете объединение
+куба и сферы выводится без всякого буфера трафарете по умолчанию. Собственно говоря, 
+оно(объединение) изображено на рисунке 4.12.1. Теперь о том, что такое трафарет и как им 
+пользоваться. Трафарет это двумерный массив целых переменных(тип int). Каждому пикселю
+в окне соответствует один элемент массива. Использование буфера трафарета
+происходит в два этапа. Сначала вы его заполняете, потом основываясь на его 
+содержимом рисуете ваши объекты. Буффер трафарета заполняется следующим образом.
+Вы делите окно вывода на зоны и каждой зоне присваеваете свое значение. Например, для 
+рисунка 4.12.1 область, где нет ничего будет заполнена нулями, область, где выведен куб
+заполнена единицами и область, где видна сфера двойками. Обратите внимание, что буффер
+трафарета - это двумерный массив, а не трехмерный. Теперь вы легко можете представить
+себе эти области, они собственно и изображены на приведенном рисунке. Также заметьте, что цвет здесь роли 
+не играет. Я бы мог вывести все черным цветом, а буфер трафарета заполнился в зависимости
+от геометричеких размеров фигур и от их пересечения. Далее мы рассмотрим
+функции библиотеки OpenGL для работы с трафаретом. Тест трафарета разрешается при помощи
+функций glEnable\glDisable с параметром GL_STENCIL_TEST. Очищается буфер трафарета 
+при помощи функции glClear с параметром GL_STENCIL_BUFFER_BIT.
+ Заполнение буфера трафарета 
+происходит при помощи следующих двух функций:
+<pre>
+void glStencilFunc(GLenum func, GLint ref, GLuint mask)
+void glStencilOp(GLenum fail, GLenum zfail, GLenum zpass)
+</pre>
+<p align=justify>
+Первая функция задает правило, по которому будет определяться пройден тест трафарета
+или нет. Переменная func может принимать одно из следующих значений:</p>
+<table width=100% border=1>
+<tr><td>GL_NEVER</td><td>Не проходит</td></tr>
+<tr><td>GL_LESS</td><td>Проходит if ( ref & mask) < ( stencil & mask)</td></tr>
+<tr><td>GL_LEQUAL</td><td>Проходит if ( ref & mask) ? ( stencil & mask)</td></tr>
+<tr><td>GL_GREATER</td><td>Проходит if ( ref & mask) > ( stencil & mask)</td></tr>
+<tr><td>GL_GEQUAL</td><td>Проходит if ( ref & mask) ? ( stencil & mask)</td></tr>
+<tr><td>GL_EQUAL</td><td>Проходит if ( ref & mask) = ( stencil & mask)</td></tr>
+<tr><td>GL_NOTEQUAL</td><td>Проходит if ( ref & mask) ? ( stencil & mask)</td></tr>
+<tr><td>GL_ALWAYS</td><td>Всегда проходит</td></tr> 
+</table>
+<p align=justify>
+ Если тест трафарета не пройден, то фрагмент(пикселы) фигуры не прорисовываются в данном 
+месте, т.е. они не попадают в буффер кадра. Если тест пройден, то фигура рисуется.
+Вторая функция позволяет задать, как будет инициализироваться буфер трафарета.
+Параметры fail, zfail и zpass могут принимать одно из следующих значений:</p>
+<table width=100% border=1>
+<tr><td>GL_KEEP</td><td>Сохранить текущее значение в буфере трафарета</td></tr>
+<tr><td>GL_ZERO</td><td>Установить значение буфера трафарета в ноль</td></tr>
+<tr><td>GL_REPLACE</td><td>Заменить значение буфера трафарета на значение переменной 
+ref, заданной функцие glStencilOp</td></tr>
+<tr><td>GL_INCR</td><td>Увеличить на единицу</td></tr>
+<tr><td>GL_DECR</td><td>Уменьшить на единицу</td></tr>
+<tr><td>GL_INVERT</td><td>Поразрадно инвертировать</td></tr>
+</table>
+<p align=justify>
+В случае непрохождения теста трафарета над фрагментом выполняется действие определенной
+парамметром fail. Например, если мы хотим заполнить область трафарета, где рисуется
+куб единицами, то можно использовать следующи код:
+<pre>
+glStencilFunc(GL_NEVER, 1, 0); // значение mask не используется
+glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);  
+auxSolidCube(2.5);
+</pre>
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Объясняю подробней, первая функция говорит о том, что тест трафарета 
+всегда проходит неудачно. Вторая функция задает, что в случае неудачного теста
+трафарета заменить значение храняцееся в буфере трафарета на значение переменной ref,
+а его мы задали равным единице. В результате, на экране ничего не нарисуется т.к.
+тест трафарета завершался неудачно, но в буфере трафарета мы получили проекию
+куба из единичек, т.е. буфер трафарета заполнен не только нулями. 
+Теперь мы хотим заполнить двойками область, где прорисовывается сфера.
+Здесь мы уже должны учитывать буфер глубины, иначе мы заполним двойками всю область,
+где у нас рисуется сфера. Для того чтобы учитывать буфер глубины тест трафарета должен
+завершиться положительно. Третий параметр zpass функции glStencilOp как раз
+указывает, что делать, если тест трафарета прошел, а тест глубины нет.
+Поэтому код выглядит так:
+<pre>
+glStencilFunc(GL_ALWAYS, 2, 0); // значение mask не используется
+glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);  
+auxSolidSphere(1.5);
+</pre>
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+В результате получаем буфер трафарета заполненный нулями, где ничего не было,
+единицами, где виден куб и двойками, где видна сфера. В последнем примере тест трафарета прошел успешно, поэтому
+на экране была нарисована сфера. Но это нам не мешает мы очистим буфер глубины
+и буфер цвета, но не буфер трафарета.
+<pre>
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+</pre>
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+Теперь дело техники нарисовать тотже самый куб без сферы. Надо установить, что
+тест трафарета проходит, если значение находящееся в буфере трафарета совпадает со сзначением 
+второго параметра функции glStencilFunc. Как вы помните куб в буфере трафарета имел значение 
+единицы. Поэтому получаем:
+<pre>
+ glStencilFunc(GL_EQUAL, 1, 255); // куб рисуется только там, где
+                            // в буфере трафарета лежат единицы
+ glColor3d(1,1,1);
+ auxSolidCube(2.5);
+</pre>
+
+ Создайте новый проект с именем stencil.
+Скопируйте glaux.c в  stencil.c и отредактируйте функцию display следующи образом:
+<pre>
+void CALLBACK display(void){
+ // очищаем все буферы
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+ // разрешаем тест трафарета
+ glEnable(GL_STENCIL_TEST);
+
+ // рисуем куб и заполняем буффер трафарета единицами
+ // в том месте, где рисуется куб
+ // тут у меня немного по другому, чем я выше было разоьрано,
+ // но действие выполняется анологичное
+ glStencilFunc(GL_ALWAYS, 1, 0);
+ glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+ auxSolidCube(2.5);
+
+ // заполняем буффер трафарета двойками
+ // в том месте, где сфера закрывает куб
+ glStencilFunc(GL_ALWAYS, 2, 0);
+ glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+ auxSolidSphere(1.5);
+
+ // очищаем буфферы цвета и глубины
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+ glStencilFunc(GL_EQUAL, 1, 255);
+ glColor3d(1,1,1);
+ auxSolidCube(2.5);
+
+ // вращаем сцену
+glRotated(3, 1,0,0);
+glRotated(5, 0,1,0);
+glRotated(7, 0,0,1);
+
+auxSwapBuffers();}
+</pre>
+
+      <p> 
+<center><img src="chapter4/stencil/release/c.jpg"><br>
+  рис. 4.12.2
+</center><br> 
+<p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Теперь давайте немного приукрасим нашу программу. Давайте внутри куба нарисуем
+красный шар, который будут опоясывать зеленый и синий тор. Делается это следующим
+ образом. Как и в предыдущей программе вы составляете буфер трафарета, после чего
+очищаете буфер глубины и цета, запрещаете тест трафарета, т.к. нам надо просто вывести 
+фигуры без трафарета, выводите шар с торами, и, наконец, включает тест трафарета
+и выводите куб с отверстиями. Вот код фунции display:
+<pre>
+void CALLBACK display(void){
+ // очищаем все буферы
+ glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+ // разрешаем тест трафарета
+ glEnable(GL_STENCIL_TEST);
+
+ // рисуем куб и заполняем буффер трафарета единицами
+ // в том месте, где рисуется куб
+ // тут у меня немного по другому, чем я выше было разоьрано,
+ // но действие выполняется анологичное
+ glStencilFunc(GL_ALWAYS, 1, 0);
+ glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+ auxSolidCube(2.5);
+
+ // заполняем буффер трафарета двойками
+ // в том месте, где сфера закрывает куб
+ glStencilFunc(GL_ALWAYS, 2, 0);
+ glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+ auxSolidSphere(1.5);
+
+ // очищаем буфферы цвета и глубины
+glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+<table width=100%><tr><td bgcolor="#C0C0C0"><pre>
+// запрещаем тест трафарета и рисуем красную сферу
+glDisable(GL_STENCIL_TEST);
+glColor3d(1,0,0);
+auxSolidSphere(0.5);
+//синий тор
+glColor3d(0,0,1);
+auxSolidTorus(0.15, 0.6);
+// зеленый тор, повернутый на 90 градусов относительно синего
+glColor3d(0,1,0);
+glPushMatrix();
+glRotated(90, 1,0,0);
+auxSolidTorus(0.15, 0.6);
+glPopMatrix();
+
+ //снова разрешаем тест трафарета
+ glEnable(GL_STENCIL_TEST);
+</pre></td></tr></table>
+
+ glStencilFunc(GL_EQUAL, 1, 255);
+ glColor3d(1,1,1);
+ auxSolidCube(2.5);
+
+ // вращаем сцену
+glRotated(3, 1,0,0);
+glRotated(5, 0,1,0);
+glRotated(7, 0,0,1);
+
+auxSwapBuffers();}
+</pre>
+
+    
+      <p> 
+<center><img src="chapter4/stencil/release/ctts.jpg"><br>
+Исходный файл смотрите <a href="chapter4/stencil/stencil.c">здесь</a>.
+Исполняемый файл <a href="chapter4/stencil/release/stencil.exe">здесь</a>.
+</center><br>
+
+      <h2><a name=tth_sEc4.13>4.13</a>&nbsp;&nbsp;Упражнение "сфера минус куб"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Напишите программу, в которой будет крутиться сфера минус куб.
+
+      <h2><a name=tth_sEc4.14>4.14</a>&nbsp;&nbsp;Упражнение "пересечение сферы и куба"</h2>
+ <p align=justify>&nbsp;&nbsp;&nbsp;&nbsp;
+ Напишите программу, в которой будет крутиться пересечение сферы и куба.
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>

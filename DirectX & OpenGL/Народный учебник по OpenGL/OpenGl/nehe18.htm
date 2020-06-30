@@ -1,0 +1,510 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 18 по OpenGL. Квадратирование</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe18.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 18. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 18 по OpenGL. Квадратирование</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=18" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Quadratics</b></font></a>
+<br>
+<br>
+</p>
+          <p class=textword>Квадратирование (<span lang=EN-US>quadratic</span>) 
+            - это способ отображения сложных объектов, обычно для рисования которых, 
+            нужно несколько циклов FOR и некоторые основы тригонометрии. (Прим. 
+            переводчика: квадратирование - представление сложных объектов с использованием 
+            четырехугольников).</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textword>Мы будем использовать код 7-ого урока. Мы добавим 
+            7 переменных и изменим текстуру для разнообразия.</p>
+          <p class=textword>&nbsp;</p>
+<p class=textpreword>#include &lt;windows.h&gt;         // Заголовочный файл для 
+  Windows</p>
+<p class=textpreword>#include &lt;stdio.h&gt;           // Заголовочный файл для 
+  стандартной библиотеки ввода/вывода</p>
+<p class=textpreword>#include &lt;gl\gl.h&gt;           // Заголовочный файл для 
+  библиотеки OpenGL32</p>
+<p class=textpreword>#include &lt;gl\glu.h&gt;          // Заголовочный файл для 
+  библиотеки GLu32 </p>
+<p class=textpreword>#include &lt;gl\glaux.h&gt;        // Заголовочный файл для 
+  библиотеки GLaux </p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>HDC           hDC=NULL;      // Приватный контекст 
+            устройства GDI</p>
+          <p class=textpreword>HGLRC         hRC=NULL;      // Постоянный контекст 
+            рендеринга</p>
+          <p class=textpreword>HWND          hWnd=NULL;     // Сохраняет дескриптор 
+            окна</p>
+          <p class=textpreword>HINSTANCE     hInstance;     // Сохраняет экземпляр приложения</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>bool   keys[256];            // Массив для работы с клавиатурой</p>
+          <p class=textpreword>bool   active=TRUE;          // Флаг активации 
+            окна, по умолчанию = TRUE</p>
+          <p class=textpreword>bool   fullscreen=TRUE;      // Флаг полноэкранного 
+            вывода</p>
+          <p class=textpreword>bool   light;              <span>  </span>// Освещение 
+            Вкл/Выкл</p>
+          <p class=textpreword>bool   lp;                   // L нажата?</p>
+          <p class=textpreword>bool   fp;                   // F нажата?</p>
+          <p class=textpreword>bool   sp;                   // Пробел нажат? ( 
+            НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>int    part1;                // Начало диска ( 
+            НОВОЕ )</p>
+          <p class=textpreword>int    part2;                // Конец диска  ( 
+            НОВОЕ )</p>
+          <p class=textpreword>int    p1=0;                 // Приращение 1 ( 
+            НОВОЕ )</p>
+          <p class=textpreword>int    p2=1;                 // Приращение 2 ( 
+            НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>GLfloat xrot;                // X вращение</p>          
+          <p class=textpreword>GLfloat yrot;                // Y вращение</p>
+          <p class=textpreword>GLfloat xspeed;              // X скорость вращения</p>
+          <p class=textpreword>GLfloat yspeed;              // Y скорость вращения</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>GLfloat       z=-5.0f;       // Глубина экрана</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>GLUquadricObj *quadratic;    // Место для хранения объекта 
+            Quadratic ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>GLfloat LightAmbient[]=  { 0.5f, 0.5f, 0.5f, 1.0f };       
+  // Фоновое значение света</p>
+          <p class=textpreword>GLfloat LightDiffuse[]=  { 1.0f, 1.0f, 1.0f, 1.0f 
+            };       // Значение рассеянного света</p>
+<p class=textpreword>GLfloat LightPosition[]= { 0.0f, 0.0f, 2.0f, 1.0f };       
+  // Позиция источника</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>GLuint filter;                                 
+            // Какой фильтр использовать</p>
+          <p class=textpreword>GLuint texture[3];                             
+            // Место для 3-х текстур</p>
+          <p class=textpreword>GLuint object=0;                               // Какой объект 
+            рисовать ( НОВОЕ )</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>LRESULT       CALLBACK WndProc(HWND, UINT, WPARAM, 
+            LPARAM);       // Объявление<span
+lang=EN-US> WndProc</span></p>
+          <p class=textpreword><span lang=EN-US>&nbsp; </span></p>
+          <p class=textword>Ок. Теперь обратимся к InitGL(). Мы собираемся добавить 
+            3 строчки кода, для инициализации нашего квадратичного объекта. Добавьте 
+            эти 3 строки после инициализации освещения (light1), но до строки 
+            return true. Первая строка инициализирует квадратичный объект и создает 
+            указатель на то место в памяти, где он будет содержаться. Если он 
+            не может быть создан, то будет возвращен 0. Вторая строка кода создает 
+            плавные нормали на квадратичном объекте, поэтому освещение будет выглядеть 
+            хорошо. Другое возможное значение - GL_NONE и GL_FLAT. Наконец, мы 
+            включим текстурирование на нашем квадратичном объекте.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       quadratic=gluNewQuadric();     // Создаем 
+            указатель на квадратичный объект ( НОВОЕ )</p>
+          <p class=textpreword>       gluQuadricNormals(quadratic, GLU_SMOOTH); // 
+            Создаем плавные нормали ( НОВОЕ )</p>
+          <p class=textpreword>       gluQuadricTexture(quadratic, GL_TRUE);    
+            // Создаем координаты текстуры ( НОВОЕ )</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Теперь я решил оставить куб в этом уроке, так, чтобы 
+            вы смогли увидеть, как текстура отображается на квадратичном объекте. 
+            Я решил поместить куб в отдельную функцию, поэтому, когда мы напишем 
+            функцию рисования, она станет намного проще. Все узнают этот код.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>GLvoid glDrawCube()              // Рисование куба</p>
+<p class=textpreword>{</p>
+          <p class=textpreword>       glBegin(GL_QUADS);               // Начинаем рисовать 
+            четырехугольники</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>       // Передняя сторона</p>
+          <p class=textpreword>       glNormal3f( 0.0f, 0.0f, 1.0f);   // Нормаль 
+            вперед</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f, -1.0f,  1.0f); // Низ 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f, -1.0f,  1.0f); // Низ 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f,  1.0f,  1.0f); // Верх 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f,  1.0f,  1.0f); // Верх 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>       // Задняя сторона</p>
+          <p class=textpreword>       glNormal3f( 0.0f, 0.0f,-1.0f);   // Обратная 
+            нормаль</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f, -1.0f, -1.0f); // Низ 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f,  1.0f, -1.0f); // Верх 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f,  1.0f, -1.0f); // Верх 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f, -1.0f, -1.0f); // Низ 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>       // Верхняя грань</p>
+          <p class=textpreword>       glNormal3f( 0.0f, 1.0f, 0.0f);   // Нормаль 
+            вверх </p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f,  1.0f, -1.0f); // Верх 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f,  1.0f,  1.0f); // Низ 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f,  1.0f,  1.0f); // Низ 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f,  1.0f, -1.0f); // Верх 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>       // Нижняя грань</p>
+          <p class=textpreword>       glNormal3f( 0.0f,-1.0f, 0.0f);   // Нормаль 
+            направлена вниз</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f, -1.0f, -1.0f); // Верх 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f, -1.0f, -1.0f); // Верх 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f, -1.0f,  1.0f); // Низ 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f, -1.0f,  1.0f); // Низ 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>       // Правая грань</p>
+          <p class=textpreword>       glNormal3f( 1.0f, 0.0f, 0.0f);   // Нормаль 
+            направлена вправо</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f, -1.0f, -1.0f); // Низ 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f,  1.0f, -1.0f); // Верх 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f,  1.0f,  1.0f); // Верх 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f( 1.0f, -1.0f,  1.0f); // Низ 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textpreword>       // Левая грань</p>
+          <p class=textpreword>       glNormal3f(-1.0f, 0.0f, 0.0f);   // Нормаль 
+            направлена влево</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f, -1.0f, -1.0f); // Низ 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 0.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f, -1.0f,  1.0f); // Низ 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(1.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f,  1.0f,  1.0f); // Верх 
+            Право на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glTexCoord2f(0.0f, 1.0f);</p>
+          <p class=textpreword>        glVertex3f(-1.0f,  1.0f, -1.0f); // Верх 
+            Лево на текстуре и четырехугольнике</p>
+          <p class=textpreword>       glEnd();                         // Заканчиваем 
+            рисование четырехугольника</p>
+          <p class=textpreword>}</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Следующая функция - DrawGLScene. Я просто только написал 
+            <span
+lang=EN-US>case</span><span lang=EN-US> </span>оператор для рисования разных объектов. 
+            Так же я использовал статическую переменную (локальная переменная, 
+            которая сохраняет свое значение каждый раз при вызове) для крутого 
+            эффекта, когда рисуем часть диска. Я собираюсь переписать всю функцию 
+            DrawGLScene для ясности.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textword>Заметьте, что когда я говорю о параметрах, которые 
+            используются, я пропускаю первый параметр (quadratic). Этот параметр 
+            используется для всех объектов, которые мы  рисуем, за исключением 
+            куба, поэтому я его пропускаю, когда говорю о параметрах.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>int DrawGLScene(GLvoid)                 // Здесь 
+            мы все рисуем</p>
+<p class=textpreword>{</p>
+          <p class=textpreword>       // Очистка видео буфера и буфера глубины</p>
+          <p class=textpreword>       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);</p>
+          <p class=textpreword>       glLoadIdentity();                // Сбрасываем 
+            вид</p>
+          <p class=textpreword>       glTranslatef(0.0f,0.0f,z);       // Перемещаемся 
+            вглубь экрана</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>       glRotatef(xrot,1.0f,0.0f,0.0f);  // Вращение 
+            по оси X </p>
+          <p class=textpreword>       glRotatef(yrot,0.0f,1.0f,0.0f);  // Вращение 
+            по оси Y </p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>       <span
+lang=EN-US>glBindTexture</span>(<span
+lang=EN-US>GL</span>_<span lang=EN-US>TEXTURE</span>_2<span lang=EN-US>D</span>, 
+            <span lang=EN-US>texture</span>[<span lang=EN-US>filter</span>]); 
+            // Выбираем фильтрацию текстуре</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textpreword>       // Эта секция кода новая ( НОВОЕ )</p>
+          <p class=textpreword>       switch(object)                   // Проверяем, 
+            какой объект рисовать</p>
+<p class=textpreword>       {</p>
+          <p class=textpreword>       case 0:                          // Рисуем 
+            первый объект</p>
+          <p class=textpreword>              glDrawCube();             // Рисуем 
+            наш куб</p>
+          <p class=textpreword>              break;                    // Закончили</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Второй объект, который мы создадим, будет цилиндр. 
+            Первый параметр (1.0f) – радиус основания цилиндра (низ). Второй параметр 
+            (1.0f) - это радиус цилиндра сверху. Третий параметр (3.0f) - это 
+            высота цилиндра (какой он длины). Четвертый параметр (32) – это сколько 
+            делений будет &quot;вокруг&quot; оси Z, и, наконец, пятый (32) - количество 
+            делений &quot;вдоль&quot; оси Z. Большее количество делений приведет 
+            к увеличению детализации объекта. Увеличивая количество делений, вы 
+            добавляете больше полигонов в объект. В итоге вы должны будем пожертвовать 
+            скоростью ради качества. Самое сложное - найти золотую середину.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       case 1:                          // Рисуем 
+            второй объект</p>
+          <p class=textpreword>              glTranslatef(0.0f,0.0f,-1.5f); // 
+            Центр цилиндра</p>
+          <p class=textpreword>              gluCylinder(quadratic,1.0f,1.0f,3.0f,32,32); 
+            // Рисуем наш цилиндр</p>
+          <p class=textpreword>              break;                    // Закончили</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Третий объект, который мы создадим, будет поверхность 
+            в виде CD диска. Первый параметр (0.5f) - внутренний радиус цилиндра. 
+            Его значение может быть нулевым, что будет означать, что внутри нет 
+            отверстия. Чем больше будет внутренний радиус - тем больше будет отверстие 
+            внутри диска. Второй параметр (1.5f) - внешний радиус. Это значение 
+            должно будь больше, чем внутренний радиус. Если сделать его значение 
+            чуть больше чем внутренний радиус, то получится тонкое кольцо. Если 
+            это значение будет намного больше, чем внутренний радиус, то получится 
+            толстое кольцо. Третий параметр (32) – количество кусочков, из которых 
+            состоит диск. Думайте об этих кусочках, как о частях пиццы. Чем больше 
+            кусочков, тем глаже будет внешняя сторона диска. И, наконец, четвертый 
+            параметр (32) - это число колец, которые составляют диск. Кольца похожи 
+            на треки на записи. Круги внутри кругов. Эти кольца делят диск со 
+            стороны внутреннего радиуса к внешнему радиусу, улучшая детализацию. 
+            Опять же, чем больше делений, тем медленнее это будет работать.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       case 2:                          // Рисуем 
+            третий объект</p>
+          <p class=textpreword>              gluDisk(quadratic,0.5f,1.5f,32,32); 
+            // Рисуем диск (в виде CD)</p>
+          <p class=textpreword>              break;                    // Закончили</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Наш четвертый объект - объект, о котором я знаю то, 
+            что многие умерли, создавая его. Это сфера! Создать ее очень просто. 
+            Первый параметр - это радиус сферы. Если вы не очень знакомы с понятием 
+            радиус/диаметр и т.д., объясняю, радиус - это расстояние от центра 
+            объекта, до внешней стороны объекта. В нашем случае радиус равен 1.3f. 
+            Дальше идет количество разбиений &quot;вокруг&quot; оси Z (32), и 
+            количество разбиений &quot;вдоль&quot; оси Z (32). Большее количество 
+            придаст сфере большую гладкость. Для того, чтобы сфера была достаточно 
+            гладкой, обычно необходимо большое количество разбиений.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       case 3:                          // Рисуем 
+            четвертый объект</p>
+          <p class=textpreword>              gluSphere(quadratic,1.3f,32,32); 
+            // Рисуем сферу<span lang=EN-US></span></p>
+          <p class=textpreword><span>       </span>       break;              
+                  // Закончили</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Чтобы создать наш пятый объект мы воспользуемся той 
+            же командой, что и для цилиндра. Если вы помните, когда мы создавали 
+            цилиндр, первые два параметра контролировали радиусы цилиндра сверху 
+            и снизу. Для того, чтобы сделать конус, имеет смысл сделать один из 
+            радиусов равный нулю. Это создаст точку на конце. Итак, в коде ниже 
+            мы делаем радиус на верхней стороне цилиндра равным нулю. Это создаст 
+            нашу точку, которая и сделает наш конус.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       case 4:                          // Рисуем 
+            пятый объект </p>
+          <p class=textpreword>              glTranslatef(0.0f,0.0f,-1.5f);  // 
+            Центр конуса</p>
+          <p class=textpreword>               // Конус с нижним радиусом .5 и высотой 2</p>
+          <p class=textpreword>              gluCylinder(quadratic,1.0f,0.0f,3.0f,32,32);</p>
+          <p class=textpreword>              break;                    // Закончили</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Наш шестой объект создан с помощью gluParticalDisc. 
+            Объект, который мы создадим этой командой точно такой же диск, который 
+            был до этого, но у команды gluParticalDisc есть еще 2 новых параметра. 
+            Пятый параметр (part1) - это угол, с которого мы хотим начать рисование 
+            диска. Шестой параметр - это конечный угол (или угол развертки). Это 
+            угол, который мы проходим от начального. Мы будем увеличивать этот 
+            угол, что позволит постепенно рисовать диск на экране, по направлению 
+            часовой стрелки. Как только конечный угол достигнет 360 градусов, 
+            мы начнем увеличивать начальный угол. Это будет выглядеть, как будто 
+            диск начал стираться, затем мы все начнем сначала!</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       case 5:                          // Рисуем 
+            шестой объект</p>
+          <p class=textpreword>              part1+=p1;                // Увеличиваем 
+            стартовый угол</p>
+          <p class=textpreword>              part2+=p2;                // Увеличиваем 
+            конечный угол</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>              if(part1&gt;359)             // 360 
+            градусов<span lang=EN-US></span></p>
+<p class=textpreword><span>       </span>       {</p>
+          <p class=textpreword><span>             </span>       p1=0;               
+            // Хватит увеличивать начальный угол</p>
+          <p class=textpreword>                    part1=0;            // Устанавливаем 
+            начальный угол в 0</p>
+          <p class=textpreword>                    p2=1;               // Начинаем 
+            увеличивать конечный угол</p>
+          <p class=textpreword>                    part2=0;            // Начиная 
+            с 0</p>
+<p class=textpreword>              <span lang=EN-US>}</span></p>
+          <p class=textpreword><span>       </span>       if(part2&gt;359)       
+                  // 360 градусов<span lang=EN-US></span></p>
+<p class=textpreword><span>       </span>       {</p>
+          <p class=textpreword><span>             </span>       p1=1;               
+            // Начинаем увеличивать начальный угол</p>
+          <p class=textpreword>                    p2=0;               // Перестаем 
+            увеличивать конечный угол</p>
+<p class=textpreword>              }<span lang=EN-US></span></p>
+          <p class=textpreword style='text-indent:35.4pt'>                     
+                               // Диск, такой-же как в прошлый раз</p>
+<p class=textpreword>              gluPartialDisk(quadratic,0.5f,1.5f,32,32,part1,part2-part1);<span
+lang=EN-US></span></p>
+          <p class=textpreword>              break;                    // Закончили</p>
+<p class=textpreword>       };</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>       xrot+=xspeed;                    // Увеличиваем 
+            угол поворота вокруг оси X </p>
+          <p class=textpreword>       yrot+=yspeed;                    // Увеличиваем 
+            угол поворота вокруг оси Y </p>
+          <p class=textpreword>       return TRUE;                     // Продолжаем<span lang=EN-US> 
+            </span></p>
+          <p class=textpreword><span lang=EN-US>}</span></p>
+          <p class=textpreword><span lang=EN-US>&nbsp; </span></p>
+          <p class=textword>Теперь, в последней части, обработка клавиш. Просто 
+            добавим это, туда, где происходит проверка нажатия клавиш.</p>
+          <p class=textword>&nbsp;</p>
+          <p class=textpreword>       if (keys[' '] &amp;&amp; !sp)            // 
+            Нажата клавиша &quot;пробел&quot;?</p>
+          <p class=textpreword>       {</p>
+          <p class=textpreword>              sp=TRUE;                  // Если так, то устанавливаем 
+            sp в TRUE</p>
+          <p class=textpreword>              object++;                 // Цикл 
+            по объектам</p>
+          <p class=textpreword>              if(object&gt;5)              // Номер 
+            объекта больше 5?</p>
+          <p class=textpreword>                    object=0;           // Если 
+            да, то устанавливаем 0</p>
+          <p class=textpreword>       }</p>
+          <p class=textpreword>       if (!keys[' '])                  // Клавиша 
+            &quot;пробел&quot; отпущена?</p>
+          <p class=textpreword>       {</p>
+          <p class=textpreword>              sp=FALSE;                 // Если да, то устанавливаем 
+            sp в FALSE</p>
+          <p class=textpreword>       }</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Это все! Теперь вы можете рисовать квадратичные объекты 
+            в OpenGL. С помощью морфинга и квадратичных объектов можно сделать 
+            достаточно впечатляющие вещи. Анимированный диск - это пример простого 
+            морфинга.</p>
+          <p class=textword>&nbsp;</p>
+<p class=textword>Все у кого есть время зайдите на мой сайт, TipTup.Com 2000. 
+  (http://www.tiptup.com)</p>
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © GB Schmick (TipTup)</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p><a href="http://pmg-ru.narod.ru/"
+			onmouseover=" return event_over(this,'Программирование магических игр')  "
+			onmouseout=" return event_out(this) "><font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;1 марта 2002&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:prvv1@uic.nnov.ru"
+			onmouseover=" return event_over(this,'Почта переводчику')  " 
+			onmouseout=" return event_out(this) "> <font class="link"><b>Валерий Провалов</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

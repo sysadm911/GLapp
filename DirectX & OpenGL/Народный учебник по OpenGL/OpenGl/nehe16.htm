@@ -1,0 +1,272 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 16 по OpenGL. Эффект тумана на OpenGL</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<body bgcolor="#B4B7DC" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 -->
+<script language="javascript">
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1;
+bv=Math.round(parseFloat(nv.appVersion)*100);
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y="";
+y+="<img src='http://"+u+"/cnt?"+z+
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>";
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript>
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1>
+</noscript><script language="javascript1.2"><!--
+if(!n) { d.write("--"+">"); }//--></script>
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe16.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 16. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 16 по OpenGL. Эффект тумана на OpenGL</p>
+</div>
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=16" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Cool Looking Fog</b></font></a>
+<br>
+<br>
+</p>
+
+<p class=textword>Этот урок представляет Крис Алиотта (Chris Aliotta)... <br>
+  <br>
+  Итак, Вы хотите добавить туман в Вашу программу на OpenGL? Что ж, в этом уроке 
+  я покажу как сделать именно это. Я первый раз пишу урок, и относительно недавно 
+  познакомился с программированием на OpenGL/C++, так что пожалуйста, если вы 
+  найдете здесь какие-нибудь ошибки, то пожалуйста, сообщите мне и не накидывайтесь 
+  все сразу. Эта программа основана на примере седьмого урока.</p>
+<p class=textpreword>&nbsp; </p>
+<p class=head2word>Подготовка данных:</p>
+<p class=textpreword>&nbsp; </p>
+<p class=textword>Начнем с того, что подготовим все необходимые переменные, содержащие 
+  параметры затуманивания. Массив fogMode будет хранить три значения: GL_EXP, 
+  GL_EXP2 и GL_LINEAR, - это три типа тумана. Позже я объясню различия между ними. 
+  Объявим переменные в начале кода, после строки GLuint texture[3]. В переменной 
+  fogfilter будет храниться какой тип тумана мы будем использовать, fogColor будет 
+  содержать цвет, который мы хотим придать туману. Еще я добавил двоичную переменную 
+  gp в начало кода, чтобы можно было узнать нажата ли клавиша 'g' во время выполнения 
+  программы-примера.</p>
+<p class=textword>&nbsp; </p>
+<p class=textpreword>bool   gp;                              // G Нажата<span lang=EN-US>? 
+  </span>( Новое )</p>
+          <p class=textpreword>GLuint filter;                          // Используемый 
+            фильтр для текстур </p>
+<p class=textpreword>GLuint fogMode[]= { GL_EXP, GL_EXP2, GL_LINEAR }; // Хранит 
+  три типа тумана</p>
+          <p class=textpreword>GLuint fogfilter= 0;                    // Тип используемого 
+            тумана</p>
+<p class=textpreword>GLfloat fogColor[4]= {0.5f, 0.5f, 0.5f, 1.0f}; // Цвет тумана</p>
+<p class=textword>&nbsp; </p>
+<p class=head2word>Изменения в DrawGLScene</p>
+<p class=textword>&nbsp; </p>
+<p class=textword>Теперь, когда мы задали переменные, передвинемся вниз к функции 
+  InitGL. Строка glClearColor() изменена так, чтобы заполнить экран цветом тумана 
+  для достижения лучшего эффекта. Требуется не так уж много кода, чтобы задействовать 
+  туман. Вообщем, Вам все это покажется очень простым.<span
+lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>glClearColor(0.5f,0.5f,0.5f,1.0f);      // Будем 
+            очищать экран, заполняя его цветом тумана. ( Изменено )</p>
+<p class=textpreword>&nbsp; </p>
+          <p class=textpreword>glEnable(GL_FOG);                       // Включает 
+            туман (GL_FOG)</p>
+          <p class=textword></p>
+          <p class=textpreword>glFogi(GL_FOG_MODE, fogMode[fogfilter]);// Выбираем 
+            тип тумана</p>
+          <p class=textpreword>glFogfv(GL_FOG_COLOR, fogColor);        // Устанавливаем 
+            цвет тумана</p>
+          <p class=textpreword>glFogf(GL_FOG_DENSITY, 0.35f);          // Насколько 
+            густым будет туман</p>
+          <p class=textpreword>glHint(GL_FOG_HINT, GL_DONT_CARE);      // Вспомогательная 
+            установка тумана</p>
+          <p class=textpreword>glFogf(GL_FOG_START, 1.0f);             // Глубина, 
+            с которой начинается туман</p>
+          <p class=textpreword>glFogf(GL_FOG_END, 5.0f);               // Глубина, 
+            где туман заканчивается.</p>
+          <p class=textpreword>&nbsp;</p>
+          <p class=textword>Возьмем сначала первые три строчки этого кода. Первая 
+            строка glEnable(GL_FOG) во многом говорит сама за себя. Ее задача 
+            - инициализировать туман.<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Вторая строка<span lang=EN-US>, glFogi(GL_FOG_MODE, 
+            fogMode[fogfilter])</span> устанавливает режим фильтрации тумана<span
+lang=EN-US>. </span>Ранее мы объявили массив fogMode. Он содержал GL_EXP, GL_EXP2 
+            и GL_LINEAR. Именно здесь эти переменные входят в игру. Вот что каждая 
+            из них значит:<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+  <span lang=EN-US style='font-family:
+Symbol;'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span></span> <b>GL_EXP</b> - Обычный туман, заполняющий весь экран. Во многом 
+  он напоминает туман отдаленно, но легко справляется со своей работой даже на 
+  старых PC.<span lang=EN-US></span></p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+  <span lang=EN-US style='font-family:
+Symbol;'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span></span> <b>GL_EXP2</b> - Это следующий шаг после GL_EXP. Затуманит весь 
+  экран, за то придает больше глубины всей сцене.<span lang=EN-US></span></p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+  <span lang=EN-US style='font-family:
+Symbol;'>·<span style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span></span> <b>GL_LINEAR</b> - Это лучший режим прорисовки тумана. Объекты 
+  выходят из тумана и исчезают в нем гораздо лучше.<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Третья<span lang=EN-US>, glFogfv(GL_FOG_COLOR, fogcolor) 
+            </span>задает цвет тумана<span
+lang=EN-US>. </span>Раньше мы задали его как (0.5f,0.5f,0.5f,1.0f) через переменную 
+            fogcolor - получился приятный серый цвет.<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Дальше, посмотрим на четыре последних строки. Строка glFogf(GL_FOG_DENSITY, 
+            0.35f) устанавливает, насколько густым будет туман. Увеличьте число, 
+            и туман станет более густым, уменьшите - менее густым.<span
+lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword><span lang=EN-US>Eric Desrosiers </span>добавляет 
+            небольшое объяснение<span lang=EN-US> glHint(GL_FOG_HINT, hintval):</span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword><span lang=EN-US>hintval </span>может быть<span lang=EN-US>: 
+  GL_DONT_CARE, GL_NICEST </span>или<span lang=EN-US> GL_FASTEST <br>
+  <br>
+  </span></p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+  <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span></span> <span lang=EN-US>GL</span>_<span
+lang=EN-US>DONT</span>_<span lang=EN-US>CARE</span> - позволяет <span lang=EN-US>OpenGL</span> 
+  выбрать формулу для расчета тумана (по вершинам или по пикселям).</p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+  <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span></span> GL_NICEST - Создает туман по пикселям (хорошо смотрится).</p>
+<p class=textword style='margin-left:36.0pt;text-indent:-18.0pt;tab-stops:list 36.0pt'> 
+  <span style='font-family:Symbol'>·<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+  </span></span> GL_FASTEST - Вычисляет туман по вершинам (быстрее, но не так 
+  красиво)) .</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textword>Следующая строка glFogf(GL_FOG_START, 1.0f) устанавливает 
+            насколько близко к экрану начинается затуманивание. Вы можете изменить 
+            это число на что угодно, в зависимости от того, где бы Вы хотели, 
+            чтобы начался туман. Следующая, похожая, строка glFogf(GL_FOG_END, 
+            5.0f) сообщает программе OpenGL насколько глубоко в экран должен уходить 
+            туман.<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=head2word>События при нажатии клавиш</p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Сейчас, когда код прорисовки уже готов, мы добавим команды для 
+  клавиатуры, чтобы переключаться между разными способами затуманивания. Этот 
+  код идет в конце программы, вместе с обработкой нажатия клавиш.<span
+lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+          <p class=textpreword>if (keys['G'] &amp;&amp; !gp)                   
+            // Нажата ли клавиша &quot;G&quot;?</p>
+<p class=textpreword>{ </p>
+          <p class=textpreword>       gp=TRUE;                         // gp устанавливаем 
+            в TRUE</p>
+          <p class=textpreword>       fogfilter+=1;                    // Увеличиние 
+            fogfilter на 1</p>
+          <p class=textpreword>       if (fogfilter&gt;2)                 // fogfilter 
+            больше<span
+lang=EN-US> 2 ... ?</span></p>
+<p class=textpreword><span>       </span>{</p>
+          <p class=textpreword>              fogfilter=0;              // Если 
+            так, установить fogfilter в ноль</p>
+<p class=textpreword>       <span
+lang=EN-US>}</span></p>
+          <p class=textpreword><span>       </span>glFogi (GL_FOG_MODE, fogMode[fogfilter]); 
+            // Режим тумана<span lang=EN-US></span></p>
+<p class=textpreword><span lang=EN-US>} </span></p>
+          <p class=textpreword>if (!keys['G'])                         // Клавиша<span lang=EN-US> 
+            &quot;G&quot; </span>отпущена<span lang=EN-US>?</span></p>
+<p class=textpreword>{</p>
+          <p class=textpreword>       gp=FALSE;                        // Если 
+            да, gp установить в FALSE</p>
+<p class=textpreword>}<span lang=EN-US></span></p>
+<p class=textword><span lang=EN-US> &nbsp; </span></p>
+<p class=textword>Вот и все! Мы закончили. В Ваших программах с OpenGL есть туман. 
+  Я бы даже сказал, что это было достаточно безболезненно. Если есть какие вопросы 
+  или комментарии, легко можете со мной связаться: <a
+href="mailto:chris@incinerated.com">chris@incinerated.com</a>. Так же заходите 
+  ко мне на сайт: <a href="http://www.incinerated.com/">http://www.incinerated.com/</a> 
+  и <a href="http://www.incinerated.com/precursor">http://www.incinerated.com/precursor</a>. 
+  <span lang=EN-US></span></p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Christopher Aliotta (<a href="mailto:chris@incinerated.com">chris@incinerated.com</a>)</b></font><br>
+</p>          
+</div>
+<div id="end">
+          <p> <a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>PMG</b></font></a> 
+            <font class="comment">&nbsp;28 января 2002&nbsp;(c)&nbsp;</font> 
+            <a href="mailto:mmax@cmail.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) "> <font class="link"><b>Макс Махоткин</b></font></a> 
+          </p>
+</div>
+<div id="counter">
+
+    <script language="javascript">
+d=document;rn=Math.random();
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?";
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y);
+</script>
+    <noscript>
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank>
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a>
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>

@@ -1,0 +1,231 @@
+
+<!doctype html public "-//w3c//dtd html 3.2 final//ru">
+<html>
+
+<head>
+<meta http-equiv="Content-Type"
+content="text/html; charset=windows-1251">
+<meta name="description"
+content="Переводы по OpenGL, трехмерная графика, игры, мультимедия
+Translations Russian OpenGL
+">
+<meta name="keyword"
+content="Программирование,игры,3D,трехмерная графика,OpenGL,NeHe">
+<meta name="keyword"
+content="programming,C,C++,game,graphics">
+<title>Урок 2. Отображение полигонов</title>
+<link rel="stylesheet" href="pmg.css" type="text/css">
+</head>
+
+<html>
+
+<body bgcolor="#B4B7DC" link="#D621AD" link="#800080" vlink="#800080">
+<!-- SpyLOG v2 f:0210 --> 
+<script language="javascript"> 
+u="u013.94.spylog.com";d=document;nv=navigator;na=nv.appName;p=1; 
+bv=Math.round(parseFloat(nv.appVersion)*100); 
+n=(na.substring(0,2)=="Mi")?0:1;rn=Math.random();z="p="+p+"&rn="+rn+"&tl=0&ls=0&ln=0";y=""; 
+y+="<img src='http://"+u+"/cnt?"+z+ 
+"&r="+escape(d.referrer)+"&pg="+escape(window.location.href)+"' border=0 width=1 height=1 alt='SpyLOG'>"; 
+d.write(y);if(!n) { d.write("<"+"!--"); }//--></script><noscript> 
+<img src="http://u013.94.spylog.com/cnt?p=1" alt='SpyLOG' border='0' width=1 height=1 > 
+</noscript><script language="javascript1.2"><!-- 
+if(!n) { d.write("--"+">"); }//--></script> 
+<!-- SpyLOG -->
+<script src='nehe.js' language="javascript">
+<!--
+//-->
+</script>
+
+<center>
+<div id="top">
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <td width="20%" align="center" valign="center">
+        <img src="nehelogo.jpg" align="left" hspace="0" width="125" height="50" alt="NeHe Tutorials">
+        </td>
+        <td width="60%" align="center">
+	<a href="index.html"
+	onmouseover=" return event_over(this,'NeHe Ru.')  "
+        onmouseout=" return event_out(this) ">
+        <font class="linksbig">
+        Народный учебник по OpenGL</font></a><br>
+        </td>
+        <td width="20%" align="center" valign="center">
+        <img src="nehe02.jpg" align="right" hspace="0" width="80" height="60" alt="Урок 2. OpenGL">
+        </td>
+    </tr>
+</table>
+</div>
+
+<div id="head">
+<p class="head1">
+Урок 2. Отображение полигонов
+</p>
+</div>
+
+<div id="main" bgcolor="#ADADFF">
+<p class="textnoalign" align="left">
+
+<a href="http://nehe.gamedev.net/tutorials/lesson.asp?l=2" target="_blank"
+onmouseover=" return event_over(this,this)  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Your First Polygon</b></font></a>
+<br>
+<br>
+</p>
+
+<p class="text">
+В предыдущем уроке было рассмотрено создание OpenGL окна. Теперь мы изучим 
+создание таких фигур как треугольники и квадраты, при помощи  GL_TRIANGLES и 
+GL_QUADS.
+</p>
+
+<p class="text">
+Для создания приложения мы будем использовать код предыдущего примера, только 
+добавим код в функцию DrawGLScene. Все ее изменения приводятся ниже. Если вы 
+планируете менять предыдущий урок, просто замените функцию DrawGLScene 
+следующим кодом, или просто добавьте те строки, которые там отсутствуют.
+</p> 
+
+
+<p  ><font class="textpreword">GLvoid DrawGLScene(GLvoid)<br>
+{<br>
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Очистка экрана<br>
+                                                        // и буфера глубины<br>
+        glLoadIdentity();                               // Сброс просмотра</font></p  >
+
+<p class="text">
+Вызов функции gLoadIdentity() устанавливает начало системы координат в центр экрана, 
+причем ось X идет слева направо, ось Y вверх и вниз, а ось Z к и от наблюдателя. Центр 
+OpenGL экрана находится в точке 0, 0, 0. Координаты, расположенные слева, снизу и 
+вглубь от него, имеют отрицательное значение, расположенные справа, сверху и по 
+направлению к наблюдателю  – положительное.
+</p>
+
+<p class="text">
+Функция glTranslate(x, y, z) перемещает оси координат на указанные значения. 
+Следующая строчка кода перемещает ось X на 1.5 единиц и ось Z на 6 единиц. Следует 
+заметить, что перевод осей координат осуществляется не относительно центра экрана, а от 
+их текущего расположения.
+</p>
+
+<p  ><font class="textpreword">        glTranslatef(-1.5f,0.0f,-6.0f);         // Сдвинемся влево на 1.5 единицы и<br>
+                                                // в экран на 6.0</font></p  >
+
+<p class="text">
+Теперь, когда мы переместились в левую часть экрана и установили более удобный вид (в 
+глубину на 6 единиц), отобразим геометрическую фигуру. Функция 
+glBegin(GL_TRIANGLES) означает, что мы начинаем рисовать треугольник, и далее 
+следует перечисление его вершин. После указания всех вершин, производится вызов 
+функции glEnd(). Обычно треугольники на большинстве видеокарт отображаются 
+наиболее быстро, но если есть желание отобразить иную фигуру, вместо GL_TRIANGLE 
+используется другое значение, например: для создания четырехугольника указывается 
+GL_QUADS, если вершин больше чем 4, то GL_POLYGONS. 
+</p>
+
+
+<p class="text">
+В нашем примере рисуем только один треугольник. Если есть желание изобразить еще 
+один треугольник, добавьте часть кода, следующую за описанием первого треугольника. 
+В это случае все шесть строк кода следует размещать между glBegin(GL_TRIANGLES) и 
+glEnd(). Нет нужды выделять каждый треугольник этими командами, после обработки 
+трех вершин OpenGL сам перейдет к созданию новой фигуры. Это же относится и к 
+четырехугольникам. Полигоны (GL_POLYGONS) в свою очередь могут иметь любое 
+количество вершин, и поэтому нет разницы, сколько описателей располагалось между 
+строками glBegin(GL_POLYGONS) и glEnd().
+</p>
+
+<p class="text">
+Первая строка после glBegin описывает первую вершину нашего полигона. Функция 
+glVertex3f() получает в качестве параметров ее X, Y и Z координаты. Первая вершина 
+треугольника смещена только от оси Y на 1, таким образом, мы расположим ее точно в 
+центре и она будет самой верхней. Следующая вершина будет располагаться на оси Х 
+слева от центра и на оси Y вниз от центра. Эта вершина будет расположена внизу слева. 
+Третья вершина будет справа и снизу от центра. Функция glEnd() указывает OpenGL, что 
+вершин больше не будет. Результатом всего этого будет залитый цветом по умолчанию 
+треугольник.
+</p>
+
+
+<p  ><font class="textpreword">        glBegin(GL_TRIANGLES);<br>
+                glVertex3f( 0.0f, 1.0f, 0.0f);  // Вверх<br>
+                glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева снизу<br>
+                glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа снизу<br>
+        glEnd();</font></p  >
+
+<p  ><font class="textpreword"><br>
+Теперь у нас есть треугольник, изображенный в правой части экрана. Нам нужно <br>
+переместиться в левую часть, для этого снова используем функцию glTranslate(). Так как <br>
+мы в прошлый раз перемещались влево на 1.5 единицы, необходимо переместиться на 3.0 <br>
+единицы вправо (1.5 единицы – это будет центр, плюс еще 1.5 единицы для правого края).<br>
+</font></p  >
+
+<p  ><font class="textpreword">        glTranslatef(3.0f,0.0f,0.0f);           // Сдвинем вправо на 3 единицы</font></p  >
+
+<p class="text">
+Здесь мы изобразим квадрат. Так как он является четырехсторонним полигоном, мы будем 
+использовать GL_QUADS. Создание квадрата напоминает создание треугольника, правда 
+указывать нужно четыре вершины. Они будут идти в следующем порядке – левая вверху, 
+правая вверху, правая снизу и левая снизу.
+</p>
+
+
+<p  ><font class="textpreword">        glBegin(GL_QUADS);<br>
+                glVertex3f(-1.0f, 1.0f, 0.0f);  // Слева вверху<br>
+                glVertex3f( 1.0f, 1.0f, 0.0f);  // Справа вверху<br>
+                glVertex3f( 1.0f,-1.0f, 0.0f);  // Справа внизу<br>
+                glVertex3f(-1.0f,-1.0f, 0.0f);  // Слева внизу<br>
+        glEnd();<br>
+}</font></p  >
+
+<p class="text">
+В этом примере я попытался описать как можно больше деталей, указать каждый шаг 
+создания полигонов на экране с использованием OpenGL. Если у вас есть, какие либо 
+замечания, вопросы или комментарии, я жду ваших писем. Если вы нашли неправильно 
+описание или ошибки в коде, пожалуйста, сообщите мне об этом, мне очень хотелось бы, 
+чтобы эти описания были лучше. 
+</p>
+
+<p class="textnoalign" align="right">
+<font color="#0000A0"><b> © Jeff Molofee (NeHe)</b></font><br>
+</p>          
+</p>          
+</div>
+
+<div id="end">
+<p align="center">
+<a href="http://pmg-ru.narod.ru/"
+onmouseover=" return event_over(this,'Программирование магических игр')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>PMG</b></font></a>
+
+<font class="comment">&nbsp;26 марта 2001&nbsp;(c)&nbsp;</font>
+
+<a href="mailto:timurs@khsu.khakasnet.ru"
+onmouseover=" return event_over(this,'Почта переводчику')  "
+onmouseout=" return event_out(this) ">
+<font class="link"><b>Тимур Салихов</b></font></a>
+</p>
+</div>
+
+<div id="counter">
+<script language="javascript"> 
+d=document;rn=Math.random(); 
+y="<a href='http://u013.94.spylog.com/cnt?f=3&rn="+rn+"' target=_blank><img src='http://u013.94.spylog.com/cnt?"; 
+y+="p=1&f=4&rn="+rn+"' border=0 width=88 height=31 ></a>"; d.write(y); 
+</script><noscript> 
+<a href="http://u013.94.spylog.com/cnt?f=3&p=1" target=_blank> 
+<img src="http://u013.94.spylog.com/cnt?p=1&f=4" alt='SpyLog' border='0' width=88 height=31 ></a> 
+</noscript>
+</div>
+</center>
+
+<script language="JavaScript">
+<!--
+form_print();
+//-->
+</script>
+
+</body>
+</html>
