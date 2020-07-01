@@ -60,7 +60,6 @@ object Form1: TForm1
     Height = 662
     Align = alClient
     TabOrder = 2
-    OnMouseDown = RzPanel1MouseDown
     OnResize = RzPanel1Resize
   end
   object ImageList1: TImageList

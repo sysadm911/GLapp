@@ -13,10 +13,15 @@
 #pragma comment (lib, "glaux.lib")
 TForm1 *Form1;
 
-GLint CNormal[3];
+GLfloat AmbientLight[4] = {0.5, 0.5, 0.5, 1.0};
+GLfloat DiffuseLight[4] = {1.0, 1.0, 1.0, 1.0};
+GLfloat SpecularLight[4] = {1.0, 1.0, 1.0, 1.0};
+GLfloat SpecularReflection[4] = {0.4, 0.4, 0.4, 1.0};
+GLfloat LightPosition[4] = {0.0, 0.0, 0.0, 1.0};
+GLfloat CNormal[3] = {0};
+
 GLuint SelectBuf[4]; // массив для буфера выбора
 GLint vp[4]; // хранит видовую матрицу
-GLint hit;
 
 // ---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner) {
@@ -39,6 +44,7 @@ void TForm1::InitDisplay(HWND hwnd) {
 
 // ---------------------------------------------------------------------------
 void TForm1::OpenGL_Init() {
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height);
 	glGetIntegerv(GL_VIEWPORT, vp);
@@ -46,11 +52,33 @@ void TForm1::OpenGL_Init() {
 	glLoadIdentity();
 
 	// glOrtho(-2, 2, -2.0*RzPanel1->Width / RzPanel1->Height, 2.0*RzPanel1->Width / RzPanel1->Height, -2, 2);
-	// gluPerspective(45.0, RzPanel1->Width / RzPanel1->Height, 0.1, 100.0);
+	gluPerspective(45.0, RzPanel1->Width / RzPanel1->Height, 0.1, 100.0);
 	// gluOrtho2D(-10., 10., -10., 10.);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	glClearDepth(1.0);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	glEnable(GL_CULL_FACE); // устранение спрятанных поверхностей
+	glFrontFace(GL_CCW); // Draw all surfaces CCW
+
+	glShadeModel(GL_SMOOTH); // Set shading model
+
+	glEnable(GL_LIGHTING); // Enable Lighting
+	glLightfv(GL_LIGHT0, GL_AMBIENT, AmbientLight); // Enable Ambient Light
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, DiffuseLight); // Enable Diffuse Light
+	glLightfv(GL_LIGHT0, GL_SPECULAR, SpecularLight); // Enable Specular Light
+	glEnable(GL_LIGHT0); // Enable Light0
+
+	glLightfv(GL_LIGHT0, GL_POSITION, LightPosition); // Set our Light Position
+
+	glEnable(GL_COLOR_MATERIAL); // Enable material colors
+	glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE); // Set to front for Ambient and Diffuse Light
+	glMaterialfv(GL_FRONT, GL_SPECULAR, SpecularReflection); // Set reflection
+	glMateriali(GL_FRONT, GL_SHININESS, 10); // Set shininess of materials
 
 	glSelectBuffer(4, SelectBuf); // создание буфера выбора
 
@@ -60,36 +88,58 @@ void TForm1::OpenGL_Init() {
 void __fastcall TForm1::FormCreate(TObject *Sender) {
 	InitDisplay(RzPanel1->Handle);
 	OpenGL_Init();
+	// Формирование списка для отображения треугольника
+	glNewList(100, GL_COMPILE);
+	glBegin(GL_TRIANGLES);
+	glVertex2d(.0, .0);
+	glVertex2d(1., 1.);
+	glVertex2d(1., -1.);
+	glEnd();
+	glEndList();
 
+	Texture_Init();
 }
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::FormDestroy(TObject *Sender) {
 	wglMakeCurrent(0, 0);
 	wglDeleteContext(hrc);
-	delete[]TextureData;
+	delete TextureData;
 }
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1Resize(TObject *Sender) {
 	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height); // Сброс текущей области вывода и перспективных преобразований
-	glGetIntegerv(GL_VIEWPORT, vp);
-	glRenderMode(GL_RENDER);
-	InvalidateRect(Handle, 0, true);
-
+	InvalidateRect(Handle, 0, false);
 }
 
 // ---------------------------------------------------------------------------
 void TForm1::OpenGL_Draw() {
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+
+	glTranslatef(0.0, 0.0, -5.0);
+
+	glColor3f(1.0, 1.0, 1.0);
+	// glBegin(GL_QUADS);
+	// glTexCoord2f(0.0, 0.0);
+	// glVertex3f(-1.0, -1.0, 0.0);
+	// glTexCoord2f(1.0, 0.0);
+	// glVertex3f(1.0, -1.0, 0.0);
+	// glTexCoord2f(1.0, 1.0);
+	// glVertex3f(1.0, 1.0, 0.0);
+	// glTexCoord2f(0.0, 1.0);
+	// glVertex3f(-1.0, 1.0, 0.0);
+	// glEnd();
+	glCallList(100);
 }
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::FormPaint(TObject *Sender) {
-	OpenGL_Draw();
-	glLoadIdentity;
-	glClear(GL_COLOR_BUFFER_BIT);
-	Render(GL_SELECT);
+	// OpenGL_Draw();
+	Render(GL_RENDER);
+
 	SwapBuffers(hdc);
 }
 
@@ -100,70 +150,6 @@ void __fastcall TForm1::BtnExecuteMouseDown(TObject *Sender, TMouseButton Button
 }
 
 // ---------------------------------------------------------------------------
-void TForm1::Render(GLenum mode) {
-	// красный треугольник
-	if (mode == GL_SELECT)
-		glLoadName(1); // именуем под именем 1
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_POLYGON);
-	glVertex2f(-1, -1);
-	glVertex2f(-1, 1);
-	glVertex2f(-0.1, 0);
-	glEnd();
-
-	// синий треугольник
-	if (mode == GL_SELECT)
-		glLoadName(2); // именуем под именем 2
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin(GL_POLYGON);
-	glVertex2f(0.1, 0);
-	glVertex2f(1, 1);
-	glVertex2f(1, -1);
-	glEnd();
-}
-
-// ---------------------------------------------------------------------------
-GLint TForm1::DoSelect(GLint x, GLint y) {
-
-	GLint hits;
-
-	glRenderMode(GL_SELECT); // включаем режим выбора
-	// режим выбора нужен для работы следующих команд
-	glInitNames(); // инициализация стека имен
-	glPushName(0); // помещение имени в стек имен
-
-	glLoadIdentity();
-	gluPickMatrix(x, RzPanel1->Height - y, 2, 2, vp);
-
-	Render(GL_SELECT); // рисуем объекты с именованием объектов
-
-	hits = glRenderMode(GL_SELECT);
-
-	if (hits <= 0)
-		return -1;
-	else
-		return SelectBuf[(hits - 1) * 4 + 3];
-}
-
-// ---------------------------------------------------------------------------
-void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
-
-	hit = DoSelect(X, Y); // номер объекта под курсором
-	switch (hit) {
-	case -1:
-		ShowMessage("Пустое место");
-		break;
-	case 1:
-		ShowMessage("Красный треугольник");
-		break;
-	case 2:
-		ShowMessage("Синий треугольник");
-		break;
-	}
-
-}
-// ---------------------------------------------------------------------------
-
 void TForm1::FindNormal(float v1x, float v1y, float v1z, float v2x, float v2y, float v2z, float v3x, float v3y, float v3z) {
 	const int x = 0, y = 1, z = 2;
 	double temp_v1[3], temp_v2[3], temp_length;
@@ -196,7 +182,6 @@ void TForm1::FindNormal(float v1x, float v1y, float v1z, float v2x, float v2y, f
 }
 
 // ---------------------------------------------------------------------------
-
 void TForm1::Texture_Init() {
 	int i = 0;
 	TextureData = new GLubyte[128 * 128 * 3]; // make room for a 128x128 RGB texture
@@ -223,3 +208,54 @@ void TForm1::Texture_Init() {
 }
 
 // ---------------------------------------------------------------------------
+GLint TForm1::DoSelect(GLint x, GLint y) {
+
+	GLint hits;
+
+	glRenderMode(GL_SELECT); // включаем режим выбора
+	// режим выбора нужен для работы следующих команд
+	glInitNames(); // инициализация стека имен
+	glPushName(0); // помещение имени в стек имен
+
+	glLoadIdentity();
+	gluPickMatrix(x, RzPanel1->Height - y, 2, 2, vp);
+
+	Render(GL_SELECT); // рисуем объекты с именованием объектов
+
+	hits = glRenderMode(GL_SELECT);
+
+	if (hits <= 0)
+		return -1;
+	else
+		return SelectBuf[(hits - 1) * 4 + 3];
+}
+// ---------------------------------------------------------------------------
+
+void TForm1::Render(GLenum mode) {
+	// красный треугольник
+	if (mode == GL_SELECT)
+		glLoadName(1); // именуем под именем 1
+	glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_POLYGON);
+	glVertex2f(-1, -1);
+	glVertex2f(-1, 1);
+	glVertex2f(-0.1, 0);
+	glEnd();
+
+	// синий треугольник
+	if (mode == GL_SELECT)
+		glLoadName(2); // именуем под именем 2
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_POLYGON);
+	glVertex2f(0.1, 0);
+	glVertex2f(1, 1);
+	glVertex2f(1, -1);
+	glEnd();
+}
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y)
+{
+hit = DoSelect(X, Y);
+}
+//---------------------------------------------------------------------------
+

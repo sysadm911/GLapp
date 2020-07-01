@@ -74,9 +74,7 @@ void __fastcall TForm1::FormDestroy(TObject *Sender) {
 void __fastcall TForm1::RzPanel1Resize(TObject *Sender) {
 	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height); // Сброс текущей области вывода и перспективных преобразований
 	glGetIntegerv(GL_VIEWPORT, vp);
-	glRenderMode(GL_RENDER);
 	InvalidateRect(Handle, 0, true);
-
 }
 
 // ---------------------------------------------------------------------------
@@ -89,7 +87,8 @@ void __fastcall TForm1::FormPaint(TObject *Sender) {
 	OpenGL_Draw();
 	glLoadIdentity;
 	glClear(GL_COLOR_BUFFER_BIT);
-	Render(GL_SELECT);
+	Render(GL_RENDER);
+
 	SwapBuffers(hdc);
 }
 
@@ -100,6 +99,30 @@ void __fastcall TForm1::BtnExecuteMouseDown(TObject *Sender, TMouseButton Button
 }
 
 // ---------------------------------------------------------------------------
+
+GLint TForm1::DoSelect(GLint x, GLint y) {
+
+	GLint hits;
+
+	glRenderMode(GL_SELECT); // включаем режим выбора
+	// режим выбора нужен для работы следующих команд
+	glInitNames(); // инициализация стека имен
+	glPushName(0); // помещение имени в стек имен
+
+	glLoadIdentity();
+	gluPickMatrix(x, RzPanel1->Height - y, 2, 2, vp);
+
+	Render(GL_SELECT); // рисуем объекты с именованием объектов
+
+	hits = glRenderMode(GL_SELECT);
+
+	if (hits <= 0)
+		return -1;
+	else
+		return SelectBuf[(hits - 1) * 4 + 3];
+}
+// ---------------------------------------------------------------------------
+
 void TForm1::Render(GLenum mode) {
 	// красный треугольник
 	if (mode == GL_SELECT)
@@ -123,29 +146,6 @@ void TForm1::Render(GLenum mode) {
 }
 
 // ---------------------------------------------------------------------------
-GLint TForm1::DoSelect(GLint x, GLint y) {
-
-	GLint hits;
-
-	glRenderMode(GL_SELECT); // включаем режим выбора
-	// режим выбора нужен для работы следующих команд
-	glInitNames(); // инициализация стека имен
-	glPushName(0); // помещение имени в стек имен
-
-	glLoadIdentity();
-	gluPickMatrix(x, RzPanel1->Height - y, 2, 2, vp);
-
-	Render(GL_SELECT); // рисуем объекты с именованием объектов
-
-	hits = glRenderMode(GL_SELECT);
-
-	if (hits <= 0)
-		return -1;
-	else
-		return SelectBuf[(hits - 1) * 4 + 3];
-}
-
-// ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
 
 	hit = DoSelect(X, Y); // номер объекта под курсором
@@ -160,7 +160,6 @@ void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, 
 		ShowMessage("Синий треугольник");
 		break;
 	}
-
 }
 // ---------------------------------------------------------------------------
 

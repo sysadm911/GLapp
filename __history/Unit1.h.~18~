@@ -33,12 +33,8 @@ __published: // IDE-managed Components
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall RzPanel1Resize(TObject *Sender);
 	void __fastcall BtnExecuteMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
-	void __fastcall RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
 
 private: // User declarations
-	void Render( GLenum mode);
-	GLint DoSelect(GLint x, GLint y);
-	void Texture_Init();
 	void FindNormal(float v1x, float v1y, float v1z, float v2x, float v2y, float v2z, float v3x, float v3y, float v3z);
 	void OpenGL_Draw();
 	void OpenGL_Init();
@@ -47,9 +43,8 @@ private: // User declarations
 	HDC hdc;
 	HGLRC hrc;
 
-	GLuint  TextureID;
-	GLubyte *TextureData;
 	float rotation;
+	GLfloat AmbientLight[4];
 
 	void InitDisplay(HWND hwnd);
 

@@ -9,8 +9,10 @@
 #include <Forms.hpp>
 #include "RzPanel.hpp"
 #include <ExtCtrls.hpp>
-#include <GL/gl.h>
+//#include <GL/gl.h>
 #include <GL/glu.h>
+#include <GL/glaux.h>
+#include <GL/glut.h>
 #include "RzPanel.hpp"
 #include <ExtCtrls.hpp>
 //---------------------------------------------------------------------------
@@ -19,12 +21,18 @@ class TForm1 : public TForm
 __published:	// IDE-managed Components
 	TRzStatusBar *RzStatusBar1;
 	TRzToolbar *RzToolbar1;
-	void __fastcall FormCreate(TObject *Sender);
+	TRzPanel *RzPanel1;
 	void __fastcall FormDestroy(TObject *Sender);
+	void __fastcall FormPaint(TObject *Sender);
+	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall RzPanel1Resize(TObject *Sender);
 private:	// User declarations
+	void OpenGL_Draw();
+	void OpenGL_Init();
 	HWND hwnd;
-	HDC dc;
+	HDC hdc;
 	HGLRC hrc;
+	float rotation;
 	void InitDisplay(HWND hwnd);
 public:		// User declarations
 	__fastcall TForm1(TComponent* Owner);

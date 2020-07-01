@@ -33,7 +33,6 @@ __published: // IDE-managed Components
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall RzPanel1Resize(TObject *Sender);
 	void __fastcall BtnExecuteMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
-	void __fastcall RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
 
 private: // User declarations
 	void Render( GLenum mode);

@@ -39,15 +39,16 @@ void TForm1::InitDisplay(HWND hwnd) {
 
 // ---------------------------------------------------------------------------
 void TForm1::OpenGL_Init() {
+	glClearColor(0.0, 0.0, 0.0, 0.0);
 
 	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height);
 	glGetIntegerv(GL_VIEWPORT, vp);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	// glOrtho(-2, 2, -2.0*RzPanel1->Width / RzPanel1->Height, 2.0*RzPanel1->Width / RzPanel1->Height, -2, 2);
-	// gluPerspective(45.0, RzPanel1->Width / RzPanel1->Height, 0.1, 100.0);
-	// gluOrtho2D(-10., 10., -10., 10.);
+	// // glOrtho(-2, 2, -2.0*RzPanel1->Width / RzPanel1->Height, 2.0*RzPanel1->Width / RzPanel1->Height, -2, 2);
+   //	gluPerspective(45.0, RzPanel1->Width / RzPanel1->Height, 0.1, 100.0);
+	// // gluOrtho2D(-10., 10., -10., 10.);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
@@ -73,23 +74,22 @@ void __fastcall TForm1::FormDestroy(TObject *Sender) {
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1Resize(TObject *Sender) {
 	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height); // —брос текущей области вывода и перспективных преобразований
-	glGetIntegerv(GL_VIEWPORT, vp);
-	glRenderMode(GL_RENDER);
-	InvalidateRect(Handle, 0, true);
-
+	InvalidateRect(Handle, 0, false);
 }
 
 // ---------------------------------------------------------------------------
 void TForm1::OpenGL_Draw() {
 
+
 }
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::FormPaint(TObject *Sender) {
-	OpenGL_Draw();
+	 OpenGL_Draw();
 	glLoadIdentity;
 	glClear(GL_COLOR_BUFFER_BIT);
-	Render(GL_SELECT);
+	Render(GL_RENDER);
+
 	SwapBuffers(hdc);
 }
 
@@ -100,26 +100,30 @@ void __fastcall TForm1::BtnExecuteMouseDown(TObject *Sender, TMouseButton Button
 }
 
 // ---------------------------------------------------------------------------
-void TForm1::Render(GLenum mode) {
-	// красный треугольник
-	if (mode == GL_SELECT)
-		glLoadName(1); // именуем под именем 1
-	glColor3f(1.0, 0.0, 0.0);
-	glBegin(GL_POLYGON);
-	glVertex2f(-1, -1);
-	glVertex2f(-1, 1);
-	glVertex2f(-0.1, 0);
-	glEnd();
 
-	// синий треугольник
-	if (mode == GL_SELECT)
-		glLoadName(2); // именуем под именем 2
-	glColor3f(0.0, 0.0, 1.0);
-	glBegin(GL_POLYGON);
-	glVertex2f(0.1, 0);
-	glVertex2f(1, 1);
-	glVertex2f(1, -1);
-	glEnd();
+void TForm1::Texture_Init() {
+	int i = 0;
+	TextureData = new GLubyte[128 * 128 * 3]; // make room for a 128x128 RGB texture
+	while (i < 128 * 128 * 3) {
+		TextureData[i] = 255;
+		TextureData[i + 1] = 0;
+		TextureData[i + 2] = 0;
+		i = i + 3;
+	}
+
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &TextureID);
+	glBindTexture(GL_TEXTURE_2D, TextureID); // now use it
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Wrapping of Texture
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Wrapping of Texture
+
+	glTexImage2D(GL_TEXTURE_2D, 0, 3, 128, 128, 0, GL_RGB, GL_UNSIGNED_BYTE, TextureData);
+
+	glBindTexture(GL_TEXTURE_2D, TextureID);
+
 }
 
 // ---------------------------------------------------------------------------
@@ -144,10 +148,34 @@ GLint TForm1::DoSelect(GLint x, GLint y) {
 	else
 		return SelectBuf[(hits - 1) * 4 + 3];
 }
+// ---------------------------------------------------------------------------
+
+void TForm1::Render(GLenum mode) {
+	// красный треугольник
+	// if (mode == GL_SELECT)
+	glLoadName(1); // именуем под именем 1
+	glColor3f(1.0, 0.0, 0.0);
+	glBegin(GL_POLYGON);
+	glVertex2f(-1, -1);
+	glVertex2f(-1, 1);
+	glVertex2f(-0.1, 0);
+	glEnd();
+
+	// синий треугольник
+	// if (mode == GL_SELECT)
+	glLoadName(2); // именуем под именем 2
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_POLYGON);
+	glVertex2f(0.1, 0);
+	glVertex2f(1, 1);
+	glVertex2f(1, -1);
+	glEnd();
+}
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
-
+	X = LOWORD(X);
+	Y = HIWORD(Y);
 	hit = DoSelect(X, Y); // номер объекта под курсором
 	switch (hit) {
 	case -1:
@@ -160,7 +188,6 @@ void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, 
 		ShowMessage("—иний треугольник");
 		break;
 	}
-
 }
 // ---------------------------------------------------------------------------
 
@@ -193,33 +220,6 @@ void TForm1::FindNormal(float v1x, float v1y, float v1z, float v2x, float v2y, f
 	CNormal[x] /= temp_length;
 	CNormal[y] /= temp_length;
 	CNormal[z] /= temp_length;
-}
-
-// ---------------------------------------------------------------------------
-
-void TForm1::Texture_Init() {
-	int i = 0;
-	TextureData = new GLubyte[128 * 128 * 3]; // make room for a 128x128 RGB texture
-	while (i < 128 * 128 * 3) {
-		TextureData[i] = 255;
-		TextureData[i + 1] = 0;
-		TextureData[i + 2] = 0;
-		i = i + 3;
-	}
-
-	glEnable(GL_TEXTURE_2D);
-	glGenTextures(1, &TextureID);
-	glBindTexture(GL_TEXTURE_2D, TextureID); // now use it
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // Texture filtering
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Texture filtering
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // Wrapping of Texture
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT); // Wrapping of Texture
-
-	glTexImage2D(GL_TEXTURE_2D, 0, 3, 128, 128, 0, GL_RGB, GL_UNSIGNED_BYTE, TextureData);
-
-	glBindTexture(GL_TEXTURE_2D, TextureID);
-
 }
 
 // ---------------------------------------------------------------------------
