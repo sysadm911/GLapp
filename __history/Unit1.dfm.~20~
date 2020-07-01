@@ -5,7 +5,6 @@ object Form1: TForm1
   ClientHeight = 710
   ClientWidth = 755
   Color = clBtnFace
-  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -50,7 +49,6 @@ object Form1: TForm1
       Flat = False
       ImageIndex = 0
       Caption = 'Execute'
-      OnClick = BtnExecuteClick
       OnMouseDown = BtnExecuteMouseDown
     end
   end
@@ -61,9 +59,6 @@ object Form1: TForm1
     Height = 662
     Align = alClient
     BorderOuter = fsNone
-    BorderColor = clBlack
-    DoubleBuffered = False
-    ParentDoubleBuffered = False
     TabOrder = 2
     OnMouseDown = RzPanel1MouseDown
     OnMouseMove = RzPanel1MouseMove

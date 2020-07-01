@@ -12,8 +12,8 @@
 #pragma resource "*.dfm"
 #pragma comment (lib, "glaux.lib")
 TForm1 *Form1;
-int IndexPoint = 0;
-OGL_Coord *OGL_Coord_Arr = new OGL_Coord[200];
+
+float OGL_CoordX, OGL_CoordY;
 
 // ---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner) {
@@ -70,17 +70,8 @@ void __fastcall TForm1::FormDestroy(TObject *Sender) {
 // ---------------------------------------------------------------------------
 
 void TForm1::OpenGL_Draw() {
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	glColor3f(0, 1, 0);
-//	glPointSize(5);
-	glEnable(GL_POINT_SMOOTH);
-	glBegin(GL_POINTS);
-	for (int i = 0; i < IndexPoint; i++) {
-		glVertex2f(OGL_Coord_Arr[i].X, OGL_Coord_Arr[i].Y);
-	}
-	glEnd();
-
+	// glClearColor(0, 0, 0, 0);
+	// glClear(GL_COLOR_BUFFER_BIT);
 }
 
 // ---------------------------------------------------------------------------
@@ -91,7 +82,6 @@ void __fastcall TForm1::BtnExecuteMouseDown(TObject *Sender, TMouseButton Button
 
 // ---------------------------------------------------------------------------
 void TForm1::Render(GLenum mode) {
-
 	// красный треугольник
 	if (mode == GL_SELECT)
 		glLoadName(1); // именуем под именем 1
@@ -139,13 +129,10 @@ GLint TForm1::DoSelect(GLint x, GLint y) {
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
 
-	// if (Button == mbLeft) {
-	//
-	// mouse_OGL_Coord.X = 2.0 * X / RzPanel1->Width - 1;
-	// mouse_OGL_Coord.Y = 2.0 * (RzPanel1->Height - Y) / RzPanel1->Height - 1;
-	// AddPoint(mouse_OGL_Coord);
-	// InvalidateRect(RzPanel1->Handle, NULL, true);
-	// }
+	if (Button == mbLeft)
+		ShowMessage("X = " + IntToStr(int(X)) + " Y = " + IntToStr(int(Y)));
+	OGL_CoordX = 2.0 * X / RzPanel1->Width;
+	OGL_CoordY = 2.0 * X / RzPanel1->Height;
 	if (Button == mbRight) {
 
 		hit = DoSelect(X, Y); // номер объекта под курсором
@@ -226,43 +213,13 @@ void TForm1::Texture_Init() {
 
 void __fastcall TForm1::RzPanel1Paint(TObject *Sender) {
 	OpenGL_Draw();
-	// Render(GL_SELECT);
+	Render(GL_SELECT);
 	SwapBuffers(hdc);
-
 }
 
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1Resize(TObject *Sender) {
 	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height); // —брос текущей области вывода и перспективных преобразований
 	glGetIntegerv(GL_VIEWPORT, vp);
-}
-
-// ---------------------------------------------------------------------------
-void TForm1::AddPoint(OGL_Coord P) {
-	OGL_Coord_Arr[IndexPoint] = P;
-	IndexPoint++;
-}
-
-// ---------------------------------------------------------------------------
-
-void __fastcall TForm1::RzPanel1MouseMove(TObject *Sender, TShiftState Shift, int X, int Y) {
-	if (Shift.Contains(ssLeft)) // make sure button is down
-	{
-		mouse_OGL_Coord.X = 2.0 * X / RzPanel1->Width - 1;
-		mouse_OGL_Coord.Y = 2.0 * (RzPanel1->Height - Y) / RzPanel1->Height - 1;
-		AddPoint(mouse_OGL_Coord);
-		InvalidateRect(RzPanel1->Handle, NULL, false);
-	}
-}
-
-// ---------------------------------------------------------------------------
-void __fastcall TForm1::BtnExecuteClick(TObject *Sender) {
-
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	ZeroMemory(OGL_Coord_Arr, sizeof(mouse_OGL_Coord)*1000);
-	IndexPoint = 0;
-	SwapBuffers(hdc);
-
 }
 // ---------------------------------------------------------------------------

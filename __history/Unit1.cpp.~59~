@@ -13,10 +13,8 @@
 #pragma comment (lib, "glaux.lib")
 TForm1 *Form1;
 
-GLint CNormal[3];
-GLuint SelectBuf[4]; // массив для буфера выбора
-GLint vp[4]; // хранит видовую матрицу
-GLint hit;
+
+OGL_Coord *OGL_Coord_Arr = new OGL_Coord[1000];
 
 // ---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner) {
@@ -40,13 +38,13 @@ void TForm1::InitDisplay(HWND hwnd) {
 // ---------------------------------------------------------------------------
 void TForm1::OpenGL_Init() {
 
-	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height);
+	// glViewport(0, 0, RzPanel1->Width, RzPanel1->Height);
 	glGetIntegerv(GL_VIEWPORT, vp);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
 	// glOrtho(-2, 2, -2.0*RzPanel1->Width / RzPanel1->Height, 2.0*RzPanel1->Width / RzPanel1->Height, -2, 2);
-	// gluPerspective(45.0, RzPanel1->Width / RzPanel1->Height, 0.1, 100.0);
+	// gluPerspective(45.0, (GLfloat)RzPanel1->Width / RzPanel1->Height, 0.1, 100.0);
 	// gluOrtho2D(-10., 10., -10., 10.);
 
 	glMatrixMode(GL_MODELVIEW);
@@ -71,25 +69,16 @@ void __fastcall TForm1::FormDestroy(TObject *Sender) {
 }
 
 // ---------------------------------------------------------------------------
-void __fastcall TForm1::RzPanel1Resize(TObject *Sender) {
-	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height); // Сброс текущей области вывода и перспективных преобразований
-	glGetIntegerv(GL_VIEWPORT, vp);
-	InvalidateRect(Handle, 0, true);
-}
 
-// ---------------------------------------------------------------------------
 void TForm1::OpenGL_Draw() {
-
-}
-
-// ---------------------------------------------------------------------------
-void __fastcall TForm1::FormPaint(TObject *Sender) {
-	OpenGL_Draw();
-	glLoadIdentity;
-	glClear(GL_COLOR_BUFFER_BIT);
-	Render(GL_RENDER);
-
-	SwapBuffers(hdc);
+	 glClearColor(0, 0, 0, 0);
+	 glClear(GL_COLOR_BUFFER_BIT);
+	 glColor3f(0,1,0);
+	 glBegin(GL_POINTS);
+	 for (int i = 0 ; i < IndexPoint; i++){
+     	glVertex2f(OGL_Coord_Arr[i].X, OGL_Coord_Arr[i].Y);
+	 }
+	 glEnd();
 }
 
 // ---------------------------------------------------------------------------
@@ -99,31 +88,8 @@ void __fastcall TForm1::BtnExecuteMouseDown(TObject *Sender, TMouseButton Button
 }
 
 // ---------------------------------------------------------------------------
-
-GLint TForm1::DoSelect(GLint x, GLint y) {
-
-	GLint hits;
-
-	glRenderMode(GL_SELECT); // включаем режим выбора
-	// режим выбора нужен для работы следующих команд
-	glInitNames(); // инициализация стека имен
-	glPushName(0); // помещение имени в стек имен
-
-	glLoadIdentity();
-	gluPickMatrix(x, RzPanel1->Height - y, 2, 2, vp);
-
-	Render(GL_SELECT); // рисуем объекты с именованием объектов
-
-	hits = glRenderMode(GL_SELECT);
-
-	if (hits <= 0)
-		return -1;
-	else
-		return SelectBuf[(hits - 1) * 4 + 3];
-}
-// ---------------------------------------------------------------------------
-
 void TForm1::Render(GLenum mode) {
+
 	// красный треугольник
 	if (mode == GL_SELECT)
 		glLoadName(1); // именуем под именем 1
@@ -146,19 +112,53 @@ void TForm1::Render(GLenum mode) {
 }
 
 // ---------------------------------------------------------------------------
+GLint TForm1::DoSelect(GLint x, GLint y) {
+
+	GLint hits;
+
+	glRenderMode(GL_SELECT); // включаем режим выбора
+	// режим выбора нужен для работы следующих команд
+	glInitNames(); // инициализация стека имен
+	glPushName(0); // помещение имени в стек имен
+
+	glLoadIdentity();
+	gluPickMatrix(x, RzPanel1->Height - y, 2, 2, vp);
+
+	Render(GL_SELECT); // рисуем объекты с именованием объектов
+
+	hits = glRenderMode(GL_SELECT);
+
+	if (hits <= 0)
+		return -1;
+	else
+		return SelectBuf[(hits - 1) * 4 + 3];
+}
+
+// ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
 
-	hit = DoSelect(X, Y); // номер объекта под курсором
-	switch (hit) {
-	case -1:
-		ShowMessage("Пустое место");
-		break;
-	case 1:
-		ShowMessage("Красный треугольник");
-		break;
-	case 2:
-		ShowMessage("Синий треугольник");
-		break;
+	if (Button == mbLeft) {
+
+		mouse_OGL_Coord.X = 2.0 * X / RzPanel1->Width - 1;
+		mouse_OGL_Coord.Y = 2.0 * (RzPanel1->Height - Y) / RzPanel1->Height - 1;
+		ShowMessage("X = " + FloatToStr(mouse_OGL_Coord.X) + " Y = " + FloatToStr(mouse_OGL_Coord.Y));
+
+		AddPoint(mouse_OGL_Coord)
+	}
+	if (Button == mbRight) {
+
+		hit = DoSelect(X, Y); // номер объекта под курсором
+		switch (hit) {
+		case -1:
+			ShowMessage("Пустое место");
+			break;
+		case 1:
+			ShowMessage("Красный треугольник");
+			break;
+		case 2:
+			ShowMessage("Синий треугольник");
+			break;
+		}
 	}
 }
 // ---------------------------------------------------------------------------
@@ -222,3 +222,23 @@ void TForm1::Texture_Init() {
 }
 
 // ---------------------------------------------------------------------------
+
+void __fastcall TForm1::RzPanel1Paint(TObject *Sender) {
+	OpenGL_Draw();
+	Render(GL_SELECT);
+	SwapBuffers(hdc);
+}
+
+// ---------------------------------------------------------------------------
+void __fastcall TForm1::RzPanel1Resize(TObject *Sender) {
+	glViewport(0, 0, RzPanel1->Width, RzPanel1->Height); // Сброс текущей области вывода и перспективных преобразований
+	glGetIntegerv(GL_VIEWPORT, vp);
+}
+// ---------------------------------------------------------------------------
+void TForm1::AddPoint(OGL_Coord P)
+{
+	 OGL_Coord_Arr[IndexPoint] = P;
+	 IndexPoint++;
+}
+//---------------------------------------------------------------------------
+

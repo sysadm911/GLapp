@@ -18,6 +18,12 @@
 #include "RzPanel.hpp"
 #include <ExtCtrls.hpp>
 
+
+struct OGL_Coord {
+	float X, Y;
+} mouse_OGL_Coord;
+
+int IndexPoint = 0;
 // ---------------------------------------------------------------------------
 class TForm1 : public TForm {
 __published: // IDE-managed Components
@@ -29,12 +35,19 @@ __published: // IDE-managed Components
 	TRzToolButton *BtnExecute;
 
 	void __fastcall FormDestroy(TObject *Sender);
-	void __fastcall FormPaint(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
-	void __fastcall RzPanel1Resize(TObject *Sender);
 	void __fastcall BtnExecuteMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
+	void __fastcall RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y);
+	void __fastcall RzPanel1Paint(TObject *Sender);
+	void __fastcall RzPanel1Resize(TObject *Sender);
+	void __fastcall RzPanel1MouseMove(TObject *Sender, TShiftState Shift, int X, int Y);
+	void __fastcall BtnExecuteClick(TObject *Sender);
 
 private: // User declarations
+	void AddPoint(OGL_Coord P);
+	void Render(GLenum mode);
+	GLint DoSelect(GLint x, GLint y);
+	void Texture_Init();
 	void FindNormal(float v1x, float v1y, float v1z, float v2x, float v2y, float v2z, float v3x, float v3y, float v3z);
 	void OpenGL_Draw();
 	void OpenGL_Init();
@@ -43,6 +56,13 @@ private: // User declarations
 	HDC hdc;
 	HGLRC hrc;
 
+	GLint CNormal[3];
+	GLuint SelectBuf[4]; // массив для буфера выбора
+	GLint vp[4]; // хранит видовую матрицу
+	GLint hit;
+
+	GLuint TextureID;
+	GLubyte *TextureData;
 	float rotation;
 
 	void InitDisplay(HWND hwnd);

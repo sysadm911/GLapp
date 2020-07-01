@@ -12,8 +12,8 @@
 #pragma resource "*.dfm"
 #pragma comment (lib, "glaux.lib")
 TForm1 *Form1;
-int IndexPoint = 0;
-OGL_Coord *OGL_Coord_Arr = new OGL_Coord[200];
+
+OGL_Coord *OGL_Coord_Arr = new OGL_Coord[1000];
 
 // ---------------------------------------------------------------------------
 __fastcall TForm1::TForm1(TComponent* Owner) : TForm(Owner) {
@@ -73,14 +73,14 @@ void TForm1::OpenGL_Draw() {
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glColor3f(0, 1, 0);
-//	glPointSize(5);
+	glPointSize(5);
 	glEnable(GL_POINT_SMOOTH);
+
 	glBegin(GL_POINTS);
 	for (int i = 0; i < IndexPoint; i++) {
 		glVertex2f(OGL_Coord_Arr[i].X, OGL_Coord_Arr[i].Y);
 	}
 	glEnd();
-
 }
 
 // ---------------------------------------------------------------------------
@@ -139,13 +139,13 @@ GLint TForm1::DoSelect(GLint x, GLint y) {
 // ---------------------------------------------------------------------------
 void __fastcall TForm1::RzPanel1MouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
 
-	// if (Button == mbLeft) {
-	//
-	// mouse_OGL_Coord.X = 2.0 * X / RzPanel1->Width - 1;
-	// mouse_OGL_Coord.Y = 2.0 * (RzPanel1->Height - Y) / RzPanel1->Height - 1;
-	// AddPoint(mouse_OGL_Coord);
-	// InvalidateRect(RzPanel1->Handle, NULL, true);
-	// }
+	if (Button == mbLeft) {
+
+		mouse_OGL_Coord.X = 2.0 * X / RzPanel1->Width - 1;
+		mouse_OGL_Coord.Y = 2.0 * (RzPanel1->Height - Y) / RzPanel1->Height - 1;
+		AddPoint(mouse_OGL_Coord);
+		InvalidateRect(RzPanel1->Handle, NULL, true);
+	}
 	if (Button == mbRight) {
 
 		hit = DoSelect(X, Y); // номер объекта под курсором
@@ -228,7 +228,6 @@ void __fastcall TForm1::RzPanel1Paint(TObject *Sender) {
 	OpenGL_Draw();
 	// Render(GL_SELECT);
 	SwapBuffers(hdc);
-
 }
 
 // ---------------------------------------------------------------------------
@@ -245,24 +244,14 @@ void TForm1::AddPoint(OGL_Coord P) {
 
 // ---------------------------------------------------------------------------
 
+
 void __fastcall TForm1::RzPanel1MouseMove(TObject *Sender, TShiftState Shift, int X, int Y) {
 	if (Shift.Contains(ssLeft)) // make sure button is down
 	{
 		mouse_OGL_Coord.X = 2.0 * X / RzPanel1->Width - 1;
 		mouse_OGL_Coord.Y = 2.0 * (RzPanel1->Height - Y) / RzPanel1->Height - 1;
 		AddPoint(mouse_OGL_Coord);
-		InvalidateRect(RzPanel1->Handle, NULL, false);
+		InvalidateRect(RzPanel1->Handle, NULL, true);
 	}
-}
-
-// ---------------------------------------------------------------------------
-void __fastcall TForm1::BtnExecuteClick(TObject *Sender) {
-
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	ZeroMemory(OGL_Coord_Arr, sizeof(mouse_OGL_Coord)*1000);
-	IndexPoint = 0;
-	SwapBuffers(hdc);
-
-}
-// ---------------------------------------------------------------------------
+    }
+	// ---------------------------------------------------------------------------
